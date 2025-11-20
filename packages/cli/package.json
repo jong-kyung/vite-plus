@@ -14,6 +14,10 @@
     "./bin": {
       "import": "./dist/bin.js"
     },
+    "./binding": {
+      "import": "./dist/binding.js",
+      "types": "./dist/binding.d.ts"
+    },
     "./browser": {
       "types": "./dist/vitest/browser/context.d.ts",
       "default": "./dist/vitest/browser/context.js"
@@ -181,7 +185,8 @@
   },
   "scripts": {
     "build": "oxnode -C dev ./build.ts",
-    "snap-test": "tool snap-test"
+    "snap-test": "tool snap-test",
+    "test": "vitest run"
   },
   "files": [
     "bin",

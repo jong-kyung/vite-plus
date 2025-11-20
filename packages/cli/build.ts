@@ -89,6 +89,8 @@ async function buildCli() {
   });
 
   await cp(join(rolldownViteSourceDir, 'client.d.ts'), join(projectDir, 'dist', 'vite', 'client.d.ts'));
+  await cp(join(projectDir, 'binding', 'index.d.ts'), join(projectDir, 'dist', 'binding.d.ts'));
+  await cp(join(projectDir, 'binding', 'index.js'), join(projectDir, 'dist', 'binding.js'));
 }
 
 async function buildVite() {
