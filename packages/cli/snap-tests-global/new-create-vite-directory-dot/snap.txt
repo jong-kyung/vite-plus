@@ -1,10 +1,3 @@
-[1]> vp create vite:application --no-interactive --directory . # create vite app in current directory
-
-Using package name: new-create-vite-directory-dot
-
-Use --directory to specify a different location or remove the directory first
-Target directory "<cwd>" is not empty
-
-
-[1]> ls package.json # check package.json exists in current directory
-ls: package.json: No such file or directory
+> mkdir -p my-app && cd my-app && vp create vite:application --no-interactive --directory . # create vite app in current directory
+> test -f my-app/package.json && echo 'Created at my-app with --directory .' || echo 'NOT at my-app'
+Created at my-app with --directory .
