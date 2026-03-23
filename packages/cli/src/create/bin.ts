@@ -582,7 +582,6 @@ Use \`vp create --list\` to list all available templates, or run \`vp create --h
         workspaceInfoOptional.monorepoScope,
         fallbackName,
       );
-      prompts.log.info(`Using package name: ${accent(packageName)}`);
       if (isMonorepo) {
         if (!cwdRelativeToRoot) {
           // At monorepo root: scaffolding here would overwrite the entire workspace
@@ -607,6 +606,7 @@ Use \`vp create --list\` to list all available templates, or run \`vp create --h
         // so that scaffolding happens in cwd, not at the workspace root
         targetDir = cwdRelativeToRoot;
       }
+      prompts.log.info(`Using package name: ${accent(packageName)}`);
     } else if (selectedTemplateName === BuiltinTemplate.monorepo) {
       const selected = await promptPackageNameAndTargetDir(
         getRandomProjectName({ fallbackName: 'vite-plus-monorepo' }),

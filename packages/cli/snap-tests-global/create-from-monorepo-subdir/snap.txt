@@ -25,19 +25,13 @@ Created at apps/custom-app with --directory
 Created at apps/dot-test with --directory .
 
 > vp create --no-interactive vite:application --directory . 2>&1 || true # --directory . from monorepo root should fail
-
-Using package name: create-from-monorepo-subdir
 Cannot scaffold into the monorepo root directory. Use --directory to specify a target directory
 
 
 > mkdir -p apps/website/src && cd apps/website/src && vp create --no-interactive vite:application --directory . 2>&1 || true # --directory . inside existing package should fail
-
-Using package name: src
 Cannot scaffold inside existing package "website" (apps/website). Use --directory to specify a different location
 
 
 > cd apps/website && vp create --no-interactive vite:application --directory . 2>&1 || true # --directory . at existing package root should fail
-
-Using package name: website
 Cannot scaffold inside existing package "website" (apps/website). Use --directory to specify a different location
 
