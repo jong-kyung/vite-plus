@@ -796,7 +796,7 @@ Use \`vp create --list\` to list all available templates, or run \`vp create --h
       editorId: selectedEditor,
       interactive: options.interactive,
       silent: compactOutput,
-      additionalSettings: { 'npm.scriptRunner': 'vp' },
+      extraVsCodeSettings: { 'npm.scriptRunner': 'vp' },
     });
     resumeCreateProgress();
     workspaceInfo.rootDir = fullPath;
@@ -886,7 +886,7 @@ Use \`vp create --list\` to list all available templates, or run \`vp create --h
     editorId: selectedEditor,
     interactive: options.interactive,
     silent: compactOutput,
-    additionalSettings: { 'npm.scriptRunner': 'vp' },
+    extraVsCodeSettings: { 'npm.scriptRunner': 'vp' },
   });
   resumeCreateProgress();
 
