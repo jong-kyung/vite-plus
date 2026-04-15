@@ -22,6 +22,7 @@ pub(crate) async fn execute_check(
     fix: bool,
     no_fmt: bool,
     no_lint: bool,
+    type_check_only: bool,
     paths: Vec<String>,
     envs: &Arc<FxHashMap<Arc<OsStr>, Arc<OsStr>>>,
     cwd: &AbsolutePathBuf,
@@ -35,13 +36,25 @@ pub(crate) async fn execute_check(
         return Ok(ExitStatus(1));
     }
 
+    if type_check_only && no_lint {
+        output::error("Conflicting flags");
+        print_summary_line("`vp check --type-check-only` cannot be used with `--no-lint`");
+        return Ok(ExitStatus(1));
+    }
+
+    if type_check_only && fix {
+        output::error("Conflicting flags");
+        print_summary_line("`vp check --type-check-only` cannot be used with `--fix`");
+        return Ok(ExitStatus(1));
+    }
+
     let mut status = ExitStatus::SUCCESS;
     let has_paths = !paths.is_empty();
     let mut fmt_fix_started: Option<Instant> = None;
     let mut deferred_lint_pass: Option<(String, String)> = None;
     let resolved_vite_config = resolver.resolve_universal_vite_config().await?;
 
-    if !no_fmt {
+    if !no_fmt && !type_check_only {
         let mut args = if fix { vec![] } else { vec!["--check".to_string()] };
         if has_paths {
             args.push("--no-error-on-unmatched-pattern".to_string());
@@ -115,8 +128,11 @@ pub(crate) async fn execute_check(
     }
 
     if !no_lint {
-        let lint_message_kind =
-            LintMessageKind::from_lint_config(resolved_vite_config.lint.as_ref());
+        let lint_message_kind = if type_check_only {
+            LintMessageKind::TypeCheckOnly
+        } else {
+            LintMessageKind::from_lint_config(resolved_vite_config.lint.as_ref())
+        };
         let mut args = Vec::new();
         if fix {
             args.push("--fix".to_string());
@@ -127,6 +143,9 @@ pub(crate) async fn execute_check(
         // parser think linting never started. Force the default reporter here so the
         // captured output is stable across local and CI environments.
         args.push("--format=default".to_string());
+        if type_check_only {
+            args.push("--type-check-only".to_string());
+        }
         if has_paths {
             args.extend(paths.iter().cloned());
         }

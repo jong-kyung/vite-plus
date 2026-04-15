@@ -93,6 +93,9 @@ pub enum SynthesizableSubcommand {
         /// Skip lint check
         #[arg(long = "no-lint")]
         no_lint: bool,
+        /// Run only type checking, skipping format and lint rules
+        #[arg(long = "type-check-only")]
+        type_check_only: bool,
         /// File paths to check (passed through to fmt and lint)
         #[arg(trailing_var_arg = true)]
         paths: Vec<String>,

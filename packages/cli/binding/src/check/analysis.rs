@@ -39,6 +39,7 @@ pub(super) struct LintFailure {
 pub(super) enum LintMessageKind {
     LintOnly,
     LintAndTypeCheck,
+    TypeCheckOnly,
 }
 
 impl LintMessageKind {
@@ -56,6 +57,7 @@ impl LintMessageKind {
         match self {
             Self::LintOnly => "Found no warnings or lint errors",
             Self::LintAndTypeCheck => "Found no warnings, lint errors, or type errors",
+            Self::TypeCheckOnly => "Found no type errors",
         }
     }
 
@@ -63,6 +65,7 @@ impl LintMessageKind {
         match self {
             Self::LintOnly => "Lint warnings found",
             Self::LintAndTypeCheck => "Lint or type warnings found",
+            Self::TypeCheckOnly => "Type warnings found",
         }
     }
 
@@ -70,6 +73,7 @@ impl LintMessageKind {
         match self {
             Self::LintOnly => "Lint issues found",
             Self::LintAndTypeCheck => "Lint or type issues found",
+            Self::TypeCheckOnly => "Type errors found",
         }
     }
 }
@@ -251,5 +255,25 @@ mod tests {
         assert_eq!(kind.success_label(), "Found no warnings, lint errors, or type errors");
         assert_eq!(kind.warning_heading(), "Lint or type warnings found");
         assert_eq!(kind.issue_heading(), "Lint or type issues found");
+    }
+
+    #[test]
+    fn lint_message_kind_type_check_only_messages() {
+        let kind = LintMessageKind::TypeCheckOnly;
+
+        assert_eq!(kind.success_label(), "Found no type errors");
+        assert_eq!(kind.warning_heading(), "Type warnings found");
+        assert_eq!(kind.issue_heading(), "Type errors found");
+    }
+
+    #[test]
+    fn lint_message_kind_from_lint_config_does_not_return_type_check_only() {
+        assert_eq!(LintMessageKind::from_lint_config(None), LintMessageKind::LintOnly);
+        assert_eq!(
+            LintMessageKind::from_lint_config(Some(&json!({
+                "options": { "typeCheck": true }
+            }))),
+            LintMessageKind::LintAndTypeCheck
+        );
     }
 }
