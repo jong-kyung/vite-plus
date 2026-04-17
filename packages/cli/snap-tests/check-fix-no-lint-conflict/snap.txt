@@ -1,0 +1,4 @@
+[1]> vp check --fix --no-lint
+error: Cannot combine --fix with --no-lint when type checking is enabled
+
+`vp check --fix` cannot be used with `--no-lint` while type checking is enabled. Add `--no-type-check` to run fmt-only fix.
