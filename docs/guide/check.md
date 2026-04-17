@@ -17,6 +17,37 @@ vp check
 vp check --fix # Format and run autofixers.
 ```
 
+### Phase toggles
+
+`vp check` exposes its three core phases — format, lint, and type check — as
+independent `--no-*` flags. All three run by default. Disable any subset by
+combining the flags:
+
+| Command | fmt | lint | type check |
+|---|:-:|:-:|:-:|
+| `vp check` | ✓ | ✓ | ✓ |
+| `vp check --no-fmt` | ✗ | ✓ | ✓ |
+| `vp check --no-lint` | ✓ | ✗ | ✓ |
+| `vp check --no-type-check` | ✓ | ✓ | ✗ |
+| `vp check --no-lint --no-type-check` | ✓ | ✗ | ✗ |
+
+Notes:
+
+- `--no-lint` skips lint rules only. Type checking still runs when
+  `lint.options.typeCheck` is enabled in `vite.config.ts` — useful when you want
+  to focus on type errors without lint-rule noise.
+- `--no-type-check` overrides `lint.options.typeCheck` at runtime. Lint rules —
+  including type-aware rules governed by `typeAware` — continue to run.
+- Disabling every phase (`--no-fmt --no-lint --no-type-check`) exits with an
+  error.
+- `--fix` cannot be combined with `--no-lint` while type checking is enabled,
+  because lint rule fixes would be skipped. Add `--no-type-check` to request a
+  fmt-only fix.
+
+> **Breaking change:** Prior releases treated `--no-lint` as "skip the entire
+> lint phase, including type checks". `--no-lint` now skips lint rules only. To
+> restore the old behavior (skip both), use `--no-lint --no-type-check`.
+
 ## Configuration
 
 `vp check` uses the same configuration you already define for linting and formatting:
