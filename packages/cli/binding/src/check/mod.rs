@@ -10,7 +10,8 @@ use vite_task::ExitStatus;
 
 use self::analysis::{
     LintMessageKind, analyze_fmt_check_output, analyze_lint_output, format_count, format_elapsed,
-    print_error_block, print_pass_line, print_stdout_block, print_summary_line,
+    lint_config_type_check_enabled, print_error_block, print_pass_line, print_stdout_block,
+    print_summary_line,
 };
 use crate::cli::{
     CapturedCommandOutput, SubcommandResolver, SynthesizableSubcommand, resolve_and_capture_output,
@@ -22,7 +23,7 @@ pub(crate) async fn execute_check(
     fix: bool,
     no_fmt: bool,
     no_lint: bool,
-    _no_type_check: bool,
+    no_type_check: bool,
     no_error_on_unmatched_pattern: bool,
     paths: Vec<String>,
     envs: &Arc<FxHashMap<Arc<OsStr>, Arc<OsStr>>>,
@@ -46,6 +47,31 @@ pub(crate) async fn execute_check(
     let mut fmt_fix_started: Option<Instant> = None;
     let mut deferred_lint_pass: Option<(String, String)> = None;
     let resolved_vite_config = resolver.resolve_universal_vite_config().await?;
+
+    // Per-phase enabled booleans derived from the raw flags plus the resolved
+    // config's `typeCheck` setting. Currently only the guard immediately below
+    // reads these; the fmt/lint phase conditions further down still consult the
+    // raw `no_fmt`/`no_lint` flags.
+    let config_type_check_enabled =
+        lint_config_type_check_enabled(resolved_vite_config.lint.as_ref());
+    let type_check_enabled = !no_type_check && config_type_check_enabled;
+    let lint_enabled = !no_lint;
+
+    // Reject `--fix --no-lint` when the project enables type-check. With lint
+    // rules skipped, oxlint would take the type-check-only path which it
+    // itself refuses to combine with `--fix`. Running fmt first and then
+    // hitting that rejection would leave the working tree partially formatted
+    // (a real hazard inside lint-staged). Failing up-front keeps the
+    // invocation transactional.
+    if fix && !lint_enabled && type_check_enabled {
+        output::error(
+            "`vp check --fix --no-lint` cannot be combined with type-check enabled in config",
+        );
+        print_summary_line(
+            "type-check diagnostics are read-only and cannot be auto-fixed. Add `--no-type-check` to format-only fix, or drop `--no-lint` to run lint fixes.",
+        );
+        return Ok(ExitStatus(1));
+    }
 
     if !no_fmt {
         let mut args = if fix { vec![] } else { vec!["--check".to_string()] };
