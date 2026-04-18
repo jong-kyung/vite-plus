@@ -40,22 +40,12 @@ pub(super) enum LintMessageKind {
     LintOnly,
     LintAndTypeCheck,
     // Used when lint rules are skipped but type-check still runs.
-    #[allow(dead_code)]
     TypeCheckOnly,
 }
 
 impl LintMessageKind {
-    pub(super) fn from_lint_config(lint_config: Option<&serde_json::Value>) -> Self {
-        if lint_config_type_check_enabled(lint_config) {
-            Self::LintAndTypeCheck
-        } else {
-            Self::LintOnly
-        }
-    }
-
     // Selects a variant from the `(lint, type-check)` enabled tuple callers have
     // already resolved, avoiding a second config lookup inside the helper.
-    #[allow(dead_code)]
     pub(super) fn from_flags(lint_enabled: bool, type_check_enabled: bool) -> Self {
         match (lint_enabled, type_check_enabled) {
             (true, true) => Self::LintAndTypeCheck,
@@ -249,35 +239,4 @@ pub(super) fn analyze_lint_output(output: &str) -> Option<Result<LintSuccess, Li
     }
 
     Some(Err(LintFailure { summary, warnings, errors, diagnostics }))
-}
-
-#[cfg(test)]
-mod tests {
-    use serde_json::json;
-
-    use super::LintMessageKind;
-
-    #[test]
-    fn lint_message_kind_defaults_to_lint_only_without_typecheck() {
-        assert_eq!(LintMessageKind::from_lint_config(None), LintMessageKind::LintOnly);
-        assert_eq!(
-            LintMessageKind::from_lint_config(Some(&json!({ "options": {} }))),
-            LintMessageKind::LintOnly
-        );
-    }
-
-    #[test]
-    fn lint_message_kind_detects_typecheck_from_vite_config() {
-        let kind = LintMessageKind::from_lint_config(Some(&json!({
-            "options": {
-                "typeAware": true,
-                "typeCheck": true
-            }
-        })));
-
-        assert_eq!(kind, LintMessageKind::LintAndTypeCheck);
-        assert_eq!(kind.success_label(), "Found no warnings, lint errors, or type errors");
-        assert_eq!(kind.warning_heading(), "Lint or type warnings found");
-        assert_eq!(kind.issue_heading(), "Lint or type issues found");
-    }
 }
