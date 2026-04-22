@@ -14,8 +14,13 @@ We recommend turning `typeCheck` on so `vp check` becomes the single command for
 
 ```bash
 vp check
-vp check --fix # Format and run autofixers.
+vp check --fix             # Format and run autofixers.
+vp check --no-fmt          # Skip format; run lint (and type-check if enabled).
+vp check --no-lint         # Skip lint rules; keep type-check when enabled.
+vp check --no-fmt --no-lint # Type-check only (requires `typeCheck` enabled).
 ```
+
+When `lint.options.typeCheck` is enabled, `--no-lint` keeps type diagnostics by forwarding Oxlint's `--type-check-only` flag — useful for triaging type errors without lint noise. If `typeCheck` is not enabled, `--no-lint` simply skips the lint phase altogether, and `vp check --no-fmt --no-lint` exits with `No checks enabled` (enable `lint.options.typeCheck` to use the type-check-only invocation).
 
 ## Configuration
 
