@@ -20,8 +20,6 @@ vp check --no-lint         # Skip lint rules; keep type-check when enabled.
 vp check --no-fmt --no-lint # Type-check only (requires `typeCheck` enabled).
 ```
 
-When `lint.options.typeCheck` is enabled, `--no-lint` keeps type diagnostics by forwarding Oxlint's `--type-check-only` flag — useful for triaging type errors without lint noise. If `typeCheck` is not enabled, `--no-lint` simply skips the lint phase altogether, and `vp check --no-fmt --no-lint` exits with `No checks enabled` (enable `lint.options.typeCheck` to use the type-check-only invocation).
-
 ## Configuration
 
 `vp check` uses the same configuration you already define for linting and formatting:
