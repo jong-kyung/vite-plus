@@ -996,8 +996,7 @@ pub fn maybe_print_unified_clap_subcommand_help(argv: &[String]) -> bool {
     }
 
     if command_path.len() == 1 && command_path[0] == "env" {
-        println!("{}", vite_shared::header::vite_plus_header());
-        println!();
+        vite_shared::header::print_header();
         println!("{}", render_help_doc(&env_help_doc()));
         return true;
     }
@@ -1027,8 +1026,7 @@ pub fn maybe_print_unified_delegate_help(
     };
 
     if show_header {
-        println!("{}", vite_shared::header::vite_plus_header());
-        println!();
+        vite_shared::header::print_header();
     }
     println!("{}", render_help_doc(&doc));
     true
@@ -1036,8 +1034,7 @@ pub fn maybe_print_unified_delegate_help(
 
 pub fn print_unified_clap_help_for_path(command_path: &[&str]) -> bool {
     if command_path == ["env"] {
-        println!("{}", vite_shared::header::vite_plus_header());
-        println!();
+        vite_shared::header::print_header();
         println!("{}", render_help_doc(&env_help_doc()));
         return true;
     }
@@ -1060,8 +1057,7 @@ pub fn print_unified_clap_help_for_path(command_path: &[&str]) -> bool {
         ..doc
     };
 
-    println!("{}", vite_shared::header::vite_plus_header());
-    println!();
+    vite_shared::header::print_header();
     println!("{}", render_owned_help_doc(&doc));
     true
 }
