@@ -39,6 +39,7 @@ import { cancelAndExit, getSpinner } from '../utils/prompts.ts';
 import {
   findTsconfigFiles,
   hasBaseUrlInTsconfig,
+  hasTypesToRewriteInTsconfig,
   removeDeprecatedTsconfigFalseOption,
   rewriteTypesInTsconfig,
 } from '../utils/tsconfig.ts';
@@ -891,10 +892,16 @@ function cleanupDeprecatedTsconfigOptions(
   }
 }
 
-function rewriteTsconfigTypes(projectPath: string, silent = false, report?: MigrationReport): void {
+function rewriteTsconfigTypes(
+  projectPath: string,
+  silent = false,
+  report?: MigrationReport,
+): boolean {
+  let changed = false;
   const files = findTsconfigFiles(projectPath);
   for (const filePath of files) {
     if (rewriteTypesInTsconfig(filePath)) {
+      changed = true;
       if (report) {
         report.removedConfigCount++;
       }
@@ -903,6 +910,11 @@ function rewriteTsconfigTypes(projectPath: string, silent = false, report?: Migr
       }
     }
   }
+  return changed;
+}
+
+function hasTsconfigTypesToRewrite(projectPath: string): boolean {
+  return findTsconfigFiles(projectPath).some((filePath) => hasTypesToRewriteInTsconfig(filePath));
 }
 
 // .svelte files are handled by @sveltejs/vite-plugin-svelte (transpilation)
@@ -1913,6 +1925,104 @@ function readPrepareRulesYaml(): string {
   return cachedPrepareRulesYaml;
 }
 
+type CoreMigrationWorkspace = {
+  rootDir: string;
+  packages?: WorkspacePackage[];
+};
+
+export type PendingCoreMigration = {
+  scripts: boolean;
+  tsconfigTypes: boolean;
+};
+
+export type CoreMigrationFinalizationResult = {
+  scripts: boolean;
+  tsconfigTypes: boolean;
+  imports: boolean;
+};
+
+function getCoreMigrationProjectPaths(workspaceInfo: CoreMigrationWorkspace): string[] {
+  return [
+    workspaceInfo.rootDir,
+    ...(workspaceInfo.packages ?? []).map((pkg) => path.join(workspaceInfo.rootDir, pkg.path)),
+  ];
+}
+
+function hasCorePackageScriptRewrites(projectPath: string): boolean {
+  const packageJsonPath = path.join(projectPath, 'package.json');
+  if (!fs.existsSync(packageJsonPath)) {
+    return false;
+  }
+  const pkg = readJsonFile(packageJsonPath) as { scripts?: Record<string, string> };
+  if (!pkg.scripts) {
+    return false;
+  }
+  return !!rewriteScripts(JSON.stringify(pkg.scripts), getScriptRulesYaml(true));
+}
+
+function rewriteCorePackageScripts(projectPath: string): boolean {
+  const packageJsonPath = path.join(projectPath, 'package.json');
+  if (!fs.existsSync(packageJsonPath)) {
+    return false;
+  }
+
+  let changed = false;
+  editJsonFile<{ scripts?: Record<string, string> }>(packageJsonPath, (pkg) => {
+    if (!pkg.scripts) {
+      return undefined;
+    }
+    const updated = rewriteScripts(JSON.stringify(pkg.scripts), getScriptRulesYaml(true));
+    if (!updated) {
+      return undefined;
+    }
+    pkg.scripts = JSON.parse(updated);
+    changed = true;
+    return pkg;
+  });
+  return changed;
+}
+
+export function detectPendingCoreMigration(
+  workspaceInfo: CoreMigrationWorkspace,
+): PendingCoreMigration {
+  const projectPaths = getCoreMigrationProjectPaths(workspaceInfo);
+  return {
+    scripts: projectPaths.some((projectPath) => hasCorePackageScriptRewrites(projectPath)),
+    tsconfigTypes: projectPaths.some((projectPath) => hasTsconfigTypesToRewrite(projectPath)),
+  };
+}
+
+export function finalizeCoreMigrationForExistingVitePlus(
+  workspaceInfo: CoreMigrationWorkspace,
+  silent = false,
+  report?: MigrationReport,
+  pending = detectPendingCoreMigration(workspaceInfo),
+): CoreMigrationFinalizationResult {
+  const projectPaths = getCoreMigrationProjectPaths(workspaceInfo);
+  const result: CoreMigrationFinalizationResult = {
+    scripts: false,
+    tsconfigTypes: false,
+    imports: false,
+  };
+
+  if (pending.scripts) {
+    for (const projectPath of projectPaths) {
+      result.scripts = rewriteCorePackageScripts(projectPath) || result.scripts;
+    }
+  }
+
+  if (pending.tsconfigTypes) {
+    for (const projectPath of projectPaths) {
+      result.tsconfigTypes =
+        rewriteTsconfigTypes(projectPath, silent, report) || result.tsconfigTypes;
+    }
+  }
+
+  result.imports = rewriteAllImports(workspaceInfo.rootDir, silent, report);
+
+  return result;
+}
+
 export function rewritePackageJson(
   pkg: {
     scripts?: Record<string, string>;
@@ -2798,7 +2908,7 @@ function wrapLazyPluginsInViteConfig(
  * This rewrites vite/vitest imports to @voidzero-dev/vite-plus
  * @param projectPath - The root directory to search for files
  */
-function rewriteAllImports(projectPath: string, silent = false, report?: MigrationReport): void {
+function rewriteAllImports(projectPath: string, silent = false, report?: MigrationReport): boolean {
   const result = rewriteImportsInDirectory(projectPath);
   const modified = result.modifiedFiles.length;
   const errors = result.errors.length;
@@ -2833,6 +2943,7 @@ function rewriteAllImports(projectPath: string, silent = false, report?: Migrati
       }
     }
   }
+  return modified > 0;
 }
 
 /**

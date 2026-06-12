@@ -21,6 +21,8 @@ const {
   rewriteStandaloneProject,
   rewriteMonorepo,
   rewriteMonorepoProject,
+  detectPendingCoreMigration,
+  finalizeCoreMigrationForExistingVitePlus,
   parseNvmrcVersion,
   detectNodeVersionManagerFile,
   migrateNodeVersionManagerFile,
@@ -1985,6 +1987,110 @@ describe('rewriteStandaloneProject — tsconfig types rewriting', () => {
     expect((tsconfig.compilerOptions as { types: string[] }).types).toContain(
       'vite-plus/pack/client',
     );
+  });
+});
+
+describe('existing Vite+ core migration finalization', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vp-test-existing-vite-plus-'));
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('detects and finalizes legacy scripts, imports, and tsconfig types without dependency rewrites', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'package.json'),
+      JSON.stringify(
+        {
+          name: 'test',
+          scripts: {
+            dev: 'vite',
+            build: 'tsc -b && vite build',
+            preview: 'vite preview',
+          },
+          devDependencies: {
+            'vite-plus': 'latest',
+            '@voidzero-dev/vite-plus-core': 'latest',
+          },
+        },
+        null,
+        2,
+      ),
+    );
+    fs.writeFileSync(
+      path.join(tmpDir, 'vite.config.ts'),
+      "import { defineConfig } from 'vite';\nexport default defineConfig({});\n",
+    );
+    fs.writeFileSync(
+      path.join(tmpDir, 'tsconfig.app.json'),
+      JSON.stringify({ compilerOptions: { types: ['vite/client'] } }, null, 2),
+    );
+
+    const workspaceInfo = makeWorkspaceInfo(tmpDir, PackageManager.npm);
+    expect(detectPendingCoreMigration(workspaceInfo)).toEqual({
+      scripts: true,
+      tsconfigTypes: true,
+    });
+
+    expect(finalizeCoreMigrationForExistingVitePlus(workspaceInfo, true)).toEqual({
+      scripts: true,
+      tsconfigTypes: true,
+      imports: true,
+    });
+
+    const pkg = readJson(path.join(tmpDir, 'package.json')) as {
+      scripts: Record<string, string>;
+      devDependencies: Record<string, string>;
+      overrides?: Record<string, string>;
+    };
+    expect(pkg.scripts).toMatchObject({
+      dev: 'vp dev',
+      build: 'tsc -b && vp build',
+      preview: 'vp preview',
+    });
+    expect(pkg.devDependencies).toEqual({
+      'vite-plus': 'latest',
+      '@voidzero-dev/vite-plus-core': 'latest',
+    });
+    expect(pkg.overrides).toBeUndefined();
+    expect(fs.readFileSync(path.join(tmpDir, 'vite.config.ts'), 'utf8')).toContain(
+      "from 'vite-plus'",
+    );
+    const tsconfig = readJson(path.join(tmpDir, 'tsconfig.app.json'));
+    expect((tsconfig.compilerOptions as { types: string[] }).types).toEqual(['vite-plus/client']);
+    expect(detectPendingCoreMigration(workspaceInfo)).toEqual({
+      scripts: false,
+      tsconfigTypes: false,
+    });
+  });
+
+  it('detects package-level legacy signals in workspaces', () => {
+    const appDir = path.join(tmpDir, 'packages', 'app');
+    fs.mkdirSync(appDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpDir, 'package.json'),
+      JSON.stringify({ name: 'root', devDependencies: { 'vite-plus': 'latest' } }, null, 2),
+    );
+    fs.writeFileSync(
+      path.join(appDir, 'package.json'),
+      JSON.stringify({ name: 'app', scripts: { dev: 'vite' } }, null, 2),
+    );
+    const workspaceInfo = {
+      ...makeWorkspaceInfo(tmpDir, PackageManager.pnpm),
+      isMonorepo: true,
+      packages: [{ name: 'app', path: 'packages/app' }],
+    };
+
+    expect(detectPendingCoreMigration(workspaceInfo).scripts).toBe(true);
+    expect(finalizeCoreMigrationForExistingVitePlus(workspaceInfo, true).scripts).toBe(true);
+    const appPkg = readJson(path.join(appDir, 'package.json')) as {
+      scripts: Record<string, string>;
+    };
+    expect(appPkg.scripts.dev).toBe('vp dev');
   });
 });
 

@@ -54,7 +54,9 @@ import {
   detectFramework,
   detectIncompatibleEslintIntegration,
   detectNodeVersionManagerFile,
+  detectPendingCoreMigration,
   detectPrettierProject,
+  finalizeCoreMigrationForExistingVitePlus,
   hasFrameworkShim,
   injectLintTypeCheckDefaults,
   installGitHooks,
@@ -936,6 +938,21 @@ async function main() {
         migrationProgressStarted = false;
       }
     };
+
+    const pendingCoreMigration = detectPendingCoreMigration(workspaceInfoOptional);
+    const coreMigrationResult = finalizeCoreMigrationForExistingVitePlus(
+      workspaceInfoOptional,
+      true,
+      report,
+      pendingCoreMigration,
+    );
+    if (
+      coreMigrationResult.scripts ||
+      coreMigrationResult.tsconfigTypes ||
+      coreMigrationResult.imports
+    ) {
+      didMigrate = true;
+    }
 
     const fixBaseUrl = hasBaseUrlInWorkspace(workspaceInfoOptional)
       ? await confirmBaseUrlFix(options.interactive)
