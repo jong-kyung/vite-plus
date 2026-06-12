@@ -546,12 +546,11 @@ function getExistingVitePlusSetupOptions(
   options: MigrationOptions,
   legacyGitHooksMigrationCandidate: boolean,
 ): MigrationOptions {
-  if (options.interactive) {
-    return options;
-  }
   return {
     ...options,
-    hooks: options.hooks ?? legacyGitHooksMigrationCandidate,
+    hooks:
+      options.hooks ??
+      (legacyGitHooksMigrationCandidate ? (options.interactive ? undefined : true) : false),
     agent: options.agent ?? false,
     editor: options.editor ?? false,
   };
