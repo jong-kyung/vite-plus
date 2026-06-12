@@ -3030,12 +3030,10 @@ export function detectLegacyGitHooksMigrationCandidate(projectPath: string): boo
   const prodDeps = pkg.dependencies ?? {};
   return (
     getOldHooksDir(projectPath) !== undefined ||
-    fs.existsSync(path.join(projectPath, '.husky')) ||
     REPLACED_HOOK_PACKAGES.some(
       (name) => deps[name] !== undefined || prodDeps[name] !== undefined,
     ) ||
-    pkg['lint-staged'] !== undefined ||
-    hasStandaloneLintStagedConfig(projectPath)
+    pkg['lint-staged'] !== undefined
   );
 }
 

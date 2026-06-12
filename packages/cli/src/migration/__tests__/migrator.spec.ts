@@ -2178,6 +2178,30 @@ describe('detectLegacyGitHooksMigrationCandidate', () => {
 
     expect(detectLegacyGitHooksMigrationCandidate(tmpDir)).toBe(false);
   });
+
+  it('does not treat standalone lint-staged config as active hook migration', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'package.json'),
+      JSON.stringify({
+        devDependencies: { 'vite-plus': 'latest' },
+      }),
+    );
+    fs.writeFileSync(path.join(tmpDir, 'lint-staged.config.mjs'), 'export default {};\n');
+
+    expect(detectLegacyGitHooksMigrationCandidate(tmpDir)).toBe(false);
+  });
+
+  it('does not treat a passive .husky directory as active hook migration', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'package.json'),
+      JSON.stringify({
+        devDependencies: { 'vite-plus': 'latest' },
+      }),
+    );
+    fs.mkdirSync(path.join(tmpDir, '.husky'));
+
+    expect(detectLegacyGitHooksMigrationCandidate(tmpDir)).toBe(false);
+  });
 });
 
 describe('preflightGitHooksSetup husky catalog resolution', () => {

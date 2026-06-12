@@ -66,6 +66,7 @@ import {
   migrateNodeVersionManagerFile,
   migratePrettierToOxfmt,
   preflightGitHooksSetup,
+  promptEslintMigration,
   promptPrettierMigration,
   rewriteMonorepo,
   rewriteStandaloneProject,
@@ -524,11 +525,14 @@ async function collectMigrationSetupPlan(
   packageManager: PackageManager | undefined,
   options: MigrationOptions,
   packages?: WorkspacePackage[],
+  includeEslint = true,
 ): Promise<MigrationSetupPlan> {
   const shouldSetupHooks = await collectGitHooksDecision(rootDir, packageManager, options);
   const agentPlan = await collectAgentInstructionPlan(rootDir, options);
   const editorPlan = await collectEditorConfigPlan(rootDir, options);
-  const eslintPlan = await collectEslintMigrationDecision(rootDir, options, packages);
+  const eslintPlan = includeEslint
+    ? await collectEslintMigrationDecision(rootDir, options, packages)
+    : { migrateEslint: false };
 
   return {
     shouldSetupHooks,
@@ -1060,6 +1064,7 @@ async function main() {
       workspaceInfoOptional.packageManager,
       setupOptions,
       workspaceInfoOptional.packages,
+      false,
     );
 
     const fixBaseUrl = hasBaseUrlInWorkspace(workspaceInfoOptional)
@@ -1082,22 +1087,11 @@ async function main() {
     }
     clearMigrationProgress();
 
-    let eslintMigrated = false;
-    if (plan.migrateEslint) {
-      updateMigrationProgress('Migrating ESLint');
-      const eslintOk = await migrateEslintToOxlint(
-        workspaceInfoOptional.rootDir,
-        options.interactive,
-        plan.eslintConfigFile,
-        workspaceInfoOptional.packages,
-        { silent: true, report },
-      );
-      if (!eslintOk) {
-        clearMigrationProgress();
-        cancelAndExit('ESLint migration failed. Fix the issue and re-run `vp migrate`.', 1);
-      }
-      eslintMigrated = true;
-    }
+    const eslintMigrated = await promptEslintMigration(
+      workspaceInfoOptional.rootDir,
+      options.interactive,
+      workspaceInfoOptional.packages,
+    );
 
     // Check if Prettier migration is needed
     const prettierMigrated = await promptPrettierMigration(
