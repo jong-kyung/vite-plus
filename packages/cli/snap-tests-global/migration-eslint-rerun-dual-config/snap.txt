@@ -1,7 +1,7 @@
 > vp migrate --no-interactive # should detect vite-plus + eslint and auto-migrate eslint
-◇ Updated .
+◇ Migrated . to Vite+
 • Node <semver>  pnpm <semver>
-• 4 config updates applied
+• 5 config updates applied
 • ESLint rules migrated to Oxlint
 • Package manager settings configured
 
@@ -9,7 +9,8 @@
 {
   "name": "migration-eslint-rerun-dual-config",
   "scripts": {
-    "lint": "vp lint ."
+    "lint": "vp lint .",
+    "prepare": "vp config"
   },
   "devDependencies": {
     "vite-plus": "latest"
@@ -29,6 +30,9 @@
 import { defineConfig } from 'vite-plus';
 
 export default defineConfig({
+  staged: {
+    "*": "vp check --fix"
+  },
   lint: {
     "plugins": [
       "oxc",
@@ -57,5 +61,4 @@ export default defineConfig({
       }
     ]
   },
-  
 });

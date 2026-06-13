@@ -609,7 +609,11 @@ async function collectMigrationSetupPlan(
 function getExistingVitePlusSetupOptions(
   options: MigrationOptions,
   legacyGitHooksMigrationCandidate: boolean,
+  useFullMigrationDefaults = false,
 ): MigrationOptions {
+  if (useFullMigrationDefaults) {
+    return options;
+  }
   return {
     ...options,
     hooks:
@@ -1162,7 +1166,15 @@ async function main() {
       return;
     }
 
-    const setupOptions = getExistingVitePlusSetupOptions(options, legacyGitHooksMigrationCandidate);
+    const useFullMigrationDefaults =
+      vitePlusBootstrapPending ||
+      pendingCoreMigration.scripts ||
+      pendingCoreMigration.tsconfigTypes;
+    const setupOptions = getExistingVitePlusSetupOptions(
+      options,
+      legacyGitHooksMigrationCandidate,
+      useFullMigrationDefaults,
+    );
     const plan = await collectMigrationSetupPlan(
       workspaceInfoOptional.rootDir,
       packageManager,
@@ -1380,7 +1392,7 @@ async function main() {
         packageManagerVersion,
         installDurationMs,
         report,
-        updatedExistingVitePlus: true,
+        updatedExistingVitePlus: !useFullMigrationDefaults,
       });
     } else {
       prompts.outro(`This project is already using Vite+! ${accent('Happy coding!')}`);

@@ -1,7 +1,7 @@
 > git init
 > git config core.hooksPath .husky/_
 > vp migrate --no-interactive # should override husky's core.hooksPath and migrate hooks
-◇ Updated .
+◇ Migrated . to Vite+
 • Node <semver>  pnpm <semver>
 • 2 config updates applied
 • Git hooks configured

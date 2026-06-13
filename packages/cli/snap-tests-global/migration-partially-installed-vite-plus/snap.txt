@@ -1,5 +1,5 @@
 > vp migrate --no-interactive --no-hooks --no-agent --no-editor # should finish core rewrites even when vite-plus is already installed
-◇ Updated .
+◇ Migrated . to Vite+
 • Node <semver>  npm <semver>
 • 1 config update applied, 1 file had imports rewritten
 

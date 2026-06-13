@@ -1,5 +1,7 @@
 > vp migrate --no-interactive # migration should warn about non-JSON lint-staged config
-◇ Updated .
+
+⚠ Unsupported lint-staged config format — skipping git hooks setup. Please configure git hooks manually.
+◇ Migrated . to Vite+
 • Node <semver>  pnpm <semver>
 • 3 config updates applied
 • ESLint rules migrated to Oxlint
