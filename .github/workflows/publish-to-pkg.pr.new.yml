@@ -24,16 +24,14 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
-
-      # pkg-pr-new rewrites the published version anyway, but we still need a
-      # unique snapshot version so `napi pre-publish` writes consistent
-      # optionalDependencies entries across the platform packages.
+      # Use the exact version the registry bridge serves (0.0.0-commit.<head-sha>,
+      # same head SHA the bridge registers below), so the built Rust binary and JS
+      # dist carry the version that actually gets installed: CARGO_PKG_VERSION and
+      # cliPkg.version both equal it, instead of the build-time release placeholder.
+      # `napi pre-publish` reuses this for consistent optionalDependencies entries.
       - name: Compute version
         id: version
-        run: |
-          short_sha=$(git rev-parse --short=7 HEAD)
-          echo "version=0.0.0-pkg-pr-new.${short_sha}" >> "$GITHUB_OUTPUT"
+        run: echo "version=0.0.0-commit.${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
 
   build-rust:
     name: Build bindings and binaries
@@ -61,6 +59,10 @@ jobs:
       # pkg-pr-new comments on PRs and posts run statuses with this token.
       contents: read
       pull-requests: write
+      # The "Comment bridge version" step creates/updates a sticky comment via
+      # github.rest.issues.createComment/updateComment; creating an issue comment
+      # is gated on issues:write (the create path runs on PRs without one yet).
+      issues: write
     env:
       VERSION: ${{ needs.prepare.outputs.version }}
     steps:
@@ -137,6 +139,119 @@ jobs:
             './packages/cli' \
             './packages/core' \
             './packages/prompts'
+
+      # Publish this commit build to the pkg.pr.new registry bridge so it can be
+      # installed as the npm version 0.0.0-commit.<sha>
+      # (https://github.com/voidzero-dev/pkg-pr-registry-bridge). The bridge action
+      # downloads each pkg.pr.new package (the two preview packages and every
+      # platform binary), re-packs them under the commit version with matching
+      # integrity, uploads them to the bridge, and registers the ref (the CPU
+      # work that previously ran in the bridge's GitHub webhook). pkg-pr-new
+      # publishes under the PR head commit, so pass that SHA (not the merge
+      # commit github.sha). Restricted to same-repo PRs because fork PRs do not
+      # receive the admin token secret; never fails the publish if the bridge is
+      # unreachable.
+      - name: Register commit build with the registry bridge
+        id: bridge
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true
+        uses: voidzero-dev/pkg-pr-registry-bridge@4072b814c54de94d12d11b5174d6eb2a74496b7c # main
+        with:
+          sha: ${{ github.event.pull_request.head.sha }}
+          admin-token: ${{ secrets.PKG_PR_BRIDGE_ADMIN_TOKEN }}
+          # Surfaced by the bridge's /-/refs so a registered ref links back to its
+          # PR. Always present here (this workflow only runs on pull_request).
+          pr-url: ${{ github.event.pull_request.html_url }}
+
+      # Once the bridge has the commit build, post (or update) a sticky PR comment
+      # with the resolved npm versions and per-package-manager registry config, so
+      # reviewers can install the build directly. Gated on the bridge step's real
+      # outcome (it is continue-on-error) and skipped for fork PRs.
+      - name: Comment bridge version on the PR
+        if: steps.bridge.outcome == 'success'
+        continue-on-error: true
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          # The synthetic version (0.0.0-commit.<sha>) the bridge action
+          # published, so the version scheme has one source of truth (the action).
+          BRIDGE_VERSION: ${{ steps.bridge.outputs.version }}
+        with:
+          script: |
+            const version = process.env.BRIDGE_VERSION;
+            const shortSha = context.payload.pull_request.head.sha.slice(0, 7);
+            const pr = context.payload.pull_request.number;
+            const marker = '<!-- pkg-pr-bridge-version -->';
+            const bridge = 'https://registry-bridge.viteplus.dev/';
+            // Built as a line array (not a template literal) so the inline
+            // backticks and the fenced json block don't need backslash-escaping.
+            const body = [
+              marker,
+              '',
+              `### Registry bridge build (\`${shortSha}\`)`,
+              '',
+              'This commit is published to pkg.pr.new and registered with the [registry bridge](https://github.com/voidzero-dev/pkg-pr-registry-bridge), which serves these as ordinary npm versions (every other package proxies to npmjs):',
+              '',
+              '| Package | Version |',
+              '| --- | --- |',
+              `| \`vite-plus\` | \`${version}\` |`,
+              `| \`@voidzero-dev/vite-plus-core\` | \`${version}\` |`,
+              '',
+              '**Install the Vite+ CLI built from this commit, then migrate a project:**',
+              '',
+              '```bash',
+              '# macOS / Linux',
+              `curl -fsSL https://vite.plus | VP_PR_VERSION=${pr} bash`,
+              '```',
+              '```powershell',
+              '# Windows (PowerShell)',
+              `$env:VP_PR_VERSION="${pr}"; irm https://vite.plus/ps1 | iex`,
+              '```',
+              '',
+              `After installing, upgrade the current project's \`vite-plus\` to this test build with:`,
+              '',
+              '```bash',
+              'vp migrate',
+              '```',
+              '',
+              `**Or** point your package manager at the bridge registry \`${bridge}\`:`,
+              '',
+              '| Package manager | Registry config |',
+              '| --- | --- |',
+              `| npm / pnpm / Bun | \`.npmrc\`: \`registry=${bridge}\` |`,
+              `| Yarn (v2+) | \`.yarnrc.yml\`: \`npmRegistryServer: "${bridge}"\` |`,
+              '',
+              'Then pin the build (`vite` aliases to vite-plus-core; pnpm can use a catalog, npm an `overrides` entry):',
+              '',
+              '```json',
+              '{',
+              '  "devDependencies": {',
+              `    "vite-plus": "${version}",`,
+              `    "vite": "npm:@voidzero-dev/vite-plus-core@${version}"`,
+              '  }',
+              '}',
+              '```',
+            ].join('\n');
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr,
+            });
+            const existing = comments.find((c) => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr,
+                body,
+              });
+            }
 
   # Build and push a preview Docker image from the pkg.pr.new build so the image
   # can be verified before a real release. Tagged `pr-<number>`; never `latest`.

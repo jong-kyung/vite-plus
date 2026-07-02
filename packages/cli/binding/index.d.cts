@@ -3272,6 +3272,8 @@ export interface BatchRewriteError {
 export interface BatchRewriteResult {
   /** Files that were modified */
   modifiedFiles: Array<string>;
+  /** Files in Nuxt test-utils packages where upstream `vitest` imports were preserved */
+  preservedVitestFiles: Array<string>;
   /** Files that had errors */
   errors: Array<BatchRewriteError>;
 }
@@ -3504,6 +3506,8 @@ export declare function rewriteEslint(scriptsJson: string): string | null;
  * # Arguments
  *
  * * `root` - The root directory to search for files
+ * * `preserve_vitest_in_nuxt_packages` - Preserve `vitest` and `vitest/*`
+ *   specifiers throughout packages that declare `@nuxt/test-utils`
  *
  * # Returns
  *
@@ -3521,7 +3525,10 @@ export declare function rewriteEslint(scriptsJson: string): string | null;
  * }
  * ```
  */
-export declare function rewriteImportsInDirectory(root: string): BatchRewriteResult;
+export declare function rewriteImportsInDirectory(
+  root: string,
+  preserveVitestInNuxtPackages?: boolean | undefined | null,
+): BatchRewriteResult;
 
 /**
  * Rewrite Prettier scripts: rename `prettier` → `vp fmt` and strip Prettier-only flags.
