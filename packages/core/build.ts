@@ -20,6 +20,7 @@ import { generateLicenseFile } from '../../scripts/generate-license.js';
 import viteRolldownConfig from '../../vite/packages/vite/rolldown.config.js';
 import { buildCjsDeps } from './build-support/build-cjs-deps.js';
 import { replaceThirdPartyCjsRequires } from './build-support/find-create-require.js';
+import { getNativePlatformPackageNames } from './build-support/native-platform-packages.js';
 import { RewriteImportsPlugin } from './build-support/rewrite-imports.js';
 import {
   createRolldownRewriteRules,
@@ -27,6 +28,7 @@ import {
   rewriteModuleSpecifiers,
   type ReplacementRule,
 } from './build-support/rewrite-module-specifiers.js';
+import cliPkgJson from '../cli/package.json' with { type: 'json' };
 import pkgJson from './package.json' with { type: 'json' };
 
 const projectDir = join(fileURLToPath(import.meta.url), '..');
@@ -782,6 +784,13 @@ async function mergePackageJson() {
     vite: vitePkg.version,
     rolldown: rolldownPkg.version,
     tsdown: tsdownPkg.version,
+  };
+
+  destPkg.optionalDependencies = {
+    ...destPkg.optionalDependencies,
+    ...Object.fromEntries(
+      getNativePlatformPackageNames(cliPkgJson.napi.targets).map((name) => [name, destPkg.version]),
+    ),
   };
 
   const { code, errors } = await format(destPkgPath, JSON.stringify(destPkg, null, 2) + '\n', {

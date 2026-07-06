@@ -5,6 +5,7 @@ import url from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import cliPkgJson from '../../cli/package.json' with { type: 'json' };
+import corePkgJson from '../package.json' with { type: 'json' };
 import {
   getNativePlatformPackageName,
   getNativePlatformPackageNames,
@@ -43,6 +44,14 @@ describe('build artifacts', () => {
       '@voidzero-dev/vite-plus-win32-x64-msvc',
       '@voidzero-dev/vite-plus-win32-arm64-msvc',
     ]);
+  });
+
+  it('declares Vite+ native packages as core optional dependencies', () => {
+    for (const packageName of getNativePlatformPackageNames(cliPkgJson.napi.targets)) {
+      expect(corePkgJson.optionalDependencies).toHaveProperty(packageName, corePkgJson.version);
+    }
+
+    expect(corePkgJson.peerDependencies).not.toHaveProperty('vite-plus');
   });
 
   it('rejects unsupported NAPI targets', () => {
