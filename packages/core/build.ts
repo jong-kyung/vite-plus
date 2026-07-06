@@ -394,7 +394,15 @@ async function bundleRolldown() {
           const packageName = `@voidzero-dev/vite-plus-${suffix}`;
           return vitePlusNativePackages.has(packageName) ? packageName : specifier;
         });
-        source = source.replaceAll(`${rolldownBindingVersion}`, pkgJson.version);
+        source = source
+          .replaceAll(
+            `bindingPackageVersion !== "${rolldownBindingVersion}"`,
+            `bindingPackageVersion !== "${pkgJson.version}"`,
+          )
+          .replaceAll(
+            `expected ${rolldownBindingVersion} but got`,
+            `expected ${pkgJson.version} but got`,
+          );
       }
       const newSource = rewriteModuleSpecifiers(source, file, { rules });
       await writeFile(file, newSource);
