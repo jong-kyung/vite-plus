@@ -396,8 +396,8 @@ async function bundleRolldown() {
         });
         source = source
           .replaceAll(
-            `bindingPackageVersion !== '${rolldownBindingVersion}'`,
-            `bindingPackageVersion !== '${pkgJson.version}'`,
+            `bindingPackageVersion !== "${rolldownBindingVersion}"`,
+            `bindingPackageVersion !== "${pkgJson.version}"`,
           )
           .replaceAll(
             `bindingPackageVersion !== '${rolldownBindingVersion}'`,
