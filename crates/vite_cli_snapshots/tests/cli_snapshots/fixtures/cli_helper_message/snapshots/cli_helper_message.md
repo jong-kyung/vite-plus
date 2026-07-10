@@ -401,6 +401,7 @@ Commands:
   pack              Create a tarball of the package
   list, ls          List installed packages
   view, info, show  View package information from the registry
+  version           Forward the native package version command
   publish           Publish package to registry
   stage             Stage a package for publishing (npm staged publishing workflow)
   owner, author     Manage package owners
@@ -448,6 +449,7 @@ Manage:
   use             Use a specific Node.js version for this shell session
   install, i      Install a Node.js version
   uninstall, uni  Uninstall a Node.js version
+  clean           Remove unused managed runtimes and package manager caches
   exec, run       Execute a command with a specific Node.js version
 
 Inspect:
@@ -468,6 +470,7 @@ Examples:
     vp env install                # Install version from .node-version / package.json
     vp env use 20                 # Use Node.js 20 for this shell session
     vp env use --unset            # Remove session override
+    vp env clean                  # Remove unused managed caches
 
   Inspect:
     vp env current                # Show current resolved environment
