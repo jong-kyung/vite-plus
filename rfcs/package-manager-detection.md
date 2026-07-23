@@ -145,7 +145,7 @@ vp create vite:monorepo --no-interactive --package-manager bun
 
 **Resolution priority for `vp create`**:
 
-1. Existing monorepo package manager (`packageManager` field or `devEngines.packageManager`)
+1. Any package manager detected for an existing monorepo (from manifest fields, workspace files, lockfiles, or package-manager configuration)
 2. `--package-manager` CLI flag
 3. Package manager detected from a non-monorepo ancestor
 4. Interactive prompt / auto-default (pnpm)
