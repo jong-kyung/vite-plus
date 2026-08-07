@@ -165,9 +165,7 @@ jobs:
 
             ### Final validation (this step is complete ONLY when all pass)
             1. `just build` exits 0.
-            2. `pnpm bootstrap-cli:ci && pnpm test:unit` exits 0. Use `test:unit`,
-               not `test`: the snapshot suite runs as its own step below so a
-               snapshot re-record does not re-run the unit tests.
+            2. `pnpm bootstrap-cli:ci && pnpm test:unit` exits 0.
             3. `just snapshot-test` exits 0. Snapshot mismatches fail the run with a
                unified diff. Re-record with `UPDATE_SNAPSHOTS=1` only for cosmetic
                drift from the upgrade (e.g. a bumped version string in help output);
