@@ -1149,7 +1149,6 @@ jobs:
               vp uninstall -g typescript
 
               git config --global --add safe.directory /workspace
-              # test:unit, not test: the container has no just/cargo for the PTY suite
               RUST_BACKTRACE=1 pnpm test:unit
             "
 
