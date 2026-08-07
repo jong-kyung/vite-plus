@@ -165,23 +165,25 @@ jobs:
 
             ### Final validation (this step is complete ONLY when all pass)
             1. `just build` exits 0.
-            2. `pnpm bootstrap-cli:ci && pnpm test` exits 0. `pnpm test` runs the
-               unit tests and then the PTY snapshot suite (`just snapshot-test`).
-               Snapshot mismatches fail the run with a unified diff. Re-record with
-               `UPDATE_SNAPSHOTS=1` only for cosmetic drift from the upgrade (e.g. a
-               bumped version string in help output); unexpected stack traces,
-               missing output, or diverging CLI behavior are regressions to fix.
-            3. `git status --short` and `git diff --stat` have been inspected, and
+            2. `pnpm bootstrap-cli:ci && pnpm test:unit` exits 0. Use `test:unit`,
+               not `test`: the snapshot suite runs as its own step below so a
+               snapshot re-record does not re-run the unit tests.
+            3. `just snapshot-test` exits 0. Snapshot mismatches fail the run with a
+               unified diff. Re-record with `UPDATE_SNAPSHOTS=1` only for cosmetic
+               drift from the upgrade (e.g. a bumped version string in help output);
+               unexpected stack traces, missing output, or diverging CLI behavior are
+               regressions to fix.
+            4. `git status --short` and `git diff --stat` have been inspected, and
                every changed file is intentional for the upgrade PR. Pay special
                attention to generated NAPI binding files, because later CI runs fail
                if a build produces uncommitted binding output changes.
 
-            If any of the three above fails, diagnose the root cause, fix it, and re-run
+            If any of the four above fails, diagnose the root cause, fix it, and re-run
             the final validation. Do not exit with the task marked complete otherwise.
 
             ### Running long commands (IMPORTANT)
             Run every long-running command (`just build`, `pnpm bootstrap-cli:ci`,
-            `pnpm test`, `cargo check`, etc.) in the FOREGROUND — a single Bash tool call
+            `pnpm test:unit`, `cargo check`, etc.) in the FOREGROUND — a single Bash tool call
             that blocks until the command exits. The Bash tool already gives you a 10-minute
             timeout per call, which is enough for these builds.
 
