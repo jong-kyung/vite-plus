@@ -3182,6 +3182,7 @@ dependencies = [
  "portable-atomic",
  "unicode-width 0.2.2",
  "unit-prefix",
+ "vt100",
  "web-time",
 ]
 
@@ -8635,7 +8636,7 @@ dependencies = [
 
 [[package]]
 name = "vite-plus-cli"
-version = "0.3.2"
+version = "0.3.3"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -8744,7 +8745,7 @@ dependencies = [
 
 [[package]]
 name = "vp_global_cli"
-version = "0.3.2"
+version = "0.3.3"
 dependencies = [
  "base64-simd",
  "chrono",
@@ -8901,6 +8902,7 @@ version = "0.0.0"
 dependencies = [
  "base64-simd",
  "flate2",
+ "httpmock",
  "junction",
  "node-semver",
  "serde",
@@ -8923,7 +8925,9 @@ name = "vp_shared"
 version = "0.0.0"
 dependencies = [
  "console",
+ "cow-utils",
  "directories",
+ "indicatif",
  "nix 0.30.1",
  "reqwest",
  "rustls",
