@@ -24,7 +24,7 @@ pub struct WhyArgs {
     pub(crate) parseable: bool,
 
     /// Check recursively across all workspaces
-    #[arg(short = 'r', long, not_supported(bun))]
+    #[arg(short = 'r', long, not_supported(npm, bun))]
     pub(crate) recursive: bool,
 
     /// Filter packages in monorepo
@@ -32,7 +32,7 @@ pub struct WhyArgs {
     pub(crate) filter: Vec<String>,
 
     /// Check in workspace root
-    #[arg(short = 'w', long, not_supported(yarn, bun))]
+    #[arg(short = 'w', long, not_supported(npm, yarn, bun))]
     pub(crate) workspace_root: bool,
 
     /// Only production dependencies
@@ -44,15 +44,15 @@ pub struct WhyArgs {
     pub(crate) dev: bool,
 
     /// Limit tree depth
-    #[arg(long, not_supported(npm))]
+    #[arg(long, not_supported(npm, yarn))]
     pub(crate) depth: Option<u32>,
 
     /// Exclude optional dependencies
-    #[arg(long, not_supported(bun))]
+    #[arg(long, not_supported(npm, yarn, bun))]
     pub(crate) no_optional: bool,
 
     /// Exclude peer dependencies
-    #[arg(long, not_supported(bun))]
+    #[arg(long, not_supported(npm, bun))]
     pub(crate) exclude_peers: bool,
 
     /// Use a finder function defined in .pnpmfile.cjs
@@ -308,6 +308,136 @@ mod tests {
     }
 
     #[test]
+    fn yarn_rejects_depth_and_optional_filtering() {
+        for version in ["1.22.22", "2.4.2", "3.6.0", "4.18.0"] {
+            for depth in [0, 2] {
+                let args =
+                    WhyArgs { depth: Some(depth), no_optional: true, ..why_args(&["react"]) };
+                expect_unsupported(
+                    resolve(&yarn(version), args),
+                    &["yarn does not support --depth.", "yarn does not support --no-optional."],
+                );
+            }
+            let args = WhyArgs { no_optional: true, ..why_args(&["react"]) };
+            expect_unsupported(
+                resolve(&yarn(version), args),
+                &["yarn does not support --no-optional."],
+            );
+        }
+    }
+
+    #[test]
+    fn npm_rejects_dependency_type_filters() {
+        for version in ["10.9.4", "11.16.0", "12.0.2"] {
+            let args = WhyArgs { no_optional: true, ..why_args(&["react"]) };
+            expect_unsupported(
+                resolve(&npm(version), args),
+                &["npm does not support --no-optional."],
+            );
+            let args = WhyArgs { exclude_peers: true, ..why_args(&["react"]) };
+            expect_unsupported(
+                resolve(&npm(version), args),
+                &["npm does not support --exclude-peers."],
+            );
+        }
+    }
+
+    #[test]
+    fn npm_rejects_workspace_selectors() {
+        for version in ["10.9.4", "11.16.0", "12.0.2"] {
+            let args = WhyArgs {
+                recursive: true,
+                filter: vec!["app".to_string()],
+                ..why_args(&["react"])
+            };
+            expect_unsupported(
+                resolve(&npm(version), args),
+                &["npm does not support --recursive."],
+            );
+            let args = WhyArgs { workspace_root: true, ..why_args(&["react"]) };
+            expect_unsupported(
+                resolve(&npm(version), args),
+                &["npm does not support --workspace-root."],
+            );
+        }
+    }
+
+    #[test]
+    fn workspace_selectors_preserve_pnpm_and_raw_arguments() {
+        let args = WhyArgs { recursive: true, workspace_root: true, ..why_args(&["react"]) };
+        let resolution = resolve(&pnpm("11.3.0"), args);
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(
+            expect_run(resolution.outcome).args,
+            vec!["why", "--recursive", "--workspace-root", "react"]
+        );
+
+        let args = WhyArgs {
+            pass_through_args: vec!["--recursive".to_string(), "--workspace-root".to_string()],
+            ..why_args(&["react"])
+        };
+        let resolution = resolve(&npm("12.0.2"), args);
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(
+            expect_run(resolution.outcome).args,
+            vec!["explain", "react", "--recursive", "--workspace-root"]
+        );
+    }
+
+    #[test]
+    fn npm_preserves_raw_dependency_type_filters() {
+        let args = WhyArgs {
+            pass_through_args: vec!["--no-optional".to_string(), "--exclude-peers".to_string()],
+            ..why_args(&["react"])
+        };
+        let resolution = resolve(&npm("12.0.2"), args);
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(
+            expect_run(resolution.outcome).args,
+            vec!["explain", "react", "--no-optional", "--exclude-peers"]
+        );
+    }
+
+    #[test]
+    fn supported_depth_and_optional_filtering_are_preserved() {
+        let args = WhyArgs {
+            depth: Some(0),
+            no_optional: true,
+            exclude_peers: true,
+            ..why_args(&["react"])
+        };
+        let resolution = resolve(&pnpm("11.3.0"), args);
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(
+            expect_run(resolution.outcome).args,
+            vec!["why", "--depth", "0", "--no-optional", "--exclude-peers", "react"]
+        );
+
+        let args = WhyArgs { depth: Some(0), ..why_args(&["react"]) };
+        let resolution = resolve(&bun("1.4.0"), args);
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(expect_run(resolution.outcome).args, vec!["why", "react", "--depth", "0"]);
+    }
+
+    #[test]
+    fn yarn_preserves_raw_depth_and_optional_filtering() {
+        for version in ["1.22.22", "4.18.0"] {
+            let args = WhyArgs {
+                pass_through_args: vec![
+                    "--depth".to_string(),
+                    "0".to_string(),
+                    "--no-optional".to_string(),
+                ],
+                ..why_args(&["react"])
+            };
+            let raw = args.pass_through_args.clone();
+            let resolution = resolve(&yarn(version), args);
+            assert!(resolution.diagnostics.is_empty());
+            assert!(expect_run(resolution.outcome).args.ends_with(&raw));
+        }
+    }
+
+    #[test]
     fn unsupported_fields_are_rejected_for_yarn_npm_and_bun() {
         let mut yarn_options = why_args(&["react"]);
         yarn_options.json = true;
@@ -333,9 +463,13 @@ mod tests {
         let mut npm_options = why_args(&["react"]);
         npm_options.long = true;
         npm_options.parseable = true;
+        npm_options.recursive = true;
+        npm_options.workspace_root = true;
         npm_options.prod = true;
         npm_options.dev = true;
         npm_options.depth = Some(2);
+        npm_options.no_optional = true;
+        npm_options.exclude_peers = true;
         npm_options.find_by = Some("customFinder".to_string());
         let npm_resolution = resolve(&npm("11.0.0"), npm_options);
         expect_unsupported(
@@ -343,9 +477,13 @@ mod tests {
             &[
                 "npm does not support --long.",
                 "npm does not support --parseable.",
+                "npm does not support --recursive.",
+                "npm does not support --workspace-root.",
                 "npm does not support --prod.",
                 "npm does not support --dev.",
                 "npm does not support --depth.",
+                "npm does not support --no-optional.",
+                "npm does not support --exclude-peers.",
                 "npm does not support --find-by.",
             ],
         );
