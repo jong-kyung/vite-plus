@@ -292,7 +292,7 @@ mod tests {
     use super::*;
     use crate::resolution::{
         resolve,
-        test_utils::{bun, expect_run, npm, pnpm, yarn},
+        test_utils::{bun, expect_run, expect_unsupported, npm, pnpm, yarn},
     };
 
     #[test]
@@ -566,13 +566,10 @@ mod tests {
     }
 
     #[test]
-    fn test_yarn_berry_silent_warns_and_drops() {
+    fn test_yarn_berry_rejects_silent() {
         let resolution =
             resolve(&yarn("4.0.0"), InstallArgs { silent: true, ..Default::default() });
-        let command = expect_run(resolution.outcome);
-
-        assert_eq!(command.args, vec!["install"]);
-        assert_eq!(resolution.diagnostics[0].message, "yarn >=2 does not support --silent.");
+        expect_unsupported(resolution, &["yarn >= 2 does not support --silent."]);
     }
 
     #[test]
@@ -758,14 +755,10 @@ mod tests {
     }
 
     #[test]
-    fn drops_fix_lockfile_for_npm_with_warning() {
+    fn npm_rejects_fix_lockfile() {
         let resolution =
             resolve(&npm("11.0.0"), InstallArgs { fix_lockfile: true, ..Default::default() });
-        let command = expect_run(resolution.outcome);
-
-        assert_eq!(command.args, vec!["install"]);
-        assert_eq!(resolution.diagnostics.len(), 1);
-        assert_eq!(resolution.diagnostics[0].message, "npm does not support --fix-lockfile.");
+        expect_unsupported(resolution, &["npm does not support --fix-lockfile."]);
     }
 
     #[test]
@@ -793,36 +786,24 @@ mod tests {
     }
 
     #[test]
-    fn resolution_only_warns_for_non_pnpm() {
-        let npm_resolution =
-            resolve(&npm("11.0.0"), InstallArgs { resolution_only: true, ..Default::default() });
-        let npm_command = expect_run(npm_resolution.outcome);
-        let yarn_resolution =
-            resolve(&yarn("1.22.0"), InstallArgs { resolution_only: true, ..Default::default() });
-        let yarn_command = expect_run(yarn_resolution.outcome);
-        let berry_resolution =
-            resolve(&yarn("4.1.0"), InstallArgs { resolution_only: true, ..Default::default() });
-        let berry_command = expect_run(berry_resolution.outcome);
-
-        assert_eq!(npm_command.args, vec!["install"]);
-        assert_eq!(
-            npm_resolution.diagnostics[0].message,
-            "npm does not support --resolution-only."
+    fn resolution_only_is_rejected_for_non_pnpm() {
+        expect_unsupported(
+            resolve(&npm("11.0.0"), InstallArgs { resolution_only: true, ..Default::default() }),
+            &["npm does not support --resolution-only."],
         );
-        assert_eq!(yarn_command.args, vec!["install"]);
-        assert_eq!(
-            yarn_resolution.diagnostics[0].message,
-            "yarn does not support --resolution-only."
-        );
-        assert_eq!(berry_command.args, vec!["install"]);
-        assert_eq!(
-            berry_resolution.diagnostics[0].message,
-            "yarn does not support --resolution-only."
-        );
+        for version in ["1.22.0", "4.1.0"] {
+            expect_unsupported(
+                resolve(
+                    &yarn(version),
+                    InstallArgs { resolution_only: true, ..Default::default() },
+                ),
+                &["yarn does not support --resolution-only."],
+            );
+        }
     }
 
     #[test]
-    fn bun_warns_for_unsupported_install_options() {
+    fn bun_rejects_all_unsupported_install_options() {
         let resolution = resolve(
             &bun("1.3.11"),
             InstallArgs {
@@ -835,19 +816,16 @@ mod tests {
                 ..Default::default()
             },
         );
-        let command = expect_run(resolution.outcome);
-
-        assert_eq!(command.args, vec!["install"]);
-        assert_eq!(
-            resolution.diagnostics.iter().map(|entry| entry.message.as_str()).collect::<Vec<_>>(),
-            vec![
+        expect_unsupported(
+            resolution,
+            &[
                 "bun does not support --prefer-offline.",
                 "bun does not support --offline.",
                 "bun does not support --no-lockfile.",
                 "bun does not support --fix-lockfile.",
                 "bun does not support --resolution-only.",
-                "bun does not support --workspace-root."
-            ]
+                "bun does not support --workspace-root.",
+            ],
         );
     }
 }

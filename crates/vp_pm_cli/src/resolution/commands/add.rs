@@ -285,7 +285,7 @@ mod tests {
     use super::*;
     use crate::resolution::{
         resolve,
-        test_utils::{bun, expect_run, npm, parse_args, pnpm, yarn},
+        test_utils::{bun, expect_run, expect_unsupported, npm, parse_args, pnpm, yarn},
     };
 
     fn add_args(packages: &[&str]) -> AddArgs {
@@ -581,23 +581,15 @@ mod tests {
     }
 
     #[test]
-    fn yarn_berry_drops_unsupported_workspace_root() {
+    fn yarn_berry_rejects_unsupported_workspace_root() {
         let mut args = add_args(&["react"]);
         args.workspace_root = true;
         let resolution = resolve(&yarn("4.1.0"), args);
-        let command = expect_run(resolution.outcome);
-
-        assert_eq!(command.program, "yarn");
-        assert_eq!(command.args, vec!["add", "react"]);
-        assert_eq!(resolution.diagnostics.len(), 1);
-        assert_eq!(
-            resolution.diagnostics[0].message,
-            "yarn >=2 does not support --workspace-root."
-        );
+        expect_unsupported(resolution, &["yarn >= 2 does not support --workspace-root."]);
     }
 
     #[test]
-    fn bun_warns_for_unsupported_options() {
+    fn bun_rejects_all_unsupported_options() {
         let mut options = add_args(&["react"]);
         options.filter = vec!["app".to_string()];
         options.workspace_root = true;
@@ -605,18 +597,15 @@ mod tests {
         options.save_catalog = true;
         options.allow_build = Some("react".to_string());
         let resolution = resolve(&bun("1.3.11"), options);
-        let command = expect_run(resolution.outcome);
-
-        assert_eq!(command.args, vec!["add", "react"]);
-        assert_eq!(
-            resolution.diagnostics.iter().map(|entry| entry.message.as_str()).collect::<Vec<_>>(),
-            vec![
-                "bun <1.4 does not support --save-catalog.",
+        expect_unsupported(
+            resolution,
+            &[
+                "bun < 1.4 does not support --save-catalog.",
                 "bun does not support --allow-build.",
-                "bun <1.4 does not support --filter.",
+                "bun < 1.4 does not support --filter.",
                 "bun does not support --workspace-root.",
-                "bun does not support --workspace."
-            ]
+                "bun does not support --workspace.",
+            ],
         );
     }
 
@@ -636,11 +625,7 @@ mod tests {
         let mut options = add_args(&["react"]);
         options.save_catalog_name = Some("testing".to_string());
         let resolution = resolve(&bun("1.3.14"), options);
-        assert_eq!(expect_run(resolution.outcome).args, vec!["add", "react"]);
-        assert_eq!(
-            resolution.diagnostics[0].message,
-            "bun <1.4 does not support --save-catalog-name."
-        );
+        expect_unsupported(resolution, &["bun < 1.4 does not support --save-catalog-name."]);
     }
 
     #[test]

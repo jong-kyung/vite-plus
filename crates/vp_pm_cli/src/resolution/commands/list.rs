@@ -177,7 +177,7 @@ mod tests {
     use super::*;
     use crate::resolution::{
         resolve,
-        test_utils::{bun, expect_run, npm, parse_args, pnpm, yarn},
+        test_utils::{bun, expect_run, expect_unsupported, npm, parse_args, pnpm, yarn},
     };
 
     fn list_args(pattern: Option<&str>) -> ListArgs {
@@ -238,15 +238,10 @@ mod tests {
     }
 
     #[test]
-    fn test_yarn1_list_recursive_ignored() {
+    fn test_yarn1_list_recursive_is_rejected() {
         let resolution =
             resolve(&yarn("1.22.0"), ListArgs { recursive: true, ..Default::default() });
-        let command = expect_run(resolution.outcome);
-
-        assert_eq!(command.program, "yarn");
-        assert_eq!(command.args, vec!["list"]);
-        assert_eq!(resolution.diagnostics[0].kind, DiagnosticKind::UnsupportedOptionDropped);
-        assert_eq!(resolution.diagnostics[0].message, "yarn does not support --recursive.");
+        expect_unsupported(resolution, &["yarn does not support --recursive."]);
     }
 
     #[test]
@@ -365,16 +360,12 @@ mod tests {
     }
 
     #[test]
-    fn test_yarn1_list_with_filter_ignored() {
+    fn test_yarn1_list_filter_is_rejected() {
         let resolution = resolve(
             &yarn("1.22.0"),
             ListArgs { filter: vec!["app".to_string()], ..Default::default() },
         );
-        let command = expect_run(resolution.outcome);
-
-        assert_eq!(command.program, "yarn");
-        assert_eq!(command.args, vec!["list"]);
-        assert_eq!(resolution.diagnostics[0].message, "yarn does not support --filter.");
+        expect_unsupported(resolution, &["yarn does not support --filter."]);
     }
 
     #[test]
@@ -427,13 +418,11 @@ mod tests {
     }
 
     #[test]
-    fn test_yarn1_list_dev_ignored() {
-        let command = expect_run(
-            resolve(&yarn("1.22.0"), ListArgs { dev: true, ..Default::default() }).outcome,
+    fn test_yarn1_list_dev_is_rejected() {
+        expect_unsupported(
+            resolve(&yarn("1.22.0"), ListArgs { dev: true, ..Default::default() }),
+            &["yarn does not support --dev."],
         );
-
-        assert_eq!(command.program, "yarn");
-        assert_eq!(command.args, vec!["list"]);
     }
 
     #[test]
@@ -457,13 +446,11 @@ mod tests {
     }
 
     #[test]
-    fn test_yarn1_list_no_optional_ignored() {
-        let command = expect_run(
-            resolve(&yarn("1.22.0"), ListArgs { no_optional: true, ..Default::default() }).outcome,
+    fn test_yarn1_list_no_optional_is_rejected() {
+        expect_unsupported(
+            resolve(&yarn("1.22.0"), ListArgs { no_optional: true, ..Default::default() }),
+            &["yarn does not support --no-optional."],
         );
-
-        assert_eq!(command.program, "yarn");
-        assert_eq!(command.args, vec!["list"]);
     }
 
     #[test]
@@ -478,25 +465,18 @@ mod tests {
     }
 
     #[test]
-    fn test_npm_list_only_projects_ignored() {
+    fn test_npm_list_only_projects_is_rejected() {
         let resolution =
             resolve(&npm("11.0.0"), ListArgs { only_projects: true, ..Default::default() });
-        let command = expect_run(resolution.outcome);
-
-        assert_eq!(command.program, "npm");
-        assert_eq!(command.args, vec!["list"]);
-        assert_eq!(resolution.diagnostics[0].message, "npm does not support --only-projects.");
+        expect_unsupported(resolution, &["npm does not support --only-projects."]);
     }
 
     #[test]
-    fn test_yarn1_list_only_projects_ignored() {
-        let command = expect_run(
-            resolve(&yarn("1.22.0"), ListArgs { only_projects: true, ..Default::default() })
-                .outcome,
+    fn test_yarn1_list_only_projects_is_rejected() {
+        expect_unsupported(
+            resolve(&yarn("1.22.0"), ListArgs { only_projects: true, ..Default::default() }),
+            &["yarn does not support --only-projects."],
         );
-
-        assert_eq!(command.program, "yarn");
-        assert_eq!(command.args, vec!["list"]);
     }
 
     #[test]
@@ -521,14 +501,11 @@ mod tests {
     }
 
     #[test]
-    fn test_yarn1_list_exclude_peers_ignored() {
-        let command = expect_run(
-            resolve(&yarn("1.22.0"), ListArgs { exclude_peers: true, ..Default::default() })
-                .outcome,
+    fn test_yarn1_list_exclude_peers_is_rejected() {
+        expect_unsupported(
+            resolve(&yarn("1.22.0"), ListArgs { exclude_peers: true, ..Default::default() }),
+            &["yarn does not support --exclude-peers."],
         );
-
-        assert_eq!(command.program, "yarn");
-        assert_eq!(command.args, vec!["list"]);
     }
 
     #[test]
@@ -546,30 +523,23 @@ mod tests {
     }
 
     #[test]
-    fn test_npm_list_find_by_ignored() {
+    fn test_npm_list_find_by_is_rejected() {
         let resolution = resolve(
             &npm("11.0.0"),
             ListArgs { find_by: Some("customFinder".to_string()), ..Default::default() },
         );
-        let command = expect_run(resolution.outcome);
-
-        assert_eq!(command.program, "npm");
-        assert_eq!(command.args, vec!["list"]);
-        assert_eq!(resolution.diagnostics[0].message, "npm does not support --find-by.");
+        expect_unsupported(resolution, &["npm does not support --find-by."]);
     }
 
     #[test]
-    fn test_yarn1_list_find_by_ignored() {
-        let command = expect_run(
+    fn test_yarn1_list_find_by_is_rejected() {
+        expect_unsupported(
             resolve(
                 &yarn("1.22.0"),
                 ListArgs { find_by: Some("customFinder".to_string()), ..Default::default() },
-            )
-            .outcome,
+            ),
+            &["yarn does not support --find-by."],
         );
-
-        assert_eq!(command.program, "yarn");
-        assert_eq!(command.args, vec!["list"]);
     }
 
     #[test]
@@ -581,7 +551,7 @@ mod tests {
     }
 
     #[test]
-    fn test_bun_list_unsupported_flags_warn_and_drop() {
+    fn test_bun_list_rejects_all_unsupported_flags() {
         let resolution = resolve(
             &bun("1.3.11"),
             ListArgs {
@@ -600,13 +570,23 @@ mod tests {
                 ..Default::default()
             },
         );
-        let command = expect_run(resolution.outcome);
-
-        assert_eq!(command.program, "bun");
-        assert_eq!(command.args, vec!["pm", "ls"]);
-        assert_eq!(resolution.diagnostics.len(), 12);
-        assert_eq!(resolution.diagnostics[0].message, "bun does not support --depth.");
-        assert_eq!(resolution.diagnostics[11].message, "bun does not support --filter.");
+        expect_unsupported(
+            resolution,
+            &[
+                "bun does not support --depth.",
+                "bun does not support --json.",
+                "bun does not support --long.",
+                "bun does not support --parseable.",
+                "bun does not support --prod.",
+                "bun does not support --dev.",
+                "bun does not support --no-optional.",
+                "bun does not support --exclude-peers.",
+                "bun does not support --only-projects.",
+                "bun does not support --find-by.",
+                "bun does not support --recursive.",
+                "bun does not support --filter.",
+            ],
+        );
     }
 
     #[test]

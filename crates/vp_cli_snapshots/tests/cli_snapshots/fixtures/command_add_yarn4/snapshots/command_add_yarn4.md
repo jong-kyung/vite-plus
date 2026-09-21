@@ -68,20 +68,12 @@ should add package as dev dependencies
 
 ## `vp add testnpm2 test-vite-plus-install --allow-build=test-vite-plus-install`
 
-should add packages to dependencies
+reject unsupported --allow-build without adding packages
+
+**Exit code:** 1
 
 ```
-warn: yarn does not support --allow-build.
-➤ YN0000: · Yarn <version>
-➤ YN0000: ┌ Resolution step
-➤ YN0085: │ + test-vite-plus-install@npm:1.0.0
-➤ YN0000: └ Completed
-➤ YN0000: ┌ Fetch step
-➤ YN0013: │ A package was added to the project (+ <size> KiB).
-➤ YN0000: └ Completed
-➤ YN0000: ┌ Link step
-➤ YN0000: └ Completed
-➤ YN0000: · Done in <duration>
+yarn does not support --allow-build.
 ```
 
 ## `vpt print-file package.json`
@@ -93,9 +85,6 @@ warn: yarn does not support --allow-build.
   "packageManager": "yarn@4.10.3",
   "devDependencies": {
     "testnpm2": "^1.0.1"
-  },
-  "dependencies": {
-    "test-vite-plus-install": "^1.0.0"
   }
 }
 ```
@@ -126,9 +115,6 @@ VITE+ - The Unified Toolchain for the Web
   "packageManager": "yarn@4.10.3",
   "devDependencies": {
     "testnpm2": "^1.0.1"
-  },
-  "dependencies": {
-    "test-vite-plus-install": "^1.0.0"
   },
   "peerDependencies": {
     "test-vite-plus-package": "1.0.0"
@@ -163,9 +149,6 @@ should add package as optional dependencies
   "devDependencies": {
     "testnpm2": "^1.0.1"
   },
-  "dependencies": {
-    "test-vite-plus-install": "^1.0.0"
-  },
   "peerDependencies": {
     "test-vite-plus-package": "1.0.0"
   },
@@ -199,9 +182,6 @@ support pass through arguments
   "packageManager": "yarn@4.10.3",
   "devDependencies": {
     "testnpm2": "^1.0.1"
-  },
-  "dependencies": {
-    "test-vite-plus-install": "^1.0.0"
   },
   "peerDependencies": {
     "test-vite-plus-package": "1.0.0"

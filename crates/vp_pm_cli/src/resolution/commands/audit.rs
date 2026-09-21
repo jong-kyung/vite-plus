@@ -122,7 +122,7 @@ mod tests {
     use super::*;
     use crate::resolution::{
         CommandResolution, resolve,
-        test_utils::{bun, expect_run, npm, parse_args, pnpm, yarn},
+        test_utils::{bun, expect_run, expect_unsupported, npm, parse_args, pnpm, yarn},
     };
 
     #[test]
@@ -306,7 +306,7 @@ mod tests {
         let pnpm_command = expect_run(pnpm_resolution.outcome);
         let yarn_command = expect_run(yarn_resolution.outcome);
         let yarn_berry_command = expect_run(yarn_berry_resolution.outcome);
-        let bun_command = expect_run(bun_resolution.outcome);
+        expect_unsupported(bun_resolution, &["bun does not support --production."]);
 
         assert_eq!(npm_command.program, "npm");
         assert_eq!(npm_command.args, vec!["audit", "--omit=dev"]);
@@ -316,8 +316,5 @@ mod tests {
         assert_eq!(yarn_command.args, vec!["audit", "--groups", "dependencies"]);
         assert_eq!(yarn_berry_command.program, "yarn");
         assert_eq!(yarn_berry_command.args, vec!["npm", "audit", "--environment", "production"]);
-        assert_eq!(bun_command.program, "bun");
-        assert_eq!(bun_command.args, vec!["audit"]);
-        assert_eq!(bun_resolution.diagnostics[0].message, "bun does not support --production.");
     }
 }

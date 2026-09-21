@@ -149,7 +149,7 @@ mod tests {
     use super::*;
     use crate::resolution::{
         resolve,
-        test_utils::{bun, expect_run, npm, pnpm, yarn},
+        test_utils::{bun, expect_run, expect_unsupported, npm, pnpm, yarn},
     };
 
     fn why_args(packages: &[&str]) -> WhyArgs {
@@ -308,7 +308,7 @@ mod tests {
     }
 
     #[test]
-    fn unsupported_fields_are_dropped_for_yarn_npm_and_bun() {
+    fn unsupported_fields_are_rejected_for_yarn_npm_and_bun() {
         let mut yarn_options = why_args(&["react"]);
         yarn_options.json = true;
         yarn_options.long = true;
@@ -318,10 +318,17 @@ mod tests {
         yarn_options.dev = true;
         yarn_options.find_by = Some("customFinder".to_string());
         let yarn_resolution = resolve(&yarn("1.22.0"), yarn_options);
-        let yarn_command = expect_run(yarn_resolution.outcome);
-
-        assert_eq!(yarn_command.args, vec!["why", "react", "--json"]);
-        assert_eq!(yarn_resolution.diagnostics.len(), 6);
+        expect_unsupported(
+            yarn_resolution,
+            &[
+                "yarn does not support --long.",
+                "yarn does not support --parseable.",
+                "yarn does not support --filter.",
+                "yarn does not support --prod.",
+                "yarn does not support --dev.",
+                "yarn does not support --find-by.",
+            ],
+        );
 
         let mut npm_options = why_args(&["react"]);
         npm_options.long = true;
@@ -331,10 +338,17 @@ mod tests {
         npm_options.depth = Some(2);
         npm_options.find_by = Some("customFinder".to_string());
         let npm_resolution = resolve(&npm("11.0.0"), npm_options);
-        let npm_command = expect_run(npm_resolution.outcome);
-
-        assert_eq!(npm_command.args, vec!["explain", "react"]);
-        assert_eq!(npm_resolution.diagnostics.len(), 6);
+        expect_unsupported(
+            npm_resolution,
+            &[
+                "npm does not support --long.",
+                "npm does not support --parseable.",
+                "npm does not support --prod.",
+                "npm does not support --dev.",
+                "npm does not support --depth.",
+                "npm does not support --find-by.",
+            ],
+        );
 
         let mut bun_options = why_args(&["react"]);
         bun_options.json = true;
@@ -349,9 +363,21 @@ mod tests {
         bun_options.exclude_peers = true;
         bun_options.find_by = Some("customFinder".to_string());
         let bun_resolution = resolve(&bun("1.3.11"), bun_options);
-        let bun_command = expect_run(bun_resolution.outcome);
-
-        assert_eq!(bun_command.args, vec!["why", "react"]);
-        assert_eq!(bun_resolution.diagnostics.len(), 11);
+        expect_unsupported(
+            bun_resolution,
+            &[
+                "bun does not support --json.",
+                "bun does not support --long.",
+                "bun does not support --parseable.",
+                "bun does not support --recursive.",
+                "bun does not support --filter.",
+                "bun does not support --workspace-root.",
+                "bun does not support --prod.",
+                "bun does not support --dev.",
+                "bun does not support --no-optional.",
+                "bun does not support --exclude-peers.",
+                "bun does not support --find-by.",
+            ],
+        );
     }
 }

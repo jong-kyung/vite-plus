@@ -70,7 +70,7 @@ mod tests {
     use super::*;
     use crate::resolution::{
         resolve,
-        test_utils::{bun, expect_run, npm, parse_args, pnpm, yarn},
+        test_utils::{bun, expect_run, expect_unsupported, npm, parse_args, pnpm, yarn},
     };
 
     #[test]
@@ -227,13 +227,9 @@ mod tests {
     }
 
     #[test]
-    fn test_bun_unlink_recursive_warns_and_drops_flag() {
+    fn test_bun_unlink_rejects_recursive() {
         let result = resolve(&bun("1.3.11"), UnlinkArgs { recursive: true, ..Default::default() });
-        let command = expect_run(result.outcome);
-
-        assert_eq!(command.program, "bun");
-        assert_eq!(command.args, vec!["unlink"]);
-        assert_eq!(result.diagnostics.len(), 1);
+        expect_unsupported(result, &["bun does not support --recursive."]);
     }
 
     #[test]

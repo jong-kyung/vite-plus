@@ -77,10 +77,80 @@ prepare packages
 
 ## `vp remove testnpm2 -r --workspace-root --filter=app --filter=@vite-plus-test/utils`
 
+reject unsupported --workspace-root without removing packages
+
+**Exit code:** 1
+
+```
+yarn does not support --workspace-root.
+```
+
+## `vpt print-file package.json packages/app/package.json packages/admin/package.json packages/utils/package.json`
+
+all manifests remain unchanged
+
+```
+{
+  "name": "command-remove-yarn4-with-workspace",
+  "version": "1.0.0",
+  "workspaces": [
+    "packages/*"
+  ],
+  "packageManager": "yarn@4.10.3",
+  "devDependencies": {
+    "testnpm2": "^1.0.1"
+  },
+  "dependencies": {
+    "test-vite-plus-install": "^1.0.0"
+  },
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
+  }
+}
+{
+  "name": "app",
+  "devDependencies": {
+    "testnpm2": "^1.0.1"
+  },
+  "dependencies": {
+    "test-vite-plus-install": "^1.0.0"
+  },
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
+  }
+}
+{
+  "name": "admin",
+  "devDependencies": {
+    "testnpm2": "^1.0.1"
+  },
+  "dependencies": {
+    "test-vite-plus-install": "^1.0.0"
+  },
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
+  }
+}
+{
+  "name": "@vite-plus-test/utils",
+  "version": "1.0.0",
+  "devDependencies": {
+    "testnpm2": "^1.0.1"
+  },
+  "dependencies": {
+    "test-vite-plus-install": "^1.0.0"
+  },
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
+  }
+}
+```
+
+## `vp remove testnpm2 -r --filter=app --filter=@vite-plus-test/utils`
+
 recursive remove affects only app and utils
 
 ```
-warn: yarn does not support --workspace-root.
 [app]: Process started
 [app]: ➤ YN0000: · Yarn <version>
 [app]: ➤ YN0000: ┌ Resolution step

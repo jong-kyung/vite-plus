@@ -1,4 +1,13 @@
 [[case]]
+name = "unsupported_update_options"
+vp = ["local", "global"]
+steps = [
+  { argv = ["vp", "update", "--latest", "--interactive"], comment = "Report every unsupported option without changing dependencies.", continue-on-failure = true },
+  ["vpt", "stat-file", "package-lock.json", "--assert", "missing"],
+  ["vpt", "stat-file", "node_modules", "--assert", "missing"],
+]
+
+[[case]]
 name = "command_update_npm10"
 vp = "global"
 serial = true
@@ -6,7 +15,7 @@ skip-platforms = ["windows"]
 steps = [
   { argv = ["vp", "update", "testnpm2", "--", "--no-audit"], comment = "should update package within semver range" },
   { argv = ["vpt", "print-file", "package.json"], continue-on-failure = true },
-  { argv = ["vp", "up", "testnpm2", "--latest", "--", "--no-audit"], comment = "should to absolute latest version" },
+  { argv = ["vp", "up", "testnpm2", "--latest", "--", "--no-audit"], comment = "reject unsupported --latest without updating dependencies", continue-on-failure = true },
   { argv = ["vpt", "print-file", "package.json"], continue-on-failure = true },
   { argv = ["vp", "update", "-D", "--", "--no-audit"], comment = "should update only dev dependencies" },
   { argv = ["vpt", "print-file", "package.json"], continue-on-failure = true },
@@ -14,7 +23,7 @@ steps = [
   { argv = ["vpt", "print-file", "package.json"], continue-on-failure = true },
   { argv = ["vp", "rm", "testnpm2"], comment = "should skip optional dependencies" },
   ["vp", "add", "testnpm2@1.0.0", "-O", "--", "--no-audit"],
-  ["vp", "update", "--no-optional", "--latest", "--", "--no-audit"],
+  ["vp", "update", "--no-optional", "--", "--no-audit"],
   { argv = ["vpt", "print-file", "package.json"], continue-on-failure = true },
   { argv = ["vp", "update", "--", "--no-audit"], comment = "should update all packages but won't change the package.json" },
   { argv = ["vpt", "print-file", "package.json"], continue-on-failure = true },

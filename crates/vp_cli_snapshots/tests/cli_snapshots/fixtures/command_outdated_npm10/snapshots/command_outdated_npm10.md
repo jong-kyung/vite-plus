@@ -125,16 +125,12 @@ testnpm2                         1.0.0   1.0.0   1.0.1  node_modules/testnpm2   
 
 ## `vp outdated -D`
 
-should support dev output
+should reject unsupported --dev
 
 **Exit code:** 1
 
 ```
-warn: npm does not support --dev.
-Package                        Current  Wanted  Latest  Location                                    Depended by
-test-vite-plus-other-optional    1.0.0   1.0.0   1.1.0  node_modules/test-vite-plus-other-optional  workspace
-test-vite-plus-top-package       1.0.0   1.0.0   1.1.0  node_modules/test-vite-plus-top-package     workspace
-testnpm2                         1.0.0   1.0.0   1.0.1  node_modules/testnpm2                       workspace
+npm does not support --dev.
 ```
 
 ## `vp outdated --no-optional`
@@ -151,21 +147,17 @@ testnpm2                      1.0.0   1.0.0   1.0.1  node_modules/testnpm2      
 
 ## `vp outdated --compatible`
 
-should compatible output nothing
+should reject unsupported --compatible
 
 **Exit code:** 1
 
 ```
-warn: npm does not support --compatible.
-Package                        Current  Wanted  Latest  Location                                    Depended by
-test-vite-plus-other-optional    1.0.0   1.0.0   1.1.0  node_modules/test-vite-plus-other-optional  workspace
-test-vite-plus-top-package       1.0.0   1.0.0   1.1.0  node_modules/test-vite-plus-top-package     workspace
-testnpm2                         1.0.0   1.0.0   1.0.1  node_modules/testnpm2                       workspace
+npm does not support --compatible.
 ```
 
 ## `vpt json-edit package.json optionalDependencies.test-vite-plus-other-optional '"^1.0.0"'`
 
-should support compatible output with optional dependencies
+--compatible remains unsupported when optional dependencies have a version range
 
 
 ## `vp outdated --compatible`
@@ -173,23 +165,15 @@ should support compatible output with optional dependencies
 **Exit code:** 1
 
 ```
-warn: npm does not support --compatible.
-Package                        Current  Wanted  Latest  Location                                    Depended by
-test-vite-plus-other-optional    1.0.0   1.1.0   1.1.0  node_modules/test-vite-plus-other-optional  workspace
-test-vite-plus-top-package       1.0.0   1.0.0   1.1.0  node_modules/test-vite-plus-top-package     workspace
-testnpm2                         1.0.0   1.0.0   1.0.1  node_modules/testnpm2                       workspace
+npm does not support --compatible.
 ```
 
 ## `vp outdated --sort-by name`
 
-should support sort-by output
+should reject unsupported --sort-by
 
 **Exit code:** 1
 
 ```
-warn: npm does not support --sort-by.
-Package                        Current  Wanted  Latest  Location                                    Depended by
-test-vite-plus-other-optional    1.0.0   1.1.0   1.1.0  node_modules/test-vite-plus-other-optional  workspace
-test-vite-plus-top-package       1.0.0   1.0.0   1.1.0  node_modules/test-vite-plus-top-package     workspace
-testnpm2                         1.0.0   1.0.0   1.0.1  node_modules/testnpm2                       workspace
+npm does not support --sort-by.
 ```

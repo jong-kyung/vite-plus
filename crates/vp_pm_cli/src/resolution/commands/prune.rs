@@ -80,7 +80,7 @@ mod tests {
     use super::*;
     use crate::resolution::{
         resolve,
-        test_utils::{bun, expect_run, npm, parse_args, pnpm, yarn},
+        test_utils::{bun, expect_run, expect_unsupported, npm, parse_args, pnpm, yarn},
     };
 
     #[test]
@@ -227,8 +227,7 @@ mod tests {
     #[test]
     fn test_bun_prune_no_optional_before_1_4() {
         let result = resolve(&bun("1.3.14"), PruneArgs { no_optional: true, ..Default::default() });
-        assert_eq!(result.outcome, CommandResolution::Noop);
-        assert_eq!(result.diagnostics[0].message, "bun <1.4 does not support --no-optional.");
+        expect_unsupported(result, &["bun < 1.4 does not support --no-optional."]);
     }
 
     #[test]

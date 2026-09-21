@@ -142,7 +142,7 @@ mod tests {
     use super::*;
     use crate::resolution::{
         resolve,
-        test_utils::{bun, expect_run, npm, parse_args, pnpm, yarn},
+        test_utils::{bun, expect_run, expect_unsupported, npm, parse_args, pnpm, yarn},
     };
 
     fn remove_args(packages: &[&str]) -> RemoveArgs {
@@ -231,21 +231,12 @@ mod tests {
     }
 
     #[test]
-    fn yarn_drops_unsupported_workspace_root() {
+    fn yarn_rejects_unsupported_workspace_root() {
         for version in ["1.22.22", "4.0.0"] {
             let mut options = remove_args(&["lodash"]);
             options.workspace_root = true;
             let resolution = resolve(&yarn(version), options);
-            let command = expect_run(resolution.outcome);
-
-            assert_eq!(command.program, "yarn");
-            assert_eq!(command.args, vec!["remove", "lodash"]);
-            let messages = resolution
-                .diagnostics
-                .iter()
-                .map(|entry| entry.message.as_str())
-                .collect::<Vec<_>>();
-            assert_eq!(messages, vec!["yarn does not support --workspace-root."]);
+            expect_unsupported(resolution, &["yarn does not support --workspace-root."]);
         }
     }
 
@@ -539,20 +530,14 @@ mod tests {
     }
 
     #[test]
-    fn bun_drops_unsupported_filter_and_workspace_root() {
+    fn bun_rejects_unsupported_filter_and_workspace_root() {
         let mut options = remove_args(&["lodash"]);
         options.filter = vec!["app".to_string()];
         options.workspace_root = true;
         let resolution = resolve(&bun("1.0.0"), options);
-        let command = expect_run(resolution.outcome);
-
-        assert_eq!(command.program, "bun");
-        assert_eq!(command.args, vec!["remove", "lodash"]);
-        let messages =
-            resolution.diagnostics.iter().map(|entry| entry.message.as_str()).collect::<Vec<_>>();
-        assert_eq!(
-            messages,
-            vec!["bun <1.4 does not support --filter.", "bun does not support --workspace-root."]
+        expect_unsupported(
+            resolution,
+            &["bun < 1.4 does not support --filter.", "bun does not support --workspace-root."],
         );
     }
 

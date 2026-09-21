@@ -25,12 +25,11 @@ added 5 packages in <duration>
 }
 ```
 
-## `vp update testnpm2 --latest --filter app -- --no-audit`
+## `vp update testnpm2 --filter app -- --no-audit`
 
 should update in specific package
 
 ```
-warn: npm does not support --latest.
 
 up to date in <duration>
 ```

@@ -1,4 +1,13 @@
 [[case]]
+name = "unsupported_install_options"
+vp = ["local", "global"]
+steps = [
+  { argv = ["vp", "install", "--fix-lockfile", "--silent"], comment = "Silent mode must not hide an unsupported-option error.", continue-on-failure = true },
+  ["vpt", "stat-file", "package-lock.json", "--assert", "missing"],
+  ["vpt", "stat-file", "node_modules", "--assert", "missing"],
+]
+
+[[case]]
 name = "npm_install_with_options"
 vp = "local"
 serial = true

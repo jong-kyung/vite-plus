@@ -60,12 +60,12 @@ added 1 package in <duration>
 
 ## `vp add testnpm2 test-vite-plus-install --allow-build=test-vite-plus-install -- --no-audit`
 
-should add packages to dependencies
+reject unsupported --allow-build without adding packages
+
+**Exit code:** 1
 
 ```
-warn: npm does not support --allow-build.
-
-added 1 package in <duration>
+npm does not support --allow-build.
 ```
 
 ## `vpt print-file package.json`
@@ -77,9 +77,6 @@ added 1 package in <duration>
   "packageManager": "npm@10.9.4",
   "devDependencies": {
     "testnpm2": "^1.0.1"
-  },
-  "dependencies": {
-    "test-vite-plus-install": "^1.0.0"
   }
 }
 ```
@@ -103,9 +100,6 @@ added 1 package in <duration>
   "packageManager": "npm@10.9.4",
   "devDependencies": {
     "testnpm2": "^1.0.1"
-  },
-  "dependencies": {
-    "test-vite-plus-install": "^1.0.0"
   },
   "peerDependencies": {
     "test-vite-plus-package": "^1.0.0"
@@ -131,9 +125,6 @@ added 1 package in <duration>
   "packageManager": "npm@10.9.4",
   "devDependencies": {
     "testnpm2": "^1.0.1"
-  },
-  "dependencies": {
-    "test-vite-plus-install": "^1.0.0"
   },
   "peerDependencies": {
     "test-vite-plus-package": "^1.0.0"
@@ -162,9 +153,6 @@ up to date in <duration>
   "packageManager": "npm@10.9.4",
   "devDependencies": {
     "testnpm2": "^1.0.1"
-  },
-  "dependencies": {
-    "test-vite-plus-install": "^1.0.0"
   },
   "peerDependencies": {
     "test-vite-plus-package": "^1.0.0"

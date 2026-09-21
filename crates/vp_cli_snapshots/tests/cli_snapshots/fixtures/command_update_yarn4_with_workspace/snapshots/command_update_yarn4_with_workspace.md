@@ -157,18 +157,12 @@ unfiltered update still updates all testnpm2 versions
 
 ## `vp update -r --no-save`
 
-warn that --no-save is unsupported while preserving recursive update
+reject unsupported --no-save without updating any workspace
+
+**Exit code:** 1
 
 ```
-warn: yarn does not support --no-save.
-➤ YN0000: · Yarn <version>
-➤ YN0000: ┌ Resolution step
-➤ YN0000: └ Completed
-➤ YN0000: ┌ Fetch step
-➤ YN0000: └ Completed
-➤ YN0000: ┌ Link step
-➤ YN0000: └ Completed
-➤ YN0000: · Done in <duration>
+yarn does not support --no-save.
 ```
 
 ## `vpt print-file package.json packages/app/package.json`

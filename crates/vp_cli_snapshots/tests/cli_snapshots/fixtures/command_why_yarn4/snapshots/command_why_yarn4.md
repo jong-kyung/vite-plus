@@ -76,42 +76,42 @@ should forward --json to yarn and emit NDJSON
 
 ## `vp why testnpm2 --long`
 
-should warn that --long not supported by yarn
+should reject --long because yarn does not support it
+
+**Exit code:** 1
 
 ```
-warn: yarn does not support --long.
-└─ command-why-yarn4@workspace:.
-   └─ testnpm2@npm:1.0.1 (via npm:1.0.1)
+yarn does not support --long.
 ```
 
 ## `vp why testnpm2 --parseable`
 
-should warn that --parseable not supported by yarn
+should reject --parseable because yarn does not support it
+
+**Exit code:** 1
 
 ```
-warn: yarn does not support --parseable.
-└─ command-why-yarn4@workspace:.
-   └─ testnpm2@npm:1.0.1 (via npm:1.0.1)
+yarn does not support --parseable.
 ```
 
 ## `vp why testnpm2 -P`
 
-should warn that --prod not supported by yarn
+should reject --prod because yarn does not support it
+
+**Exit code:** 1
 
 ```
-warn: yarn does not support --prod.
-└─ command-why-yarn4@workspace:.
-   └─ testnpm2@npm:1.0.1 (via npm:1.0.1)
+yarn does not support --prod.
 ```
 
 ## `vp why testnpm2 --find-by customFinder`
 
-should warn that --find-by not supported by yarn
+should reject --find-by because yarn does not support it
+
+**Exit code:** 1
 
 ```
-warn: yarn does not support --find-by.
-└─ command-why-yarn4@workspace:.
-   └─ testnpm2@npm:1.0.1 (via npm:1.0.1)
+yarn does not support --find-by.
 ```
 
 ## `vp why testnpm2 --exclude-peers`

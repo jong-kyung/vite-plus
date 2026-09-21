@@ -235,7 +235,7 @@ mod tests {
     use super::*;
     use crate::resolution::{
         resolve,
-        test_utils::{bun, expect_run, npm, parse_args, pnpm, yarn},
+        test_utils::{bun, expect_run, expect_unsupported, npm, parse_args, pnpm, yarn},
     };
 
     fn outdated_args(packages: &[&str]) -> OutdatedArgs {
@@ -411,7 +411,7 @@ mod tests {
     }
 
     #[test]
-    fn global_outdated_uses_npm_lowering_after_current_dialect_support_checks() {
+    fn legacy_global_lowering_does_not_bypass_dialect_support_checks() {
         let args = OutdatedArgs {
             packages: vec!["react".to_string()],
             long: true,
@@ -424,19 +424,21 @@ mod tests {
         };
 
         let yarn_resolution = resolve(&yarn("1.22.19"), args.clone());
-        let yarn_command = expect_run(yarn_resolution.outcome);
-        assert_eq!(yarn_command.program, "npm");
-        assert_eq!(yarn_command.args, vec!["outdated", "--parseable", "react", "-g"]);
-        assert_eq!(yarn_resolution.diagnostics.len(), 4);
+        expect_unsupported(
+            yarn_resolution,
+            &[
+                "yarn does not support --long.",
+                "yarn does not support --recursive.",
+                "yarn does not support --filter.",
+                "yarn does not support --workspace-root.",
+            ],
+        );
 
         let bun_resolution = resolve(&bun("1.3.11"), args);
-        let bun_command = expect_run(bun_resolution.outcome);
-        assert_eq!(bun_command.program, "npm");
-        assert_eq!(
-            bun_command.args,
-            vec!["outdated", "--parseable", "--workspace", "app", "--all", "react", "-g"]
+        expect_unsupported(
+            bun_resolution,
+            &["bun does not support --long.", "bun does not support --workspace-root."],
         );
-        assert_eq!(bun_resolution.diagnostics.len(), 2);
     }
 
     #[test]
@@ -628,7 +630,7 @@ mod tests {
     }
 
     #[test]
-    fn unsupported_fields_are_dropped_for_yarn_and_bun() {
+    fn unsupported_fields_are_rejected_for_yarn_and_bun() {
         let yarn_resolution = resolve(
             &yarn("1.22.19"),
             OutdatedArgs {
@@ -644,9 +646,20 @@ mod tests {
                 ..Default::default()
             },
         );
-        let yarn_command = expect_run(yarn_resolution.outcome);
-        assert_eq!(yarn_command.args, vec!["outdated"]);
-        assert_eq!(yarn_resolution.diagnostics.len(), 9);
+        expect_unsupported(
+            yarn_resolution,
+            &[
+                "yarn does not support --long.",
+                "yarn does not support --recursive.",
+                "yarn does not support --filter.",
+                "yarn does not support --workspace-root.",
+                "yarn does not support --prod.",
+                "yarn does not support --dev.",
+                "yarn does not support --no-optional.",
+                "yarn does not support --compatible.",
+                "yarn does not support --sort-by.",
+            ],
+        );
 
         let bun_resolution = resolve(
             &bun("1.3.11"),
@@ -659,8 +672,15 @@ mod tests {
                 ..Default::default()
             },
         );
-        let bun_command = expect_run(bun_resolution.outcome);
-        assert_eq!(bun_command.args, vec!["outdated"]);
-        assert_eq!(bun_resolution.diagnostics.len(), 5);
+        expect_unsupported(
+            bun_resolution,
+            &[
+                "bun does not support --long.",
+                "bun does not support --workspace-root.",
+                "bun does not support --dev.",
+                "bun does not support --compatible.",
+                "bun does not support --sort-by.",
+            ],
+        );
     }
 }

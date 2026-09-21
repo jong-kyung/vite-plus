@@ -174,7 +174,7 @@ mod tests {
     use super::*;
     use crate::resolution::{
         resolve,
-        test_utils::{bun, expect_run, npm, parse_args, pnpm, yarn},
+        test_utils::{bun, expect_run, expect_unsupported, npm, parse_args, pnpm, yarn},
     };
 
     fn update_args(packages: &[&str]) -> UpdateArgs {
@@ -359,18 +359,21 @@ mod tests {
     }
 
     #[test]
-    fn test_yarn_update_drops_no_save_with_warning() {
-        for (version, subcommand) in
-            [("1.22.0", "upgrade"), ("2.0.0", "up"), ("3.0.0", "up"), ("4.0.0", "up")]
-        {
-            let args = parse_args::<UpdateArgs>(["react", "--no-save"]).unwrap();
-            let resolution = resolve(&yarn(version), args);
-            let command = expect_run(resolution.outcome);
+    fn test_yarn_update_keeps_raw_pass_through() {
+        let args = parse_args::<UpdateArgs>(["react", "--", "--no-save"]).unwrap();
+        let resolution = resolve(&yarn("4.10.3"), args);
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(expect_run(resolution.outcome).args, vec!["up", "--no-save", "react"]);
+    }
 
-            assert_eq!(command.program, "yarn");
-            assert_eq!(command.args, vec![subcommand, "react"]);
-            assert_eq!(resolution.diagnostics.len(), 1);
-            assert_eq!(resolution.diagnostics[0].message, "yarn does not support --no-save.");
+    #[test]
+    fn test_yarn_update_rejects_no_save() {
+        for version in ["1.22.0", "2.0.0", "3.0.0", "4.0.0"] {
+            let args = parse_args::<UpdateArgs>(["react", "--no-save"]).unwrap();
+            expect_unsupported(
+                resolve(&yarn(version), args),
+                &["yarn does not support --no-save."],
+            );
         }
     }
 
@@ -480,20 +483,14 @@ mod tests {
     }
 
     #[test]
-    fn test_npm_latest_and_interactive_warn_without_args() {
+    fn test_npm_latest_and_interactive_are_rejected_together() {
         let mut options = update_args(&["react"]);
         options.latest = true;
         options.interactive = true;
         let resolution = resolve(&npm("11.0.0"), options);
-        let command = expect_run(resolution.outcome);
-
-        assert_eq!(command.program, "npm");
-        assert_eq!(command.args, vec!["update", "react"]);
-        let messages =
-            resolution.diagnostics.iter().map(|entry| entry.message.as_str()).collect::<Vec<_>>();
-        assert_eq!(
-            messages,
-            vec!["npm does not support --latest.", "npm does not support --interactive."]
+        expect_unsupported(
+            resolution,
+            &["npm does not support --latest.", "npm does not support --interactive."],
         );
     }
 
@@ -627,13 +624,9 @@ mod tests {
     }
 
     #[test]
-    fn test_bun_update_drops_filter_before_1_4() {
+    fn test_bun_update_rejects_filter_before_1_4() {
         let options = UpdateArgs { filter: vec!["web".to_string()], ..Default::default() };
         let resolution = resolve(&bun("1.3.11"), options);
-        let command = expect_run(resolution.outcome);
-
-        assert_eq!(command.program, "bun");
-        assert_eq!(command.args, vec!["update"]);
-        assert_eq!(resolution.diagnostics[0].message, "bun <1.4 does not support --filter.");
+        expect_unsupported(resolution, &["bun < 1.4 does not support --filter."]);
     }
 }

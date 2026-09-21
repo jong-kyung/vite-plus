@@ -30,12 +30,12 @@ added 3 packages in <duration>
 
 ## `vp up testnpm2 --latest -- --no-audit`
 
-should to absolute latest version
+reject unsupported --latest without updating dependencies
+
+**Exit code:** 1
 
 ```
-warn: npm does not support --latest.
-
-up to date in <duration>
+npm does not support --latest.
 ```
 
 ## `vpt print-file package.json`
@@ -131,10 +131,9 @@ found 0 vulnerabilities
 added 1 package in <duration>
 ```
 
-## `vp update --no-optional --latest -- --no-audit`
+## `vp update --no-optional -- --no-audit`
 
 ```
-warn: npm does not support --latest.
 npm warn config optional Use `--omit=optional` to exclude optional dependencies, or
 npm warn config `--include=optional` to include them.
 npm warn config

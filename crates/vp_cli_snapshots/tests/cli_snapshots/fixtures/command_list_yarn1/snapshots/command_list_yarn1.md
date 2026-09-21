@@ -92,107 +92,72 @@ Done in <duration>.
 
 ## `vp pm list --dev`
 
-should show warning that --dev not supported by yarn@1
+should reject --dev because yarn@1 does not support it
+
+**Exit code:** 1
 
 ```
-warn: yarn does not support --dev.
-yarn list <version>
-warning package.json: No license field
-warning command-list-yarn1@1.0.0: No license field
-├─ test-vite-plus-package@1.0.0
-└─ testnpm2@1.0.1
-
-Done in <duration>.
+yarn does not support --dev.
 ```
 
 ## `vp pm list --no-optional`
 
-should show warning that --no-optional not supported by yarn@1
+should reject --no-optional because yarn@1 does not support it
+
+**Exit code:** 1
 
 ```
-warn: yarn does not support --no-optional.
-yarn list <version>
-warning package.json: No license field
-warning command-list-yarn1@1.0.0: No license field
-├─ test-vite-plus-package@1.0.0
-└─ testnpm2@1.0.1
-
-Done in <duration>.
+yarn does not support --no-optional.
 ```
 
 ## `vp pm list --exclude-peers`
 
-should show warning that --exclude-peers not supported by yarn@1
+should reject --exclude-peers because yarn@1 does not support it
+
+**Exit code:** 1
 
 ```
-warn: yarn does not support --exclude-peers.
-yarn list <version>
-warning package.json: No license field
-warning command-list-yarn1@1.0.0: No license field
-├─ test-vite-plus-package@1.0.0
-└─ testnpm2@1.0.1
-
-Done in <duration>.
+yarn does not support --exclude-peers.
 ```
 
 ## `vp pm list --only-projects`
 
-should show warning that --only-projects not supported by yarn@1
+should reject --only-projects because yarn@1 does not support it
+
+**Exit code:** 1
 
 ```
-warn: yarn does not support --only-projects.
-yarn list <version>
-warning package.json: No license field
-warning command-list-yarn1@1.0.0: No license field
-├─ test-vite-plus-package@1.0.0
-└─ testnpm2@1.0.1
-
-Done in <duration>.
+yarn does not support --only-projects.
 ```
 
 ## `vp pm list --find-by customFinder`
 
-should show warning that --find-by not supported by yarn@1
+should reject --find-by because yarn@1 does not support it
+
+**Exit code:** 1
 
 ```
-warn: yarn does not support --find-by.
-yarn list <version>
-warning package.json: No license field
-warning command-list-yarn1@1.0.0: No license field
-├─ test-vite-plus-package@1.0.0
-└─ testnpm2@1.0.1
-
-Done in <duration>.
+yarn does not support --find-by.
 ```
 
 ## `vp pm list --recursive`
 
-should show warning that --recursive not supported by yarn@1
+should reject --recursive because yarn@1 does not support it
+
+**Exit code:** 1
 
 ```
-warn: yarn does not support --recursive.
-yarn list <version>
-warning package.json: No license field
-warning command-list-yarn1@1.0.0: No license field
-├─ test-vite-plus-package@1.0.0
-└─ testnpm2@1.0.1
-
-Done in <duration>.
+yarn does not support --recursive.
 ```
 
 ## `vp pm list --filter app`
 
-should show warning that --filter not supported by yarn@1
+should reject --filter because yarn@1 does not support it
+
+**Exit code:** 1
 
 ```
-warn: yarn does not support --filter.
-yarn list <version>
-warning package.json: No license field
-warning command-list-yarn1@1.0.0: No license field
-├─ test-vite-plus-package@1.0.0
-└─ testnpm2@1.0.1
-
-Done in <duration>.
+yarn does not support --filter.
 ```
 
 ## `vp pm list -- --loglevel=warn`
