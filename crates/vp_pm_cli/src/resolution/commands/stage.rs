@@ -6,7 +6,7 @@ use crate::resolution::{
 
 /// Staged-publishing subcommands (`vp pm stage <subcommand>`).
 ///
-/// Maps to `npm stage`/`pnpm stage` and yarn berry's npm plugin
+/// Maps to `npm stage`/`pnpm stage` and Yarn's npm plugin starting with 4.16.0
 /// (`yarn npm publish --staged`, `yarn npm stage ...`). Note: this is unrelated
 /// to yarn's own `yarn stage` command, which stages files for a VCS commit.
 #[pm_args]
@@ -70,7 +70,7 @@ pub enum StageCommand {
         json: bool,
 
         /// Registry URL
-        #[arg(long, value_name = "URL")]
+        #[arg(long, value_name = "URL", not_supported(yarn >= "4.16.0"))]
         registry: Option<String>,
 
         /// Additional arguments
@@ -120,7 +120,7 @@ pub enum StageCommand {
         otp: Option<String>,
 
         /// Registry URL
-        #[arg(long, value_name = "URL")]
+        #[arg(long, value_name = "URL", not_supported(yarn >= "4.16.0"))]
         registry: Option<String>,
 
         /// Additional arguments
@@ -138,7 +138,7 @@ pub enum StageCommand {
         otp: Option<String>,
 
         /// Registry URL
-        #[arg(long, value_name = "URL")]
+        #[arg(long, value_name = "URL", not_supported(yarn >= "4.16.0"))]
         registry: Option<String>,
 
         /// Additional arguments
@@ -148,7 +148,7 @@ pub enum StageCommand {
 }
 
 impl Resolve<StageCommand> for Pnpm {
-    fn resolve(&self, args: &StageCommand, diag: &mut Diagnostics) -> CommandResolution {
+    fn resolve(&self, args: &StageCommand, _diag: &mut Diagnostics) -> CommandResolution {
         let mut cmd = CommandBuilder::new("pnpm");
         if let StageCommand::Publish { filter: Some(filters), .. } = args {
             cmd.repeated("--filter", filters.iter());
@@ -158,13 +158,13 @@ impl Resolve<StageCommand> for Pnpm {
         if let StageCommand::Publish { recursive: true, .. } = args {
             cmd.arg("--recursive");
         }
-        append_registry_and_pass_through(&mut cmd, args, diag);
+        append_registry_and_pass_through(&mut cmd, args);
         cmd.into()
     }
 }
 
 impl Npm {
-    fn resolve_stage(args: &StageCommand, diag: &mut Diagnostics) -> CommandResolution {
+    fn resolve_stage(args: &StageCommand) -> CommandResolution {
         let mut cmd = CommandBuilder::new("npm");
         cmd.arg("stage");
         append_stage_subcommand(&mut cmd, args);
@@ -183,25 +183,52 @@ impl Npm {
                 cmd.repeated("--workspace", filters.iter());
             }
         }
-        append_registry_and_pass_through(&mut cmd, args, diag);
+        append_registry_and_pass_through(&mut cmd, args);
         cmd.into()
     }
 }
 
 impl Resolve<StageCommand> for Npm {
-    fn resolve(&self, args: &StageCommand, diag: &mut Diagnostics) -> CommandResolution {
-        Self::resolve_stage(args, diag)
+    fn resolve(&self, args: &StageCommand, _diag: &mut Diagnostics) -> CommandResolution {
+        Self::resolve_stage(args)
     }
 }
 
 impl Resolve<StageCommand> for Yarn {
+    fn diagnose(&self, args: &StageCommand, diag: &mut Diagnostics) {
+        if !self.supports_staged_publishing() {
+            return;
+        }
+        let StageCommand::Publish { target: None, recursive, filter, registry, .. } = args else {
+            return;
+        };
+        if *recursive {
+            diag.warn(
+                DiagnosticKind::UnsupportedOption,
+                "yarn does not support --recursive for native staged publishing.",
+            );
+        }
+        if filter.as_ref().is_some_and(|filters| !filters.is_empty()) {
+            diag.warn(
+                DiagnosticKind::UnsupportedOption,
+                "yarn does not support --filter for native staged publishing.",
+            );
+        }
+        if registry.is_some() {
+            diag.warn(
+                DiagnosticKind::UnsupportedOption,
+                "yarn does not support --registry for native staged publishing.",
+            );
+        }
+    }
+
     fn resolve(&self, args: &StageCommand, diag: &mut Diagnostics) -> CommandResolution {
-        if !self.is_berry() {
+        if !self.supports_staged_publishing() {
             diag.warn(
                 DiagnosticKind::FallbackCommand,
-                "yarn 1 does not support staged publishing, falling back to npm stage",
+                "yarn < 4.16.0 does not support staged publishing, falling back to npm stage",
             );
-            return Npm::resolve_stage(args, diag);
+            return Npm::resolve_stage(args);
         }
 
         let mut cmd = match args {
@@ -210,11 +237,11 @@ impl Resolve<StageCommand> for Yarn {
                 DiagnosticKind::FallbackCommand,
                 "yarn cannot stage a prebuilt tarball or folder; using npm stage publish for the given target",
             );
-                return Npm::resolve_stage(args, diag);
+                return Npm::resolve_stage(args);
             }
             StageCommand::Publish { .. } => {
                 let mut cmd = CommandBuilder::new("yarn");
-                append_yarn_publish_staged(&mut cmd, args, diag);
+                append_yarn_publish_staged(&mut cmd, args);
                 cmd
             }
             StageCommand::List { .. }
@@ -230,10 +257,10 @@ impl Resolve<StageCommand> for Yarn {
                 DiagnosticKind::FallbackCommand,
                 "yarn does not support 'stage view'/'stage download', falling back to npm stage",
             );
-                return Npm::resolve_stage(args, diag);
+                return Npm::resolve_stage(args);
             }
         };
-        append_registry_and_pass_through(&mut cmd, args, diag);
+        append_registry_and_pass_through(&mut cmd, args);
         cmd.into()
     }
 }
@@ -244,7 +271,7 @@ impl Resolve<StageCommand> for Bun {
             DiagnosticKind::FallbackCommand,
             "bun does not support staged publishing, falling back to npm stage",
         );
-        Npm::resolve_stage(args, diag)
+        Npm::resolve_stage(args)
     }
 }
 
@@ -291,43 +318,13 @@ fn append_stage_subcommand(cmd: &mut CommandBuilder, command: &StageCommand) {
     }
 }
 
-fn append_yarn_publish_staged(
-    cmd: &mut CommandBuilder,
-    command: &StageCommand,
-    diag: &mut Diagnostics,
-) {
-    let StageCommand::Publish {
-        tag,
-        access,
-        otp,
-        dry_run,
-        json,
-        recursive,
-        filter,
-        target: _,
-        provenance,
-        registry: _,
-        pass_through_args: _,
-    } = command
-    else {
+fn append_yarn_publish_staged(cmd: &mut CommandBuilder, command: &StageCommand) {
+    let StageCommand::Publish { tag, access, otp, dry_run, json, provenance, .. } = command else {
         return;
     };
 
     cmd.arg("npm").arg("publish").arg("--staged");
     push_publish_flags(cmd, tag, access, otp, *dry_run, *json, *provenance);
-
-    if *recursive {
-        diag.warn(
-            DiagnosticKind::UnsupportedOptionDropped,
-            "--recursive is not supported by yarn npm publish, ignoring flag",
-        );
-    }
-    if filter.as_ref().is_some_and(|filters| !filters.is_empty()) {
-        diag.warn(
-            DiagnosticKind::UnsupportedOptionDropped,
-            "--filter is not supported by yarn npm publish, ignoring flag",
-        );
-    }
 }
 
 fn push_publish_flags(
@@ -347,26 +344,8 @@ fn push_publish_flags(
         .arg_if("--provenance", provenance);
 }
 
-fn append_registry_and_pass_through(
-    cmd: &mut CommandBuilder,
-    command: &StageCommand,
-    diag: &mut Diagnostics,
-) {
-    if let Some(registry) = command.registry() {
-        if cmd_program_is_yarn(cmd) {
-            diag.warn(
-                DiagnosticKind::UnsupportedOptionDropped,
-                "--registry is not supported by yarn's npm plugin (set the registry in .yarnrc.yml), ignoring flag",
-            );
-        } else {
-            cmd.arg("--registry").arg(registry);
-        }
-    }
-    cmd.extend(command.pass_through_args().iter());
-}
-
-fn cmd_program_is_yarn(cmd: &CommandBuilder) -> bool {
-    cmd.clone().build().program == "yarn"
+fn append_registry_and_pass_through(cmd: &mut CommandBuilder, command: &StageCommand) {
+    cmd.option("--registry", command.registry()).extend(command.pass_through_args().iter());
 }
 
 impl StageCommand {
@@ -398,7 +377,7 @@ mod tests {
     use super::*;
     use crate::resolution::{
         Resolution, resolve,
-        test_utils::{bun, expect_run, npm, parse_subcommand, pnpm, yarn},
+        test_utils::{bun, expect_run, expect_unsupported, npm, parse_subcommand, pnpm, yarn},
     };
 
     fn publish_sub_full(
@@ -741,7 +720,7 @@ mod tests {
     #[test]
     fn test_yarn_berry_stage_publish_uses_npm_plugin() {
         let command = expect_run(
-            resolve(&yarn("4.0.0"), publish_sub_full(Some("next"), None, false, None, false))
+            resolve(&yarn("4.16.0"), publish_sub_full(Some("next"), None, false, None, false))
                 .outcome,
         );
 
@@ -753,7 +732,7 @@ mod tests {
     fn test_yarn_berry_stage_publish_forwards_dry_run_json_provenance() {
         let command = expect_run(
             resolve(
-                &yarn("4.0.0"),
+                &yarn("4.16.0"),
                 StageCommand::Publish {
                     target: None,
                     tag: None,
@@ -781,7 +760,7 @@ mod tests {
     #[test]
     fn test_yarn_berry_stage_publish_with_target_falls_back_to_npm() {
         let Resolution { outcome, diagnostics } = resolve(
-            &yarn("4.0.0"),
+            &yarn("4.16.0"),
             StageCommand::Publish {
                 target: Some("./pkg.tgz".into()),
                 tag: None,
@@ -807,31 +786,135 @@ mod tests {
     }
 
     #[test]
-    fn test_yarn_berry_stage_registry_dropped() {
-        let Resolution { outcome, diagnostics } = resolve(
-            &yarn("4.0.0"),
-            StageCommand::List {
-                package: None,
-                json: false,
-                registry: Some("https://registry.example.com".into()),
-                pass_through_args: Vec::new(),
-            },
-        );
-        let command = expect_run(outcome);
+    fn test_yarn_native_stage_rejects_registry_on_management_commands() {
+        for version in ["4.16.0", "4.18.0"] {
+            for command in [vec!["list"], vec!["approve", "abc123"], vec!["reject", "abc123"]] {
+                let args = parse_subcommand::<StageCommand>(command.into_iter().chain([
+                    "--registry",
+                    "https://registry.example.com",
+                    "--",
+                    "--help",
+                ]))
+                .unwrap();
+                expect_unsupported(
+                    resolve(&yarn(version), args),
+                    &["yarn >= 4.16.0 does not support --registry."],
+                );
+            }
+        }
+    }
 
+    #[test]
+    fn test_yarn_native_stage_collects_unsupported_options() {
+        for version in ["4.16.0", "4.18.0"] {
+            let args = parse_subcommand::<StageCommand>([
+                "publish",
+                "--recursive",
+                "--filter",
+                "app",
+                "--registry",
+                "https://registry.example.com",
+                "--",
+                "--help",
+            ])
+            .unwrap();
+            expect_unsupported(
+                resolve(&yarn(version), args),
+                &[
+                    "yarn does not support --recursive for native staged publishing.",
+                    "yarn does not support --filter for native staged publishing.",
+                    "yarn does not support --registry for native staged publishing.",
+                ],
+            );
+        }
+    }
+
+    #[test]
+    fn test_yarn_stage_before_4_16_falls_back_to_npm() {
+        for version in ["1.22.22", "2.4.2", "3.6.0", "4.15.0", "4.16.0-rc.0"] {
+            for command in [
+                vec!["publish", "--recursive", "--filter", "app"],
+                vec!["list", "my-pkg", "--json"],
+                vec!["view", "abc123", "--json"],
+                vec!["download", "abc123"],
+                vec!["approve", "abc123", "--otp", "123456"],
+                vec!["reject", "abc123", "--otp", "123456"],
+            ] {
+                let args = parse_subcommand::<StageCommand>(command.into_iter().chain([
+                    "--registry",
+                    "https://registry.example.com",
+                    "--",
+                    "--help",
+                ]))
+                .unwrap();
+                let resolution = resolve(&yarn(version), args.clone());
+                assert_eq!(resolution.outcome, resolve(&npm("11.16.0"), args).outcome);
+                assert_eq!(resolution.diagnostics.len(), 1);
+                assert_eq!(resolution.diagnostics[0].kind, DiagnosticKind::FallbackCommand);
+            }
+        }
+    }
+
+    #[test]
+    fn test_yarn_native_stage_preserves_npm_fallback_options() {
+        for version in ["4.16.0", "4.18.0"] {
+            for command in [
+                vec!["publish", ".", "--recursive", "--filter", "app"],
+                vec!["publish", "./pkg.tgz"],
+                vec!["view", "abc123", "--json"],
+                vec!["download", "abc123"],
+            ] {
+                let args = parse_subcommand::<StageCommand>(command.into_iter().chain([
+                    "--registry",
+                    "https://registry.example.com",
+                    "--",
+                    "--help",
+                ]))
+                .unwrap();
+                let resolution = resolve(&yarn(version), args.clone());
+                assert_eq!(resolution.outcome, resolve(&npm("11.16.0"), args).outcome);
+                assert_eq!(resolution.diagnostics.len(), 1);
+                assert_eq!(resolution.diagnostics[0].kind, DiagnosticKind::FallbackCommand);
+            }
+        }
+    }
+
+    #[test]
+    fn test_yarn_native_stage_preserves_raw_args_and_empty_filter() {
+        let mut args = publish_sub_full(None, None, false, Some(Vec::new()), false);
+        if let StageCommand::Publish { pass_through_args, .. } = &mut args {
+            *pass_through_args = vec![
+                "--recursive".into(),
+                "--filter".into(),
+                "app".into(),
+                "--registry".into(),
+                "https://registry.example.com".into(),
+            ];
+        }
+        let resolution = resolve(&yarn("4.16.0"), args);
+        let command = expect_run(resolution.outcome);
         assert_eq!(command.program, "yarn");
-        assert_eq!(command.args, vec!["npm", "stage", "list"]);
         assert_eq!(
-            diagnostics[0].message,
-            "--registry is not supported by yarn's npm plugin (set the registry in .yarnrc.yml), ignoring flag"
+            command.args,
+            vec![
+                "npm",
+                "publish",
+                "--staged",
+                "--recursive",
+                "--filter",
+                "app",
+                "--registry",
+                "https://registry.example.com"
+            ]
         );
+        assert!(resolution.diagnostics.is_empty());
     }
 
     #[test]
     fn test_yarn_berry_stage_list() {
         let command = expect_run(
             resolve(
-                &yarn("4.0.0"),
+                &yarn("4.16.0"),
                 StageCommand::List {
                     package: None,
                     json: false,
@@ -850,7 +933,7 @@ mod tests {
     fn test_yarn_berry_stage_approve() {
         let command = expect_run(
             resolve(
-                &yarn("4.0.0"),
+                &yarn("4.16.0"),
                 StageCommand::Approve {
                     stage_id: "abc123".into(),
                     otp: None,
@@ -868,7 +951,7 @@ mod tests {
     #[test]
     fn test_yarn_berry_stage_view_falls_back_to_npm() {
         let Resolution { outcome, diagnostics } = resolve(
-            &yarn("4.0.0"),
+            &yarn("4.16.0"),
             StageCommand::View {
                 stage_id: "abc123".into(),
                 json: false,
@@ -895,7 +978,7 @@ mod tests {
         assert_eq!(command.args, vec!["stage", "publish"]);
         assert_eq!(
             diagnostics[0].message,
-            "yarn 1 does not support staged publishing, falling back to npm stage"
+            "yarn < 4.16.0 does not support staged publishing, falling back to npm stage"
         );
     }
 

@@ -75,6 +75,12 @@ impl Yarn {
     pub(crate) fn is_berry(&self) -> bool {
         crate::package_manager::is_yarn_berry(&self.version)
     }
+
+    /// Staged publishing landed in Yarn 4.16.0.
+    /// https://github.com/yarnpkg/berry/releases/tag/%40yarnpkg/cli/4.16.0
+    pub(crate) fn supports_staged_publishing(&self) -> bool {
+        self.version >= Version::new(4, 16, 0)
+    }
 }
 
 impl Bun {
