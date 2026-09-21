@@ -56,7 +56,7 @@ pub struct OutdatedArgs {
     pub(crate) long: bool,
 
     /// Output format: table (default), list, or json
-    #[arg(long, value_name = "FORMAT", value_parser = clap::value_parser!(OutdatedFormat))]
+    #[arg(long, value_name = "FORMAT", value_parser = clap::value_parser!(OutdatedFormat), not_supported(yarn >= "2"))]
     pub(crate) format: Option<OutdatedFormat>,
 
     /// Check recursively across all workspaces
@@ -164,18 +164,21 @@ impl Resolve<OutdatedArgs> for Npm {
 }
 
 impl Resolve<OutdatedArgs> for Yarn {
+    fn diagnose(&self, args: &OutdatedArgs, diag: &mut Diagnostics) {
+        if !self.is_berry() && args.format == Some(OutdatedFormat::List) {
+            diag.warn(
+                DiagnosticKind::UnsupportedOption,
+                "Yarn Classic does not support --format list.",
+            );
+        }
+    }
+
     fn resolve(&self, args: &OutdatedArgs, diag: &mut Diagnostics) -> CommandResolution {
         if args.global {
             return Npm::resolve_outdated(args);
         }
 
         if self.is_berry() {
-            if args.format.is_some() {
-                diag.warn(
-                    DiagnosticKind::UnsupportedOptionDropped,
-                    "--format not supported by yarn@2+",
-                );
-            }
             diag.note(
                 DiagnosticKind::BehaviorChange,
                 "yarn@2+ uses 'yarn upgrade-interactive' for checking outdated packages",
@@ -191,13 +194,7 @@ impl Resolve<OutdatedArgs> for Yarn {
             Some(OutdatedFormat::Json) => {
                 cmd.arg("--json");
             }
-            Some(OutdatedFormat::List) => {
-                diag.warn(
-                    DiagnosticKind::UnsupportedOptionDropped,
-                    "yarn@1 not support list format",
-                );
-            }
-            Some(OutdatedFormat::Table) | None => {}
+            Some(OutdatedFormat::List | OutdatedFormat::Table) | None => {}
         }
         cmd.extend(args.pass_through_args.iter());
         cmd.into()
@@ -205,7 +202,18 @@ impl Resolve<OutdatedArgs> for Yarn {
 }
 
 impl Resolve<OutdatedArgs> for Bun {
-    fn resolve(&self, args: &OutdatedArgs, diag: &mut Diagnostics) -> CommandResolution {
+    fn diagnose(&self, args: &OutdatedArgs, diag: &mut Diagnostics) {
+        if let Some(format) = args.format
+            && format != OutdatedFormat::Table
+        {
+            diag.warn(
+                DiagnosticKind::UnsupportedOption,
+                vt_str::format!("bun does not support --format {}.", format.as_str()),
+            );
+        }
+    }
+
+    fn resolve(&self, args: &OutdatedArgs, _diag: &mut Diagnostics) -> CommandResolution {
         if args.global {
             return Npm::resolve_outdated(args);
         }
@@ -215,12 +223,6 @@ impl Resolve<OutdatedArgs> for Bun {
             .repeated("--filter", args.filter.iter())
             .arg_if("--recursive", args.recursive)
             .extend(args.packages.iter());
-        if args.format == Some(OutdatedFormat::Json) {
-            diag.warn(
-                DiagnosticKind::UnsupportedOptionDropped,
-                "bun outdated does not support --format json",
-            );
-        }
         cmd.arg_if("--production", args.prod);
         if args.no_optional {
             cmd.arg("--omit").arg("optional");
@@ -431,13 +433,18 @@ mod tests {
                 "yarn does not support --recursive.",
                 "yarn does not support --filter.",
                 "yarn does not support --workspace-root.",
+                "Yarn Classic does not support --format list.",
             ],
         );
 
         let bun_resolution = resolve(&bun("1.3.11"), args);
         expect_unsupported(
             bun_resolution,
-            &["bun does not support --long.", "bun does not support --workspace-root."],
+            &[
+                "bun does not support --long.",
+                "bun does not support --workspace-root.",
+                "bun does not support --format list.",
+            ],
         );
     }
 
@@ -541,50 +548,100 @@ mod tests {
     }
 
     #[test]
-    fn yarn_classic_supports_json_and_warns_list_format() {
-        let list_resolution = resolve(
-            &yarn("1.22.19"),
-            OutdatedArgs { format: Some(OutdatedFormat::List), ..Default::default() },
-        );
-        let list_command = expect_run(list_resolution.outcome);
-
-        assert_eq!(list_command.program, "yarn");
-        assert_eq!(list_command.args, vec!["outdated"]);
-        assert_eq!(list_resolution.diagnostics[0].message, "yarn@1 not support list format");
-
-        let json_resolution = resolve(
-            &yarn("1.22.19"),
-            OutdatedArgs { format: Some(OutdatedFormat::Json), ..Default::default() },
-        );
-        let json_command = expect_run(json_resolution.outcome);
-        assert_eq!(json_command.args, vec!["outdated", "--json"]);
-        assert!(json_resolution.diagnostics.is_empty());
+    fn yarn_classic_rejects_only_list_format() {
+        for version in ["1.22.19", "1.22.22"] {
+            let args = parse_args::<OutdatedArgs>(["--format", "list"]).unwrap();
+            expect_unsupported(
+                resolve(&yarn(version), args),
+                &["Yarn Classic does not support --format list."],
+            );
+        }
     }
 
     #[test]
-    fn yarn_berry_uses_upgrade_interactive_and_warns_format() {
-        let resolution = resolve(
-            &yarn("4.0.0"),
-            OutdatedArgs { format: Some(OutdatedFormat::Json), ..Default::default() },
-        );
-        let command = expect_run(resolution.outcome);
-
-        assert_eq!(command.program, "yarn");
-        assert_eq!(command.args, vec!["upgrade-interactive"]);
-        assert_eq!(resolution.diagnostics[0].message, "--format not supported by yarn@2+");
-        assert_eq!(
-            resolution.diagnostics[1].message,
-            "yarn@2+ uses 'yarn upgrade-interactive' for checking outdated packages"
+    fn yarn_classic_reports_list_with_other_unsupported_options() {
+        let args = parse_args::<OutdatedArgs>(["--format", "list", "--long"]).unwrap();
+        expect_unsupported(
+            resolve(&yarn("1.22.22"), args),
+            &["yarn does not support --long.", "Yarn Classic does not support --format list."],
         );
     }
 
     #[test]
-    fn bun_outdated_supports_subset_and_warns_json_format() {
+    fn yarn_berry_rejects_explicit_formats() {
+        for version in ["2.0.0", "2.4.2", "3.6.0", "4.10.3"] {
+            for format in ["table", "list", "json"] {
+                let args = parse_args::<OutdatedArgs>(["--format", format]).unwrap();
+                expect_unsupported(
+                    resolve(&yarn(version), args),
+                    &["yarn >= 2 does not support --format."],
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn yarn_berry_reports_format_with_other_unsupported_options() {
+        let args = parse_args::<OutdatedArgs>(["--format", "json", "--long"]).unwrap();
+        expect_unsupported(
+            resolve(&yarn("4.10.3"), args),
+            &["yarn does not support --long.", "yarn >= 2 does not support --format."],
+        );
+    }
+
+    #[test]
+    fn yarn_berry_uses_upgrade_interactive_without_format() {
+        for version in ["2.0.0", "3.6.0", "4.10.3"] {
+            let args = parse_args::<OutdatedArgs>(["--", "--help"]).unwrap();
+            let resolution = resolve(&yarn(version), args);
+            let command = expect_run(resolution.outcome);
+
+            assert_eq!(command.program, "yarn");
+            assert_eq!(command.args, vec!["upgrade-interactive", "--help"]);
+            assert_eq!(resolution.diagnostics.len(), 1);
+            assert_eq!(
+                resolution.diagnostics[0].message,
+                "yarn@2+ uses 'yarn upgrade-interactive' for checking outdated packages"
+            );
+        }
+    }
+
+    #[test]
+    fn supported_formats_are_preserved_for_other_managers() {
+        for format in [OutdatedFormat::Table, OutdatedFormat::List, OutdatedFormat::Json] {
+            let args = OutdatedArgs { format: Some(format), ..Default::default() };
+            let npm_resolution = resolve(&npm("12.0.2"), args.clone());
+            let mut expected = vec!["outdated"];
+            match format {
+                OutdatedFormat::Json => expected.push("--json"),
+                OutdatedFormat::List => expected.push("--parseable"),
+                OutdatedFormat::Table => {}
+            }
+            assert_eq!(expect_run(npm_resolution.outcome).args, expected);
+            assert!(npm_resolution.diagnostics.is_empty());
+
+            let pnpm_resolution = resolve(&pnpm("11.3.0"), args.clone());
+            assert_eq!(
+                expect_run(pnpm_resolution.outcome).args,
+                vec!["outdated", "--format", format.as_str()]
+            );
+            assert!(pnpm_resolution.diagnostics.is_empty());
+
+            if format != OutdatedFormat::List {
+                let yarn_resolution = resolve(&yarn("1.22.22"), args);
+                assert_eq!(expect_run(yarn_resolution.outcome).args, expected);
+                assert!(yarn_resolution.diagnostics.is_empty());
+            }
+        }
+    }
+
+    #[test]
+    fn bun_outdated_preserves_table_and_supported_flags() {
         let resolution = resolve(
             &bun("1.3.11"),
             OutdatedArgs {
                 packages: vec!["react".to_string()],
-                format: Some(OutdatedFormat::Json),
+                format: Some(OutdatedFormat::Table),
                 filter: vec!["app".to_string()],
                 recursive: true,
                 prod: true,
@@ -608,10 +665,45 @@ mod tests {
                 "optional"
             ]
         );
-        assert_eq!(
-            resolution.diagnostics[0].message,
-            "bun outdated does not support --format json"
-        );
+        assert!(resolution.diagnostics.is_empty());
+    }
+
+    #[test]
+    fn bun_outdated_rejects_non_table_formats() {
+        for version in ["1.3.11", "1.3.14", "1.4.0"] {
+            for format in ["json", "list"] {
+                let args = parse_args::<OutdatedArgs>(["--format", format]).unwrap();
+                expect_unsupported(
+                    resolve(&bun(version), args),
+                    &[&vt_str::format!("bun does not support --format {format}.")],
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn bun_outdated_reports_formats_with_other_unsupported_options() {
+        for format in ["json", "list"] {
+            let args = parse_args::<OutdatedArgs>(["--format", format, "--long"]).unwrap();
+            expect_unsupported(
+                resolve(&bun("1.4.0"), args),
+                &[
+                    "bun does not support --long.",
+                    &vt_str::format!("bun does not support --format {format}."),
+                ],
+            );
+        }
+    }
+
+    #[test]
+    fn bun_outdated_preserves_raw_args_without_named_format() {
+        for raw_args in [vec!["--json"], vec!["--format", "list"]] {
+            let args =
+                parse_args::<OutdatedArgs>(std::iter::once("--").chain(raw_args.clone())).unwrap();
+            let resolution = resolve(&bun("1.4.0"), args);
+            assert_eq!(expect_run(resolution.outcome).args, [vec!["outdated"], raw_args].concat());
+            assert!(resolution.diagnostics.is_empty());
+        }
     }
 
     #[test]

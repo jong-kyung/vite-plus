@@ -2,7 +2,7 @@ use std::ops::Index;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum DiagnosticKind {
-    /// Generated support checks reject the request before command lowering.
+    /// Support checks reject the request before command lowering.
     UnsupportedOption,
     /// Legacy resolver-level warnings retain their existing behavior.
     UnsupportedOptionDropped,
