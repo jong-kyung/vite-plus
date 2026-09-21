@@ -12,7 +12,9 @@ pub struct UnlinkArgs {
     pub(crate) package: Option<String>,
 
     /// Unlink in every workspace package
-    #[arg(short = 'r', long, not_supported(bun))]
+    // Berry added unlink, including --all, in Yarn 3. Classic has no recursive unlink.
+    // https://github.com/yarnpkg/berry/blob/01586a88806a2bebd7edb28d1bee3581b1fd3762/CHANGELOG.md#300
+    #[arg(short = 'r', long, not_supported(yarn < "3", bun))]
     pub(crate) recursive: bool,
 
     /// Arguments to pass to package manager
@@ -161,12 +163,39 @@ mod tests {
 
     #[test]
     fn test_yarn_unlink_recursive() {
-        let command = expect_run(
-            resolve(&yarn("4.0.0"), UnlinkArgs { recursive: true, ..Default::default() }).outcome,
-        );
+        for version in ["3.0.0", "3.6.0", "4.18.0"] {
+            let resolution =
+                resolve(&yarn(version), UnlinkArgs { recursive: true, ..Default::default() });
+            let command = expect_run(resolution.outcome);
+            assert_eq!(command.program, "yarn");
+            assert_eq!(command.args, vec!["unlink", "--all"]);
+            assert!(resolution.diagnostics.is_empty());
+        }
+    }
 
-        assert_eq!(command.program, "yarn");
-        assert_eq!(command.args, vec!["unlink", "--all"]);
+    #[test]
+    fn test_yarn_before_3_rejects_recursive_unlink() {
+        for version in ["1.22.22", "2.4.2", "3.0.0-rc.0"] {
+            for argv in [vec!["--recursive"], vec!["-r", "react"], vec!["react", "--recursive"]] {
+                let args = parse_args::<UnlinkArgs>(argv).unwrap();
+                assert!(args.recursive);
+                expect_unsupported(
+                    resolve(&yarn(version), args),
+                    &["yarn < 3 does not support --recursive."],
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_yarn_unlink_preserves_raw_recursive() {
+        for version in ["1.22.22", "2.4.2", "4.18.0"] {
+            let args = parse_args::<UnlinkArgs>(["react", "--", "--recursive"]).unwrap();
+            assert!(!args.recursive);
+            let resolution = resolve(&yarn(version), args);
+            assert!(resolution.diagnostics.is_empty());
+            assert_eq!(expect_run(resolution.outcome).args, vec!["unlink", "react", "--recursive"]);
+        }
     }
 
     #[test]
