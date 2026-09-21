@@ -11,11 +11,11 @@ pub struct ListArgs {
     pub(crate) pattern: Option<String>,
 
     /// Maximum depth of dependency tree
-    #[arg(long, not_supported(bun))]
+    #[arg(long, not_supported(yarn >= "2", bun))]
     pub(crate) depth: Option<u32>,
 
     /// Output in JSON format
-    #[arg(long, not_supported(bun))]
+    #[arg(long, not_supported(yarn >= "2", bun))]
     pub(crate) json: bool,
 
     /// Show extended information
@@ -242,6 +242,25 @@ mod tests {
         let resolution =
             resolve(&yarn("1.22.0"), ListArgs { recursive: true, ..Default::default() });
         expect_unsupported(resolution, &["yarn does not support --recursive."]);
+    }
+
+    #[test]
+    fn test_yarn2_list_rejects_depth_and_json() {
+        for version in ["2.4.2", "3.6.0", "4.18.0"] {
+            let args = parse_args::<ListArgs>(["--depth", "0", "--json", "--", "--help"]).unwrap();
+            expect_unsupported(
+                resolve(&yarn(version), args),
+                &["yarn >= 2 does not support --depth.", "yarn >= 2 does not support --json."],
+            );
+        }
+    }
+
+    #[test]
+    fn test_yarn1_list_preserves_depth_and_json() {
+        let args = parse_args::<ListArgs>(["--depth", "0", "--json"]).unwrap();
+        let resolution = resolve(&yarn("1.22.22"), args);
+        assert_eq!(expect_run(resolution.outcome).args, vec!["list", "--depth", "0", "--json"]);
+        assert!(resolution.diagnostics.is_empty());
     }
 
     #[test]

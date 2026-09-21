@@ -1,4 +1,14 @@
 [[case]]
+name = "unsupported_prune_options"
+vp = ["local", "global"]
+steps = [
+  { argv = ["vpt", "json-edit", "package.json", "packageManager", "bun@1.3.11"], snapshot = false },
+  { argv = ["vp", "pm", "prune"], comment = "Without named options, retain the existing command-level Noop." },
+  { argv = ["vp", "pm", "prune", "--prod", "--no-optional", "--", "--help"], comment = "An explicit request must fail instead of reporting a successful Noop.", continue-on-failure = true },
+  ["vpt", "stat-file", "node_modules", "--assert", "missing"],
+]
+
+[[case]]
 name = "command_prune_bun"
 vp = "global"
 steps = [
