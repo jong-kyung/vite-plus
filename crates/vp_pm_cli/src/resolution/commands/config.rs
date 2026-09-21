@@ -1,7 +1,9 @@
+use semver::Version;
 use vp_pm_cli_macros::pm_args;
 
 use crate::resolution::{
-    Bun, CommandBuilder, CommandResolution, DiagnosticKind, Diagnostics, Npm, Pnpm, Resolve, Yarn,
+    Bun, CommandBuilder, CommandResolution, DiagnosticKind, Diagnostics, Npm,
+    PackageManagerDialect, Pnpm, Resolve, Yarn,
 };
 
 /// Configuration subcommands.
@@ -18,7 +20,7 @@ pub enum ConfigCommand {
         #[arg(short = 'g', long)]
         global: bool,
 
-        /// Config location: project (default) or global
+        /// Config location: project, user, or global
         #[arg(long, value_name = "LOCATION")]
         location: Option<String>,
     },
@@ -90,8 +92,49 @@ impl Resolve<ConfigCommand> for Npm {
 }
 
 impl Resolve<ConfigCommand> for Yarn {
-    fn resolve(&self, args: &ConfigCommand, diag: &mut Diagnostics) -> CommandResolution {
-        resolve_yarn_config(args, self.is_berry(), diag)
+    fn diagnose(&self, args: &ConfigCommand, diag: &mut Diagnostics) {
+        let Some(location) = args.effective_location() else {
+            return;
+        };
+        // Classic's set/delete use saveHomeConfig, so user scope needs no flag.
+        // https://github.com/yarnpkg/yarn/blob/v1.22.22/src/cli/commands/config.js#L50-L80
+        let supported =
+            matches!(location, "user" | "global") || (self.is_berry() && location == "project");
+        if !supported {
+            let manager = if self.is_berry() { "yarn >= 2" } else { "Yarn Classic" };
+            diag.warn(
+                DiagnosticKind::UnsupportedOption,
+                vt_str::format!("{manager} does not support --location {location}."),
+            );
+        }
+        // Yarn 2.2 added config set --home.
+        // https://github.com/yarnpkg/berry/blob/01586a88806a2bebd7edb28d1bee3581b1fd3762/CHANGELOG.md#220
+        if self.is_berry()
+            && location == "user"
+            && matches!(args, ConfigCommand::Set { .. })
+            && self.version().is_some_and(|version| version < &Version::new(2, 2, 0))
+        {
+            diag.warn(
+                DiagnosticKind::UnsupportedOption,
+                "yarn < 2.2 does not support --location user for config set.",
+            );
+        }
+        // Berry introduced config unset in Yarn 3.
+        // https://github.com/yarnpkg/berry/blob/01586a88806a2bebd7edb28d1bee3581b1fd3762/CHANGELOG.md#300
+        if self.is_berry()
+            && location == "user"
+            && matches!(args, ConfigCommand::Delete { .. })
+            && self.version().is_some_and(|version| version < &Version::new(3, 0, 0))
+        {
+            diag.warn(
+                DiagnosticKind::UnsupportedOption,
+                "yarn < 3 does not support --location user for config delete.",
+            );
+        }
+    }
+
+    fn resolve(&self, args: &ConfigCommand, _diag: &mut Diagnostics) -> CommandResolution {
+        resolve_yarn_config(args, self.is_berry())
     }
 }
 
@@ -116,11 +159,7 @@ fn resolve_npm_like_config(program: &str, args: &ConfigCommand) -> CommandResolu
     cmd.into()
 }
 
-fn resolve_yarn_config(
-    args: &ConfigCommand,
-    is_berry: bool,
-    diag: &mut Diagnostics,
-) -> CommandResolution {
+fn resolve_yarn_config(args: &ConfigCommand, is_berry: bool) -> CommandResolution {
     let mut cmd = CommandBuilder::new("yarn");
     cmd.arg("config");
     match (args, is_berry) {
@@ -134,19 +173,12 @@ fn resolve_yarn_config(
     }
     append_key_value(&mut cmd, args);
     cmd.arg_if("--json", args.json());
-    if let Some(location) = args.effective_location() {
-        if is_berry {
-            if location == "global" {
-                cmd.arg("--home");
-            }
-        } else if location == "global" {
-            cmd.arg("--global");
-        } else {
-            diag.warn(
-                DiagnosticKind::UnsupportedOptionDropped,
-                "yarn@1 does not support --location, ignoring flag",
-            );
-        }
+    // Reads keep the merged configuration, as npm and pnpm do for user scope.
+    let user_write = is_berry
+        && args.effective_location() == Some("user")
+        && matches!(args, ConfigCommand::Set { .. } | ConfigCommand::Delete { .. });
+    if args.effective_location() == Some("global") || user_write {
+        cmd.arg(if is_berry { "--home" } else { "--global" });
     }
     cmd.into()
 }
@@ -212,7 +244,7 @@ mod tests {
     use super::*;
     use crate::resolution::{
         Resolution, resolve,
-        test_utils::{bun, expect_run, npm, parse_subcommand, pnpm, yarn},
+        test_utils::{bun, expect_run, expect_unsupported, npm, parse_subcommand, pnpm, yarn},
     };
 
     fn set_config(location: Option<&str>) -> ConfigCommand {
@@ -424,25 +456,208 @@ mod tests {
     }
 
     #[test]
-    fn test_yarn1_location_project_warns_and_drops() {
-        let Resolution { outcome, diagnostics } =
-            resolve(&yarn("1.22.0"), set_config(Some("project")));
-        let command = expect_run(outcome);
-
-        assert_eq!(command.program, "yarn");
-        assert_eq!(command.args, vec!["config", "set", "registry", "https://registry.npmjs.org"]);
-        assert_eq!(diagnostics[0].message, "yarn@1 does not support --location, ignoring flag");
+    fn test_yarn1_rejects_unsupported_locations() {
+        for version in ["1.22.19", "1.22.22"] {
+            for location in ["project", "unknown", ""] {
+                for command in [
+                    vec!["list"],
+                    vec!["get", "registry"],
+                    vec!["set", "registry", "https://registry.npmjs.org"],
+                    vec!["delete", "registry"],
+                ] {
+                    let args = parse_subcommand::<ConfigCommand>(
+                        command.into_iter().chain(["--location", location]),
+                    )
+                    .unwrap();
+                    expect_unsupported(
+                        resolve(&yarn(version), args),
+                        &[&vt_str::format!("Yarn Classic does not support --location {location}.")],
+                    );
+                }
+            }
+        }
     }
 
     #[test]
-    fn test_yarn2_location_project_is_silently_ignored() {
-        let Resolution { outcome, diagnostics } =
-            resolve(&yarn("4.0.0"), set_config(Some("project")));
-        let command = expect_run(outcome);
+    fn test_yarn1_location_user_matches_default_without_warning() {
+        for command in [
+            vec!["list"],
+            vec!["get", "registry"],
+            vec!["set", "registry", "https://registry.npmjs.org"],
+            vec!["delete", "registry"],
+        ] {
+            let default_args = parse_subcommand::<ConfigCommand>(command.clone()).unwrap();
+            let user_args = parse_subcommand::<ConfigCommand>(
+                command.into_iter().chain(["--location", "user"]),
+            )
+            .unwrap();
+            let resolution = resolve(&yarn("1.22.22"), user_args);
+            assert_eq!(resolution.outcome, resolve(&yarn("1.22.22"), default_args).outcome);
+            assert!(resolution.diagnostics.is_empty());
+        }
+    }
 
-        assert_eq!(command.program, "yarn");
-        assert_eq!(command.args, vec!["config", "set", "registry", "https://registry.npmjs.org"]);
-        assert!(diagnostics.is_empty());
+    #[test]
+    fn test_yarn1_global_keeps_precedence_over_location() {
+        let args = parse_subcommand::<ConfigCommand>([
+            "set",
+            "registry",
+            "https://registry.npmjs.org",
+            "--global",
+            "--location",
+            "project",
+        ])
+        .unwrap();
+        let resolution = resolve(&yarn("1.22.22"), args);
+        assert_eq!(
+            resolution.outcome,
+            resolve(&yarn("1.22.22"), set_config(Some("global"))).outcome
+        );
+        assert!(resolution.diagnostics.is_empty());
+    }
+
+    #[test]
+    fn test_yarn2_rejects_unsupported_locations() {
+        for version in ["2.4.2", "3.6.0", "4.18.0"] {
+            for location in ["unknown", ""] {
+                for command in [
+                    vec!["list"],
+                    vec!["get", "npmRegistryServer"],
+                    vec!["set", "npmRegistryServer", "https://registry.example.com"],
+                    vec!["delete", "npmRegistryServer"],
+                ] {
+                    let args = parse_subcommand::<ConfigCommand>(
+                        command.into_iter().chain(["--location", location]),
+                    )
+                    .unwrap();
+                    expect_unsupported(
+                        resolve(&yarn(version), args),
+                        &[&vt_str::format!("yarn >= 2 does not support --location {location}.")],
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_berry_user_location_writes_home_and_reads_effective_config() {
+        for version in ["2.2.0", "2.4.2", "3.0.0", "3.6.0", "4.18.0"] {
+            for command in [
+                vec!["list"],
+                vec!["get", "npmRegistryServer"],
+                vec!["set", "npmRegistryServer", "https://registry.example.com"],
+            ] {
+                let mut expected = expect_run(
+                    resolve(
+                        &yarn(version),
+                        parse_subcommand::<ConfigCommand>(command.clone()).unwrap(),
+                    )
+                    .outcome,
+                );
+                if command[0] == "set" {
+                    expected.args.push("--home".to_string());
+                }
+                let args = parse_subcommand::<ConfigCommand>(
+                    command.into_iter().chain(["--location", "user"]),
+                )
+                .unwrap();
+                let resolution = resolve(&yarn(version), args);
+                assert_eq!(expect_run(resolution.outcome), expected);
+                assert!(resolution.diagnostics.is_empty());
+            }
+        }
+        for version in ["3.0.0", "3.6.0", "4.18.0"] {
+            let args = parse_subcommand::<ConfigCommand>([
+                "delete",
+                "npmRegistryServer",
+                "--location",
+                "user",
+            ])
+            .unwrap();
+            let resolution = resolve(&yarn(version), args);
+            assert_eq!(
+                expect_run(resolution.outcome).args,
+                vec!["config", "unset", "npmRegistryServer", "--home"]
+            );
+            assert!(resolution.diagnostics.is_empty());
+        }
+    }
+
+    #[test]
+    fn test_old_berry_rejects_user_writes_without_home_support() {
+        for version in ["2.0.0", "2.1.1", "2.2.0-rc.0"] {
+            expect_unsupported(
+                resolve(&yarn(version), set_config(Some("user"))),
+                &["yarn < 2.2 does not support --location user for config set."],
+            );
+            for location in [None, Some("project"), Some("global")] {
+                let resolution = resolve(&yarn(version), set_config(location));
+                assert!(resolution.diagnostics.is_empty());
+                expect_run(resolution.outcome);
+            }
+            for command in [vec!["list"], vec!["get", "npmRegistryServer"]] {
+                let args = parse_subcommand::<ConfigCommand>(
+                    command.into_iter().chain(["--location", "user"]),
+                )
+                .unwrap();
+                let resolution = resolve(&yarn(version), args);
+                assert!(resolution.diagnostics.is_empty());
+                expect_run(resolution.outcome);
+            }
+        }
+    }
+
+    #[test]
+    fn test_yarn2_rejects_user_deletion_without_native_unset() {
+        let args = parse_subcommand::<ConfigCommand>([
+            "delete",
+            "npmRegistryServer",
+            "--location",
+            "user",
+        ])
+        .unwrap();
+        expect_unsupported(
+            resolve(&yarn("2.4.2"), args),
+            &["yarn < 3 does not support --location user for config delete."],
+        );
+    }
+
+    #[test]
+    fn test_yarn2_location_project_matches_default_without_warning() {
+        for command in [
+            vec!["list"],
+            vec!["get", "npmRegistryServer"],
+            vec!["set", "npmRegistryServer", "https://registry.example.com"],
+            vec!["delete", "npmRegistryServer"],
+        ] {
+            let default_args = parse_subcommand::<ConfigCommand>(command.clone()).unwrap();
+            let project_args = parse_subcommand::<ConfigCommand>(
+                command.into_iter().chain(["--location", "project"]),
+            )
+            .unwrap();
+            let resolution = resolve(&yarn("4.18.0"), project_args);
+            assert_eq!(resolution.outcome, resolve(&yarn("4.18.0"), default_args).outcome);
+            assert!(resolution.diagnostics.is_empty());
+        }
+    }
+
+    #[test]
+    fn test_yarn2_global_keeps_precedence_over_location() {
+        for command in [
+            vec!["list", "--global"],
+            vec!["get", "npmRegistryServer", "--global"],
+            vec!["set", "npmRegistryServer", "https://registry.example.com", "--global"],
+            vec!["delete", "npmRegistryServer", "--global"],
+        ] {
+            let global_args = parse_subcommand::<ConfigCommand>(command.clone()).unwrap();
+            let user_args = parse_subcommand::<ConfigCommand>(
+                command.into_iter().chain(["--location", "user"]),
+            )
+            .unwrap();
+            let resolution = resolve(&yarn("4.18.0"), user_args);
+            assert_eq!(resolution.outcome, resolve(&yarn("4.18.0"), global_args).outcome);
+            assert!(resolution.diagnostics.is_empty());
+        }
     }
 
     #[test]
