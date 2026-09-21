@@ -28,7 +28,7 @@ pub struct PublishArgs {
     pub(crate) otp: Option<String>,
 
     /// Skip git checks
-    #[arg(long, not_supported(bun))]
+    #[arg(long, not_supported(npm, yarn, bun))]
     pub(crate) no_git_checks: bool,
 
     /// Set the branch name to publish from
@@ -463,14 +463,51 @@ mod tests {
     }
 
     #[test]
-    fn test_npm_silently_ignores_no_git_checks() {
+    fn test_npm_publish_rejects_no_git_checks() {
         let resolution =
-            resolve(&npm("11.0.0"), PublishArgs { no_git_checks: true, ..Default::default() });
-        let command = expect_run(resolution.outcome);
+            resolve(&npm("12.0.2"), PublishArgs { no_git_checks: true, ..Default::default() });
+        expect_unsupported(resolution, &["npm does not support --no-git-checks."]);
+    }
 
-        assert_eq!(command.program, "npm");
-        assert_eq!(command.args, vec!["publish"]);
+    #[test]
+    fn test_bun_publish_rejects_no_git_checks() {
+        for version in ["1.3.11", "1.4.0", "1.4.2"] {
+            let resolution =
+                resolve(&bun(version), PublishArgs { no_git_checks: true, ..Default::default() });
+            expect_unsupported(resolution, &["bun does not support --no-git-checks."]);
+        }
+    }
+
+    #[test]
+    fn test_yarn_publish_rejects_no_git_checks() {
+        for version in ["1.22.22", "2.4.2", "3.6.0", "4.18.0"] {
+            let resolution =
+                resolve(&yarn(version), PublishArgs { no_git_checks: true, ..Default::default() });
+            expect_unsupported(resolution, &["yarn does not support --no-git-checks."]);
+        }
+    }
+
+    #[test]
+    fn test_publish_preserves_raw_no_git_checks() {
+        let args = parse_args::<PublishArgs>(["--", "--no-git-checks"]).unwrap();
+        assert!(!args.no_git_checks);
+        assert_eq!(args.pass_through_args, vec!["--no-git-checks"]);
+        for resolution in [
+            resolve(&npm("12.0.2"), args.clone()),
+            resolve(&yarn("4.18.0"), args.clone()),
+            resolve(&bun("1.4.2"), args),
+        ] {
+            assert!(resolution.diagnostics.is_empty());
+            assert_eq!(expect_run(resolution.outcome).args, vec!["publish", "--no-git-checks"]);
+        }
+    }
+
+    #[test]
+    fn test_pnpm_publish_explicitly_disables_git_checks() {
+        let resolution =
+            resolve(&pnpm("11.24.0"), PublishArgs { no_git_checks: true, ..Default::default() });
         assert!(resolution.diagnostics.is_empty());
+        assert_eq!(expect_run(resolution.outcome).args, vec!["publish", "--no-git-checks"]);
     }
 
     #[test]
