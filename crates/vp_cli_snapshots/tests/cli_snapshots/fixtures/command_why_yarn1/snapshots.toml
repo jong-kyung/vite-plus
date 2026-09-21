@@ -3,4 +3,7 @@ name = "unsupported_why_filters"
 vp = ["local", "global"]
 steps = [
   { argv = ["vp", "why", "react", "--depth", "0", "--no-optional", "--json", "--", "--help"], comment = "Do not silently discard explicit depth zero or optional filtering on Classic.", continue-on-failure = true },
+  { argv = ["vp", "why", "react", "--recursive", "--exclude-peers", "--json", "--", "--help"], comment = "Reject both unsupported selectors before invoking Classic.", continue-on-failure = true },
+  { argv = ["vp", "why", "react", "-r"], continue-on-failure = true },
+  { argv = ["vp", "why", "react", "--exclude-peers"], continue-on-failure = true },
 ]

@@ -24,7 +24,7 @@ pub struct WhyArgs {
     pub(crate) parseable: bool,
 
     /// Check recursively across all workspaces
-    #[arg(short = 'r', long, not_supported(npm, bun))]
+    #[arg(short = 'r', long, not_supported(npm, yarn < "2", bun))]
     pub(crate) recursive: bool,
 
     /// Filter packages in monorepo
@@ -52,7 +52,7 @@ pub struct WhyArgs {
     pub(crate) no_optional: bool,
 
     /// Exclude peer dependencies
-    #[arg(long, not_supported(npm, bun))]
+    #[arg(long, not_supported(npm, yarn < "2", bun))]
     pub(crate) exclude_peers: bool,
 
     /// Use a finder function defined in .pnpmfile.cjs
@@ -324,6 +324,49 @@ mod tests {
                 &["yarn does not support --no-optional."],
             );
         }
+    }
+
+    #[test]
+    fn classic_rejects_recursive_and_peer_options() {
+        for (recursive, exclude_peers, messages) in [
+            (true, false, vec!["yarn < 2 does not support --recursive."]),
+            (false, true, vec!["yarn < 2 does not support --exclude-peers."]),
+            (
+                true,
+                true,
+                vec![
+                    "yarn < 2 does not support --recursive.",
+                    "yarn < 2 does not support --exclude-peers.",
+                ],
+            ),
+        ] {
+            let args = WhyArgs { recursive, exclude_peers, ..why_args(&["react"]) };
+            expect_unsupported(resolve(&yarn("1.22.22"), args), &messages);
+        }
+    }
+
+    #[test]
+    fn berry_preserves_recursive_and_peer_options() {
+        for version in ["2.4.2", "3.6.0", "4.18.0"] {
+            let args = WhyArgs { recursive: true, exclude_peers: true, ..why_args(&["react"]) };
+            let resolution = resolve(&yarn(version), args);
+            assert!(resolution.diagnostics.is_empty());
+            assert_eq!(expect_run(resolution.outcome).args, vec!["why", "react", "--recursive"]);
+        }
+    }
+
+    #[test]
+    fn classic_preserves_raw_recursive_and_peer_options() {
+        let args = WhyArgs {
+            pass_through_args: vec!["--recursive".to_string(), "--exclude-peers".to_string()],
+            ..why_args(&["react"])
+        };
+        let resolution = resolve(&yarn("1.22.22"), args);
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(
+            expect_run(resolution.outcome).args,
+            vec!["why", "react", "--recursive", "--exclude-peers"]
+        );
     }
 
     #[test]
