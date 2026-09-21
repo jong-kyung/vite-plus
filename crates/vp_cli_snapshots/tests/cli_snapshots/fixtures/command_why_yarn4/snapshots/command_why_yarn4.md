@@ -68,12 +68,10 @@ warn: yarn only supports checking one package at a time, using first package
 
 ## `vp why testnpm2 --json`
 
-should warn that --json not supported by yarn
+should forward --json to yarn and emit NDJSON
 
 ```
-warn: yarn does not support --json.
-└─ command-why-yarn4@workspace:.
-   └─ testnpm2@npm:1.0.1 (via npm:1.0.1)
+{"value":"command-why-yarn4@workspace:.","children":{"testnpm2@npm:1.0.1":{"locator":"testnpm2@npm:1.0.1","descriptor":"testnpm2@npm:1.0.1"}}}
 ```
 
 ## `vp why testnpm2 --long`

@@ -16,7 +16,7 @@ pub struct AddArgs {
     pub(crate) save_exact: bool,
 
     /// Save the new dependency to the specified catalog name
-    #[arg(long, value_name = "CATALOG_NAME", not_supported(npm, yarn, bun))]
+    #[arg(long, value_name = "CATALOG_NAME", not_supported(npm, yarn, bun < "1.4"))]
     pub(crate) save_catalog_name: Option<String>,
 
     /// Save the new dependency to the default catalog
@@ -263,6 +263,13 @@ impl Resolve<AddArgs> for Bun {
                 cmd.arg("--optional");
             }
             Some(SaveDependencyTarget::Production) | None => {}
+        }
+        if let Some(name) = &args.save_catalog_name {
+            if name.is_empty() {
+                cmd.arg("--catalog");
+            } else {
+                cmd.arg(vt_str::format!("--catalog={name}"));
+            }
         }
         cmd.arg_if("--exact", args.save_exact)
             .arg_if("--catalog", args.save_catalog)
@@ -610,6 +617,29 @@ mod tests {
                 "bun does not support --workspace-root.",
                 "bun does not support --workspace."
             ]
+        );
+    }
+
+    #[test]
+    fn bun_1_4_supports_named_catalog() {
+        for (name, flag) in [("testing", "--catalog=testing"), ("", "--catalog")] {
+            let mut options = add_args(&["react"]);
+            options.save_catalog_name = Some(name.to_string());
+            let resolution = resolve(&bun("1.4.0"), options);
+            assert!(resolution.diagnostics.is_empty());
+            assert_eq!(expect_run(resolution.outcome).args, vec!["add", flag, "react"]);
+        }
+    }
+
+    #[test]
+    fn bun_before_1_4_does_not_support_named_catalog() {
+        let mut options = add_args(&["react"]);
+        options.save_catalog_name = Some("testing".to_string());
+        let resolution = resolve(&bun("1.3.14"), options);
+        assert_eq!(expect_run(resolution.outcome).args, vec!["add", "react"]);
+        assert_eq!(
+            resolution.diagnostics[0].message,
+            "bun <1.4 does not support --save-catalog-name."
         );
     }
 

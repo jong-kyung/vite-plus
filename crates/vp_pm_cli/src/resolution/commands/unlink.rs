@@ -12,7 +12,7 @@ pub struct UnlinkArgs {
     pub(crate) package: Option<String>,
 
     /// Unlink in every workspace package
-    #[arg(short = 'r', long, not_supported(npm, bun))]
+    #[arg(short = 'r', long, not_supported(bun))]
     pub(crate) recursive: bool,
 
     /// Arguments to pass to package manager
@@ -23,7 +23,9 @@ pub struct UnlinkArgs {
 impl Resolve<UnlinkArgs> for Npm {
     fn resolve(&self, args: &UnlinkArgs, _diag: &mut Diagnostics) -> CommandResolution {
         let mut cmd = CommandBuilder::new("npm");
-        cmd.arg("unlink");
+        cmd.arg("unlink")
+            .arg_if("--workspaces", args.recursive)
+            .arg_if("--include-workspace-root", args.recursive);
         push_unlink_package_and_args(&mut cmd, args);
         cmd.into()
     }
@@ -190,13 +192,24 @@ mod tests {
     }
 
     #[test]
-    fn test_npm_unlink_recursive_warns_and_drops_flag() {
-        let result = resolve(&npm("11.0.0"), UnlinkArgs { recursive: true, ..Default::default() });
-        let command = expect_run(result.outcome);
-
-        assert_eq!(command.program, "npm");
-        assert_eq!(command.args, vec!["unlink"]);
-        assert_eq!(result.diagnostics.len(), 1);
+    fn test_npm_unlink_recursive() {
+        for version in ["10.9.4", "11.16.0", "12.0.2"] {
+            let result = resolve(
+                &npm(version),
+                UnlinkArgs {
+                    package: Some("react".to_string()),
+                    recursive: true,
+                    ..Default::default()
+                },
+            );
+            assert!(result.diagnostics.is_empty());
+            let command = expect_run(result.outcome);
+            assert_eq!(command.program, "npm");
+            assert_eq!(
+                command.args,
+                vec!["unlink", "--workspaces", "--include-workspace-root", "react"]
+            );
+        }
     }
 
     #[test]

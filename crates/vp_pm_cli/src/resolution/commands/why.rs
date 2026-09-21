@@ -12,7 +12,7 @@ pub struct WhyArgs {
     pub(crate) packages: Vec<String>,
 
     /// Output in JSON format
-    #[arg(long, not_supported(yarn, bun))]
+    #[arg(long, not_supported(bun))]
     pub(crate) json: bool,
 
     /// Show extended information
@@ -126,7 +126,7 @@ impl Resolve<WhyArgs> for Yarn {
                 "yarn only supports checking one package at a time, using first package",
             );
         }
-        cmd.arg(&args.packages[0]);
+        cmd.arg(&args.packages[0]).arg_if("--json", args.json);
         if self.is_berry() {
             cmd.arg_if("--recursive", args.recursive).arg_if("--peers", !args.exclude_peers);
         }
@@ -291,6 +291,23 @@ mod tests {
     }
 
     #[test]
+    fn test_yarn_why_json() {
+        for version in ["1.22.22", "2.4.2", "3.6.0", "4.10.3"] {
+            let mut options = why_args(&["react"]);
+            options.json = true;
+            let resolution = resolve(&yarn(version), options);
+            assert!(resolution.diagnostics.is_empty());
+            let command = expect_run(resolution.outcome);
+            assert_eq!(command.program, "yarn");
+            if version.starts_with("1.") {
+                assert_eq!(command.args, vec!["why", "react", "--json"]);
+            } else {
+                assert_eq!(command.args, vec!["why", "react", "--json", "--peers"]);
+            }
+        }
+    }
+
+    #[test]
     fn unsupported_fields_are_dropped_for_yarn_npm_and_bun() {
         let mut yarn_options = why_args(&["react"]);
         yarn_options.json = true;
@@ -303,8 +320,8 @@ mod tests {
         let yarn_resolution = resolve(&yarn("1.22.0"), yarn_options);
         let yarn_command = expect_run(yarn_resolution.outcome);
 
-        assert_eq!(yarn_command.args, vec!["why", "react"]);
-        assert_eq!(yarn_resolution.diagnostics.len(), 7);
+        assert_eq!(yarn_command.args, vec!["why", "react", "--json"]);
+        assert_eq!(yarn_resolution.diagnostics.len(), 6);
 
         let mut npm_options = why_args(&["react"]);
         npm_options.long = true;

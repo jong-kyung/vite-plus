@@ -118,10 +118,8 @@ should support prod output
 **Exit code:** 1
 
 ```
-warn: npm does not support --prod.
 Package                        Current  Wanted  Latest  Location                                    Depended by
 test-vite-plus-other-optional    1.0.0   1.0.0   1.1.0  node_modules/test-vite-plus-other-optional  workspace
-test-vite-plus-top-package       1.0.0   1.0.0   1.1.0  node_modules/test-vite-plus-top-package     workspace
 testnpm2                         1.0.0   1.0.0   1.0.1  node_modules/testnpm2                       workspace
 ```
 
@@ -146,11 +144,9 @@ should support no-optional output
 **Exit code:** 1
 
 ```
-warn: npm does not support --no-optional.
-Package                        Current  Wanted  Latest  Location                                    Depended by
-test-vite-plus-other-optional    1.0.0   1.0.0   1.1.0  node_modules/test-vite-plus-other-optional  workspace
-test-vite-plus-top-package       1.0.0   1.0.0   1.1.0  node_modules/test-vite-plus-top-package     workspace
-testnpm2                         1.0.0   1.0.0   1.0.1  node_modules/testnpm2                       workspace
+Package                     Current  Wanted  Latest  Location                                 Depended by
+test-vite-plus-top-package    1.0.0   1.0.0   1.1.0  node_modules/test-vite-plus-top-package  workspace
+testnpm2                      1.0.0   1.0.0   1.0.1  node_modules/testnpm2                    workspace
 ```
 
 ## `vp outdated --compatible`

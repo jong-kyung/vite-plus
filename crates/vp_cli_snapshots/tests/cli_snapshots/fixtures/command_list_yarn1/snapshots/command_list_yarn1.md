@@ -79,14 +79,12 @@ should list packages in JSON format
 
 ## `vp pm list --prod`
 
-should show warning that --prod not supported by yarn@1
+should list production dependencies using yarn --production
 
 ```
-warn: yarn does not support --prod.
 yarn list <version>
 warning package.json: No license field
 warning command-list-yarn1@1.0.0: No license field
-├─ test-vite-plus-package@1.0.0
 └─ testnpm2@1.0.1
 
 Done in <duration>.

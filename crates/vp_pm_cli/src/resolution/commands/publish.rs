@@ -48,7 +48,7 @@ pub struct PublishArgs {
     pub(crate) force: bool,
 
     /// Output in JSON format
-    #[arg(long, not_supported(npm, yarn, bun))]
+    #[arg(long, not_supported(bun))]
     pub(crate) json: bool,
 
     /// Publish all workspace packages
@@ -92,7 +92,9 @@ impl Npm {
             cmd.repeated("--workspace", filters.iter());
         }
         push_common_publish_args(&mut cmd, args);
-        cmd.arg_if("--provenance", args.provenance).arg_if("--force", args.force);
+        cmd.arg_if("--provenance", args.provenance)
+            .arg_if("--force", args.force)
+            .arg_if("--json", args.json);
         cmd.extend(args.pass_through_args.iter());
         cmd.into()
     }
@@ -277,23 +279,27 @@ mod tests {
     }
 
     #[test]
-    fn test_npm_publish_json_ignored() {
-        let resolution = resolve(&npm("11.0.0"), PublishArgs { json: true, ..Default::default() });
-        let command = expect_run(resolution.outcome);
-
-        assert_eq!(command.program, "npm");
-        assert_eq!(command.args, vec!["publish"]);
-        assert_eq!(resolution.diagnostics[0].message, "npm does not support --json.");
+    fn test_npm_publish_json() {
+        for version in ["10.9.4", "11.16.0", "12.0.2"] {
+            let resolution =
+                resolve(&npm(version), PublishArgs { json: true, ..Default::default() });
+            assert!(resolution.diagnostics.is_empty());
+            let command = expect_run(resolution.outcome);
+            assert_eq!(command.program, "npm");
+            assert_eq!(command.args, vec!["publish", "--json"]);
+        }
     }
 
     #[test]
-    fn test_yarn_publish_json_is_checked_against_current_dialect() {
-        let resolution = resolve(&yarn("4.0.0"), PublishArgs { json: true, ..Default::default() });
-        let command = expect_run(resolution.outcome);
-
-        assert_eq!(command.program, "npm");
-        assert_eq!(command.args, vec!["publish"]);
-        assert_eq!(resolution.diagnostics[0].message, "yarn does not support --json.");
+    fn test_yarn_publish_json_is_forwarded_to_npm() {
+        for version in ["1.22.22", "2.4.2", "3.6.0", "4.10.3"] {
+            let resolution =
+                resolve(&yarn(version), PublishArgs { json: true, ..Default::default() });
+            assert!(resolution.diagnostics.is_empty());
+            let command = expect_run(resolution.outcome);
+            assert_eq!(command.program, "npm");
+            assert_eq!(command.args, vec!["publish", "--json"]);
+        }
     }
 
     #[test]

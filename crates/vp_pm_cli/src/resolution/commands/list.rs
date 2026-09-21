@@ -27,7 +27,7 @@ pub struct ListArgs {
     pub(crate) parseable: bool,
 
     /// Only production dependencies
-    #[arg(short = 'P', long, not_supported(yarn, bun))]
+    #[arg(short = 'P', long, not_supported(yarn >= "2", bun))]
     pub(crate) prod: bool,
 
     /// Only dev dependencies
@@ -148,7 +148,9 @@ impl Resolve<ListArgs> for Yarn {
         if let Some(pattern) = &args.pattern {
             cmd.arg(pattern);
         }
-        cmd.option("--depth", args.depth).arg_if("--json", args.json);
+        cmd.option("--depth", args.depth)
+            .arg_if("--json", args.json)
+            .arg_if("--production", args.prod);
         cmd.extend(args.pass_through_args.iter());
         cmd.into()
     }
@@ -396,13 +398,12 @@ mod tests {
     }
 
     #[test]
-    fn test_yarn1_list_prod_ignored() {
-        let command = expect_run(
-            resolve(&yarn("1.22.0"), ListArgs { prod: true, ..Default::default() }).outcome,
-        );
-
+    fn test_yarn1_list_prod() {
+        let resolution = resolve(&yarn("1.22.22"), ListArgs { prod: true, ..Default::default() });
+        assert!(resolution.diagnostics.is_empty());
+        let command = expect_run(resolution.outcome);
         assert_eq!(command.program, "yarn");
-        assert_eq!(command.args, vec!["list"]);
+        assert_eq!(command.args, vec!["list", "--production"]);
     }
 
     #[test]

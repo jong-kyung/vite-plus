@@ -72,7 +72,7 @@ pub struct OutdatedArgs {
     pub(crate) workspace_root: bool,
 
     /// Only production and optional dependencies
-    #[arg(short = 'P', long, not_supported(npm, yarn))]
+    #[arg(short = 'P', long, not_supported(yarn))]
     pub(crate) prod: bool,
 
     /// Only dev dependencies
@@ -80,7 +80,7 @@ pub struct OutdatedArgs {
     pub(crate) dev: bool,
 
     /// Exclude optional dependencies
-    #[arg(long, not_supported(npm, yarn))]
+    #[arg(long, not_supported(yarn))]
     pub(crate) no_optional: bool,
 
     /// Only show compatible versions
@@ -147,7 +147,9 @@ impl Npm {
             .arg_if("--include-workspace-root", args.workspace_root)
             .arg_if("--all", args.recursive)
             .extend(args.packages.iter());
-        cmd.extend(args.pass_through_args.iter());
+        cmd.arg_if("--omit=dev", args.prod)
+            .arg_if("--omit=optional", args.no_optional)
+            .extend(args.pass_through_args.iter());
         if args.global {
             cmd.arg("-g");
         }
@@ -608,6 +610,21 @@ mod tests {
             resolution.diagnostics[0].message,
             "bun outdated does not support --format json"
         );
+    }
+
+    #[test]
+    fn npm_outdated_maps_dependency_type_filters() {
+        for version in ["10.9.4", "11.16.0", "12.0.2"] {
+            let resolution = resolve(
+                &npm(version),
+                OutdatedArgs { prod: true, no_optional: true, ..Default::default() },
+            );
+            assert!(resolution.diagnostics.is_empty());
+            assert_eq!(
+                expect_run(resolution.outcome).args,
+                vec!["outdated", "--omit=dev", "--omit=optional"],
+            );
+        }
     }
 
     #[test]

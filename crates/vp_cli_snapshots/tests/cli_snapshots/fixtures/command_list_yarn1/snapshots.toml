@@ -8,7 +8,7 @@ steps = [
   { argv = ["vp", "pm", "list", "testnpm2"], comment = "should list specific package", continue-on-failure = true },
   { argv = ["vp", "pm", "list", "--depth", "0"], comment = "should list packages with depth limit", continue-on-failure = true },
   { argv = ["vp", "pm", "list", "--json"], comment = "should list packages in JSON format", continue-on-failure = true },
-  { argv = ["vp", "pm", "list", "--prod"], comment = "should show warning that --prod not supported by yarn@1", continue-on-failure = true },
+  { argv = ["vp", "pm", "list", "--prod"], comment = "should list production dependencies using yarn --production", continue-on-failure = true },
   { argv = ["vp", "pm", "list", "--dev"], comment = "should show warning that --dev not supported by yarn@1", continue-on-failure = true },
   { argv = ["vp", "pm", "list", "--no-optional"], comment = "should show warning that --no-optional not supported by yarn@1", continue-on-failure = true },
   { argv = ["vp", "pm", "list", "--exclude-peers"], comment = "should show warning that --exclude-peers not supported by yarn@1", continue-on-failure = true },

@@ -12,7 +12,7 @@ pub struct PruneArgs {
     pub(crate) prod: bool,
 
     /// Remove optional dependencies
-    #[arg(long, not_supported(bun))]
+    #[arg(long, not_supported(bun < "1.4"))]
     pub(crate) no_optional: bool,
 
     /// Additional arguments
@@ -60,7 +60,10 @@ impl Resolve<PruneArgs> for Bun {
         }
 
         let mut cmd = CommandBuilder::new("bun");
-        cmd.arg("prune").arg_if("--production", args.prod).extend(args.pass_through_args.iter());
+        cmd.arg("prune")
+            .arg_if("--production", args.prod)
+            .arg_if("--omit=optional", args.no_optional)
+            .extend(args.pass_through_args.iter());
         cmd.into()
     }
 }
@@ -213,14 +216,19 @@ mod tests {
     }
 
     #[test]
-    fn test_bun_prune_no_optional_not_supported() {
+    fn test_bun_prune_no_optional() {
         let result = resolve(&bun("1.4.0"), PruneArgs { no_optional: true, ..Default::default() });
+        assert!(result.diagnostics.is_empty());
         let command = expect_run(result.outcome);
-
         assert_eq!(command.program, "bun");
-        assert_eq!(command.args, vec!["prune"]);
-        assert_eq!(result.diagnostics.len(), 1);
-        assert_eq!(result.diagnostics[0].message, "bun does not support --no-optional.");
+        assert_eq!(command.args, vec!["prune", "--omit=optional"]);
+    }
+
+    #[test]
+    fn test_bun_prune_no_optional_before_1_4() {
+        let result = resolve(&bun("1.3.14"), PruneArgs { no_optional: true, ..Default::default() });
+        assert_eq!(result.outcome, CommandResolution::Noop);
+        assert_eq!(result.diagnostics[0].message, "bun <1.4 does not support --no-optional.");
     }
 
     #[test]
