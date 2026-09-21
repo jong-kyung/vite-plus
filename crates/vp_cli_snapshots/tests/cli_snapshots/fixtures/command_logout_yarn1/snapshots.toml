@@ -1,0 +1,13 @@
+[[case]]
+name = "unsupported_logout_selectors_preserve_home"
+vp = ["local", "global"]
+env = { NODE_OPTIONS = "--no-deprecation" }
+steps = [
+  { argv = ["vp", "pm", "config", "set", "username", "local-test-user", "--location", "user"], snapshot = false },
+  { argv = ["vp", "pm", "config", "set", "email", "local-test@example.invalid", "--location", "user"], snapshot = false },
+  { argv = ["vp", "pm", "logout", "--registry", "http://127.0.0.1:9", "--scope", "company"], comment = "Rejected selectors must not clear the home login information.", continue-on-failure = true },
+  ["vp", "pm", "config", "get", "username", "--location", "user"],
+  ["vp", "pm", "config", "get", "email", "--location", "user"],
+  { argv = ["vp", "pm", "logout"], comment = "Optionless logout still clears the credentials." },
+  ["vp", "pm", "config", "get", "username", "--location", "user"],
+]

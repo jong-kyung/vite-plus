@@ -1,0 +1,11 @@
+# unsupported_login_selectors
+
+## `vp pm login --registry http://127.0.0.1:9 --scope company -- --help`
+
+Berry supports scope but not an explicit registry URL flag.
+
+**Exit code:** 1
+
+```
+yarn does not support --registry.
+```

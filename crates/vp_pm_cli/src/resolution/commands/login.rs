@@ -8,11 +8,11 @@ use crate::resolution::{
 #[derive(clap::Args, Clone, Debug, Default, PartialEq, Eq)]
 pub struct LoginArgs {
     /// Registry URL
-    #[arg(long, value_name = "URL")]
+    #[arg(long, value_name = "URL", not_supported(yarn))]
     pub(crate) registry: Option<String>,
 
     /// Scope for the login
-    #[arg(long, value_name = "SCOPE")]
+    #[arg(long, value_name = "SCOPE", not_supported(yarn < "2"))]
     pub(crate) scope: Option<String>,
 
     /// Additional arguments
@@ -70,7 +70,7 @@ mod tests {
     use super::*;
     use crate::resolution::{
         resolve,
-        test_utils::{bun, expect_run, npm, parse_args, pnpm, yarn},
+        test_utils::{bun, expect_run, expect_unsupported, npm, parse_args, pnpm, yarn},
     };
 
     #[test]
@@ -134,6 +134,86 @@ mod tests {
 
         assert_eq!(command.program, "npm");
         assert_eq!(command.args, vec!["login"]);
+    }
+
+    #[test]
+    fn test_yarn_login_rejects_unsupported_selectors() {
+        for version in ["1.22.22", "2.4.2", "3.6.0", "4.18.0"] {
+            let args = parse_args::<LoginArgs>([
+                "--registry",
+                "https://registry.example.com",
+                "--scope",
+                "company",
+            ])
+            .unwrap();
+            let expected: &[&str] = if version.starts_with("1.") {
+                &["yarn does not support --registry.", "yarn < 2 does not support --scope."]
+            } else {
+                &["yarn does not support --registry."]
+            };
+            expect_unsupported(resolve(&yarn(version), args), expected);
+        }
+        let args = parse_args::<LoginArgs>(["--scope", "company"]).unwrap();
+        expect_unsupported(
+            resolve(&yarn("1.22.22"), args),
+            &["yarn < 2 does not support --scope."],
+        );
+    }
+
+    #[test]
+    fn test_login_preserves_supported_selectors() {
+        let args = parse_args::<LoginArgs>([
+            "--registry",
+            "https://registry.example.com",
+            "--scope",
+            "@company",
+        ])
+        .unwrap();
+        for resolution in [
+            resolve(&npm("11.16.0"), args.clone()),
+            resolve(&pnpm("11.3.0"), args.clone()),
+            resolve(&bun("1.4.0"), args),
+        ] {
+            assert!(resolution.diagnostics.is_empty());
+            let command = expect_run(resolution.outcome);
+            assert_eq!(command.program, "npm");
+            assert_eq!(
+                command.args,
+                vec!["login", "--registry", "https://registry.example.com", "--scope", "@company"]
+            );
+        }
+        for version in ["2.4.2", "3.6.0", "4.18.0"] {
+            let args = parse_args::<LoginArgs>(["--scope", "company", "--", "--publish"]).unwrap();
+            let resolution = resolve(&yarn(version), args);
+            assert!(resolution.diagnostics.is_empty());
+            assert_eq!(
+                expect_run(resolution.outcome).args,
+                vec!["npm", "login", "--scope", "company", "--publish"]
+            );
+        }
+    }
+
+    #[test]
+    fn test_login_preserves_raw_selectors() {
+        for version in ["1.22.22", "4.18.0"] {
+            let args = parse_args::<LoginArgs>([
+                "--",
+                "--registry",
+                "https://registry.example.com",
+                "--scope",
+                "company",
+            ])
+            .unwrap();
+            let resolution = resolve(&yarn(version), args);
+            assert!(resolution.diagnostics.is_empty());
+            let command = expect_run(resolution.outcome);
+            assert!(command.args.ends_with(&[
+                "--registry".to_string(),
+                "https://registry.example.com".to_string(),
+                "--scope".to_string(),
+                "company".to_string()
+            ]));
+        }
     }
 
     #[test]
