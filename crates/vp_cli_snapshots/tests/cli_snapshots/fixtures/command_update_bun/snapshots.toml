@@ -19,5 +19,5 @@ steps = [
   { argv = ["vpt", "print-file", "package.json"], continue-on-failure = true },
   { argv = ["vpt", "stat-file", "node_modules", "--assert", "missing"], continue-on-failure = true },
   { argv = ["vpt", "stat-file", "bun.lock", "--assert", "missing"], continue-on-failure = true },
-  { argv = ["vp", "update", "--dev", "--prod", "--no-optional", "--workspace-root", "--filter", "web"], comment = "report every unsupported option together", continue-on-failure = true },
+  { argv = ["vp", "update", "--dev", "--prod", "--no-optional", "--workspace-root", "--filter", "web", "--workspace", "--recursive"], comment = "report every unsupported option together", continue-on-failure = true },
 ]

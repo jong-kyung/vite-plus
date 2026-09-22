@@ -2,7 +2,8 @@ use vp_pm_cli_macros::pm_args;
 
 use super::parse_positive_usize;
 use crate::resolution::{
-    Bun, CommandBuilder, CommandResolution, Diagnostics, Npm, Pnpm, Resolve, Yarn,
+    Bun, CommandBuilder, CommandResolution, DiagnosticKind, Diagnostics, Npm,
+    PackageManagerDialect, Pnpm, Resolve, Yarn,
 };
 
 #[pm_args]
@@ -29,7 +30,7 @@ pub struct UpdateArgs {
     pub(crate) ignore_node_mismatch: bool,
 
     /// Update recursively in all workspace packages
-    #[arg(short = 'r', long)]
+    #[arg(short = 'r', long, not_supported(yarn < "2", bun < "1.4"))]
     pub(crate) recursive: bool,
 
     /// Filter packages in monorepo (can be used multiple times)
@@ -57,11 +58,11 @@ pub struct UpdateArgs {
     pub(crate) no_optional: bool,
 
     /// Update lockfile only, don't modify package.json
-    #[arg(long, not_supported(yarn))]
+    #[arg(long)]
     pub(crate) no_save: bool,
 
     /// Only update if package exists in workspace (pnpm-specific)
-    #[arg(long)]
+    #[arg(long, not_supported(npm, yarn, bun))]
     pub(crate) workspace: bool,
 
     /// Packages to update (optional - updates all if omitted)
@@ -108,6 +109,43 @@ impl Resolve<UpdateArgs> for Npm {
 }
 
 impl Resolve<UpdateArgs> for Yarn {
+    fn diagnose(&self, args: &UpdateArgs, diag: &mut Diagnostics) {
+        let recursive_resolutions = self.is_berry() && args.recursive && !args.latest;
+        // Yarn 3 introduced the range-preserving `up --recursive` mode.
+        let supports_recursive_resolutions =
+            self.version().is_some_and(|version| version >= &semver::Version::new(3, 0, 0));
+        if recursive_resolutions {
+            if !supports_recursive_resolutions {
+                diag.warn(
+                    DiagnosticKind::UnsupportedOption,
+                    "yarn < 3 does not support --recursive without --latest.",
+                );
+            }
+            if args.interactive {
+                diag.warn(
+                    DiagnosticKind::UnsupportedOption,
+                    "yarn does not support --recursive with --interactive without --latest.",
+                );
+            }
+        }
+        if args.no_save && !(recursive_resolutions && supports_recursive_resolutions) {
+            diag.warn(DiagnosticKind::UnsupportedOption, "yarn does not support --no-save.");
+        }
+        if !self.is_berry() {
+            if args.interactive && !args.filter.is_empty() {
+                diag.warn(
+                    DiagnosticKind::UnsupportedOption,
+                    "yarn < 2 does not support --filter with --interactive.",
+                );
+            } else if args.filter.len() > 1 {
+                diag.warn(
+                    DiagnosticKind::UnsupportedOption,
+                    "yarn < 2 does not support multiple --filter options.",
+                );
+            }
+        }
+    }
+
     fn resolve(&self, args: &UpdateArgs, _diag: &mut Diagnostics) -> CommandResolution {
         if self.is_berry() {
             Yarn::resolve_berry_update(args)
@@ -121,10 +159,14 @@ impl Yarn {
     fn resolve_berry_update(args: &UpdateArgs) -> CommandResolution {
         let mut cmd = CommandBuilder::new("yarn");
         cmd.arg("up")
-            .arg_if("--recursive", args.recursive)
+            .arg_if("--recursive", args.recursive && !args.latest)
             .arg_if("--interactive", args.interactive)
             .extend(args.pass_through_args.iter())
             .extend(args.packages.iter());
+        // Raw arguments may contain package patterns, so don't widen their selection.
+        if args.recursive && args.packages.is_empty() && args.pass_through_args.is_empty() {
+            cmd.arg("*");
+        }
         cmd.into()
     }
 
@@ -133,7 +175,7 @@ impl Yarn {
         if let Some(filter) = args.filter.first() {
             cmd.arg("workspace").arg(filter);
         }
-        cmd.arg("upgrade")
+        cmd.arg(if args.interactive { "upgrade-interactive" } else { "upgrade" })
             .arg_if("--latest", args.latest)
             .extend(args.pass_through_args.iter())
             .extend(args.packages.iter());
@@ -341,6 +383,110 @@ mod tests {
     }
 
     #[test]
+    fn test_update_rejects_workspace_dependency_selection_outside_pnpm() {
+        let args = parse_args::<UpdateArgs>(["--workspace", "react"]).unwrap();
+        for (resolution, message) in [
+            (resolve(&npm("11.16.0"), args.clone()), "npm does not support --workspace."),
+            (resolve(&yarn("1.22.22"), args.clone()), "yarn does not support --workspace."),
+            (resolve(&yarn("4.16.0"), args.clone()), "yarn does not support --workspace."),
+            (resolve(&bun("1.3.14"), args.clone()), "bun does not support --workspace."),
+            (resolve(&bun("1.4.0"), args), "bun does not support --workspace."),
+        ] {
+            expect_unsupported(resolution, &[message]);
+        }
+    }
+
+    #[test]
+    fn test_yarn_classic_rejects_multiple_filters() {
+        let args = parse_args::<UpdateArgs>(["--filter", "app", "--filter", "web"]).unwrap();
+        expect_unsupported(
+            resolve(&yarn("1.22.22"), args),
+            &["yarn < 2 does not support multiple --filter options."],
+        );
+    }
+
+    #[test]
+    fn test_yarn_classic_rejects_recursive_and_workspace_options_together() {
+        let args = parse_args::<UpdateArgs>([
+            "--recursive",
+            "--workspace",
+            "--dev",
+            "--filter",
+            "app",
+            "--filter",
+            "web",
+        ])
+        .unwrap();
+        expect_unsupported(
+            resolve(&yarn("1.22.22"), args),
+            &[
+                "yarn < 2 does not support --recursive.",
+                "yarn does not support --dev.",
+                "yarn does not support --workspace.",
+                "yarn < 2 does not support multiple --filter options.",
+            ],
+        );
+    }
+
+    #[test]
+    fn test_yarn_classic_update_interactive() {
+        let args = parse_args::<UpdateArgs>(["--interactive", "--latest", "react"]).unwrap();
+        let resolution = resolve(&yarn("1.22.22"), args);
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(
+            expect_run(resolution.outcome).args,
+            vec!["upgrade-interactive", "--latest", "react"]
+        );
+    }
+
+    #[test]
+    fn test_yarn_classic_interactive_rejects_filter() {
+        let args = parse_args::<UpdateArgs>(["--interactive", "--filter", "app", "react"]).unwrap();
+        expect_unsupported(
+            resolve(&yarn("1.22.22"), args),
+            &["yarn < 2 does not support --filter with --interactive."],
+        );
+    }
+
+    #[test]
+    fn test_update_keeps_raw_workspace_options() {
+        let args = parse_args::<UpdateArgs>([
+            "react",
+            "--",
+            "--workspace",
+            "--recursive",
+            "--interactive",
+            "--filter",
+            "app",
+            "--filter",
+            "web",
+        ])
+        .unwrap();
+        for (resolution, subcommand) in [
+            (resolve(&npm("11.16.0"), args.clone()), "update"),
+            (resolve(&yarn("1.22.22"), args.clone()), "upgrade"),
+            (resolve(&yarn("4.16.0"), args.clone()), "up"),
+            (resolve(&bun("1.3.14"), args), "update"),
+        ] {
+            assert!(resolution.diagnostics.is_empty());
+            assert_eq!(
+                expect_run(resolution.outcome).args,
+                vec![
+                    subcommand,
+                    "--workspace",
+                    "--recursive",
+                    "--interactive",
+                    "--filter",
+                    "app",
+                    "--filter",
+                    "web",
+                    "react"
+                ]
+            );
+        }
+    }
+
+    #[test]
     fn test_yarn_v4_basic_update() {
         let resolution = resolve(&yarn("4.0.0"), update_args(&["react"]));
         let command = expect_run(resolution.outcome);
@@ -406,10 +552,70 @@ mod tests {
     fn test_yarn_v4_update_recursive() {
         let options = UpdateArgs { recursive: true, ..Default::default() };
         let resolution = resolve(&yarn("4.0.0"), options);
-        let command = expect_run(resolution.outcome);
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(expect_run(resolution.outcome).args, vec!["up", "--recursive", "*"]);
+    }
 
-        assert_eq!(command.program, "yarn");
-        assert_eq!(command.args, vec!["up", "--recursive"]);
+    #[test]
+    fn test_yarn_recursive_latest_uses_project_wide_update() {
+        for version in ["2.4.2", "3.0.0", "3.6.0", "4.0.0", "4.16.0"] {
+            for (argv, expected) in [
+                (vec!["-r", "--latest", "react"], vec!["up", "react"]),
+                (vec!["-r", "--latest"], vec!["up", "*"]),
+                (
+                    vec!["-r", "--latest", "--interactive", "react"],
+                    vec!["up", "--interactive", "react"],
+                ),
+            ] {
+                let args = parse_args::<UpdateArgs>(argv).unwrap();
+                let resolution = resolve(&yarn(version), args);
+                assert!(resolution.diagnostics.is_empty());
+                assert_eq!(expect_run(resolution.outcome).args, expected);
+            }
+        }
+    }
+
+    #[test]
+    fn test_yarn_recursive_preserves_ranges_and_raw_patterns() {
+        for version in ["3.0.0", "3.6.0", "4.0.0", "4.16.0"] {
+            for (argv, expected) in [
+                (vec!["-r", "react"], vec!["up", "--recursive", "react"]),
+                (vec!["-r", "--no-save", "react"], vec!["up", "--recursive", "react"]),
+                (vec!["-r", "--no-save"], vec!["up", "--recursive", "*"]),
+                (vec!["-r", "--", "react"], vec!["up", "--recursive", "react"]),
+                (vec!["-r", "--latest", "--", "react"], vec!["up", "react"]),
+                (
+                    vec!["-r", "--", "--mode", "skip-build"],
+                    vec!["up", "--recursive", "--mode", "skip-build"],
+                ),
+            ] {
+                let args = parse_args::<UpdateArgs>(argv).unwrap();
+                let resolution = resolve(&yarn(version), args);
+                assert!(resolution.diagnostics.is_empty());
+                assert_eq!(expect_run(resolution.outcome).args, expected);
+            }
+        }
+    }
+
+    #[test]
+    fn test_yarn_recursive_rejects_incompatible_modes() {
+        let args = parse_args::<UpdateArgs>(["-r", "react"]).unwrap();
+        expect_unsupported(
+            resolve(&yarn("2.4.2"), args),
+            &["yarn < 3 does not support --recursive without --latest."],
+        );
+        for version in ["3.0.0", "4.16.0"] {
+            let args = parse_args::<UpdateArgs>(["-r", "--interactive", "react"]).unwrap();
+            expect_unsupported(
+                resolve(&yarn(version), args),
+                &["yarn does not support --recursive with --interactive without --latest."],
+            );
+            let args = parse_args::<UpdateArgs>(["-r", "--latest", "--no-save", "react"]).unwrap();
+            expect_unsupported(
+                resolve(&yarn(version), args),
+                &["yarn does not support --no-save."],
+            );
+        }
     }
 
     #[test]
@@ -704,11 +910,25 @@ mod tests {
     #[test]
     fn test_bun_update_recursive() {
         let options = UpdateArgs { recursive: true, ..Default::default() };
-        let resolution = resolve(&bun("1.3.11"), options);
+        let resolution = resolve(&bun("1.4.0"), options);
         let command = expect_run(resolution.outcome);
 
         assert_eq!(command.program, "bun");
         assert_eq!(command.args, vec!["update", "--recursive"]);
+    }
+
+    #[test]
+    fn test_bun_update_rejects_recursive_before_1_4() {
+        for version in ["1.3.11", "1.3.14"] {
+            let args = parse_args::<UpdateArgs>(["--recursive", "--filter", "web"]).unwrap();
+            expect_unsupported(
+                resolve(&bun(version), args),
+                &[
+                    "bun < 1.4 does not support --recursive.",
+                    "bun < 1.4 does not support --filter.",
+                ],
+            );
+        }
     }
 
     #[test]

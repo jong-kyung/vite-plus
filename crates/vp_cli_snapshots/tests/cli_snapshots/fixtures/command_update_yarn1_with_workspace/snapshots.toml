@@ -1,0 +1,33 @@
+[[case]]
+name = "classic_workspace_update_rejections"
+vp = ["local", "global"]
+local-registry = true
+skip-platforms = ["windows"]
+steps = [
+  { argv = ["vp", "update", "--filter", "app", "--filter", "web", "--latest", "is-number"], comment = "reject multiple filters instead of updating only the first workspace", continue-on-failure = true },
+  { argv = ["vp", "update", "--recursive", "--workspace", "--dev", "--filter", "app", "--filter", "web"], comment = "aggregate workspace and dependency selection errors", continue-on-failure = true },
+  { argv = ["vp", "update", "--interactive", "--filter", "app", "--latest", "is-number"], comment = "Classic interactive mode cannot restrict its choices to one workspace", continue-on-failure = true },
+  ["vpt", "print-file", "package.json", "packages/app/package.json", "packages/web/package.json"],
+  ["vpt", "stat-file", "yarn.lock", "--assert", "missing"],
+  ["vpt", "stat-file", "node_modules", "--assert", "missing"],
+  { argv = ["vp", "install", "--ignore-scripts"], snapshot = false },
+  { argv = ["vp", "update", "--filter", "app", "--latest", "is-number", "--", "--ignore-scripts"], comment = "a single non-interactive filter still updates only the selected workspace" },
+  ["vpt", "print-file", "package.json", "packages/app/package.json", "packages/web/package.json"],
+  ["node", "assert-installed.cjs", "6.0.0", "7.0.0", "6.0.0"],
+]
+
+[[case]]
+name = "classic_update_interactive"
+vp = ["local", "global"]
+local-registry = true
+skip-platforms = ["windows"]
+steps = [
+  { argv = ["vp", "install", "--ignore-scripts"], snapshot = false },
+  { argv = ["vp", "update", "--interactive", "--latest", "is-number", "--", "--ignore-scripts"], envs = [["NODE_OPTIONS", '--require="${workspace}/interactive-milestone.cjs"']], comment = "select the offered updates in Yarn's native prompt and leave the unrelated dev dependency unchanged", interactions = [
+    { expect-milestone = "checkbox:yarn-upgrade:ready" },
+    { write = "a" },
+    { write-key = "enter" },
+  ] },
+  ["vpt", "print-file", "package.json", "packages/app/package.json", "packages/web/package.json"],
+  ["node", "assert-installed.cjs", "7.0.0", "7.0.0", "7.0.0"],
+]

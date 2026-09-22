@@ -1,6 +1,6 @@
 # unsupported_update_options
 
-## `vp update --latest --interactive --dev --prod --no-optional`
+## `vp update --latest --interactive --dev --prod --no-optional --workspace`
 
 Report every unsupported option without changing dependencies.
 
@@ -12,6 +12,7 @@ npm does not support --dev.
 npm does not support --prod.
 npm does not support --interactive.
 npm does not support --no-optional.
+npm does not support --workspace.
 ```
 
 ## `vpt stat-file package-lock.json --assert missing`

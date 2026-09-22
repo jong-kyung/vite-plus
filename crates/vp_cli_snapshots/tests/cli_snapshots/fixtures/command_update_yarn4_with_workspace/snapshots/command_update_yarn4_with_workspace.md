@@ -39,6 +39,7 @@ workspace dependency updates reject filters
 
 ```
 yarn >= 2 does not support --filter.
+yarn does not support --workspace.
 ```
 
 ## `vp update testnpm2 --filter app --filter @vite-plus-test/utils --recursive`
@@ -158,12 +159,17 @@ unfiltered update still updates all testnpm2 versions
 
 ## `vp update -r --no-save`
 
-reject unsupported --no-save without updating any workspace
-
-**Exit code:** 1
+recursive no-save updates resolutions without changing workspace manifests
 
 ```
-yarn does not support --no-save.
+➤ YN0000: · Yarn <version>
+➤ YN0000: ┌ Resolution step
+➤ YN0000: └ Completed
+➤ YN0000: ┌ Fetch step
+➤ YN0000: └ Completed
+➤ YN0000: ┌ Link step
+➤ YN0000: └ Completed
+➤ YN0000: · Done in <duration>
 ```
 
 ## `vpt print-file package.json packages/app/package.json`

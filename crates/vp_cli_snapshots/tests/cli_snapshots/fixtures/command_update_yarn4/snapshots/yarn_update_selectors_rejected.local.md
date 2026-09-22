@@ -1,6 +1,6 @@
 # yarn_update_selectors_rejected
 
-## `vp update -D -P --no-optional`
+## `vp update -D -P --no-optional --workspace`
 
 report every unsupported dependency selector before updating
 
@@ -10,6 +10,7 @@ report every unsupported dependency selector before updating
 yarn does not support --dev.
 yarn does not support --prod.
 yarn does not support --no-optional.
+yarn does not support --workspace.
 ```
 
 ## `vpt print-file package.json`

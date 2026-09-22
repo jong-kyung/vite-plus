@@ -14,6 +14,6 @@ steps = [
   { argv = ["vpt", "print-file", "packages/app/package.json", "packages/utils/package.json"], continue-on-failure = true },
   { argv = ["vp", "update", "-r", "--no-save", "--", "--no-audit"], comment = "should update recursively without saving" },
   { argv = ["vpt", "print-file", "package.json", "packages/app/package.json"], continue-on-failure = true },
-  { argv = ["vp", "update", "--workspace", "--filter", "app", "@vite-plus-test/utils", "--", "--no-audit"], comment = "should update workspace dependency" },
+  { argv = ["vp", "update", "--workspace", "--filter", "app", "@vite-plus-test/utils", "--", "--no-audit"], comment = "reject pnpm-specific workspace dependency selection", continue-on-failure = true },
   { argv = ["vpt", "print-file", "packages/app/package.json"], continue-on-failure = true },
 ]

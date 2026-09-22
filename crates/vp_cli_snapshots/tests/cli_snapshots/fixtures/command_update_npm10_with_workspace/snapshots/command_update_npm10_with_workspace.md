@@ -146,11 +146,12 @@ up to date in <duration>
 
 ## `vp update --workspace --filter app @vite-plus-test/utils -- --no-audit`
 
-should update workspace dependency
+reject pnpm-specific workspace dependency selection
+
+**Exit code:** 1
 
 ```
-
-up to date in <duration>
+npm does not support --workspace.
 ```
 
 ## `vpt print-file packages/app/package.json`

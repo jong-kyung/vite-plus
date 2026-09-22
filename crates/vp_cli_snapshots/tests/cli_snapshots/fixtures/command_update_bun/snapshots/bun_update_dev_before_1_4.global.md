@@ -41,16 +41,18 @@ node_modules: missing
 bun.lock: missing
 ```
 
-## `vp update --dev --prod --no-optional --workspace-root --filter web`
+## `vp update --dev --prod --no-optional --workspace-root --filter web --workspace --recursive`
 
 report every unsupported option together
 
 **Exit code:** 1
 
 ```
+bun < 1.4 does not support --recursive.
 bun < 1.4 does not support --filter.
 bun does not support --workspace-root.
 bun < 1.4 does not support --dev.
 bun < 1.4 does not support --prod.
 bun < 1.4 does not support --no-optional.
+bun does not support --workspace.
 ```
