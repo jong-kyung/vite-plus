@@ -14,7 +14,7 @@ pub struct InstallArgs {
     pub(crate) prod: bool,
 
     /// Only install devDependencies (install) / Save to devDependencies (add)
-    #[arg(short = 'D', long)]
+    #[arg(short = 'D', long, not_supported(npm))]
     pub(crate) dev: bool,
 
     /// Do not install optionalDependencies
@@ -181,9 +181,6 @@ impl Resolve<InstallArgs> for Npm {
         let mut cmd = CommandBuilder::new("npm");
         cmd.arg(if use_ci { "ci" } else { "install" });
         cmd.arg_if("--omit=dev", args.prod);
-        if args.dev && !use_ci {
-            cmd.arg("--include=dev").arg("--omit=prod");
-        }
         cmd.arg_if("--omit=optional", args.no_optional);
         cmd.arg_if("--package-lock-only", args.lockfile_only && !use_ci)
             .arg_if("--prefer-offline", args.prefer_offline)
@@ -292,7 +289,7 @@ mod tests {
     use super::*;
     use crate::resolution::{
         resolve,
-        test_utils::{bun, expect_run, expect_unsupported, npm, pnpm, yarn},
+        test_utils::{bun, expect_run, expect_unsupported, npm, parse_args, pnpm, yarn},
     };
 
     #[test]
@@ -391,6 +388,27 @@ mod tests {
         );
 
         assert_eq!(command.args, vec!["install", "--omit=dev"]);
+    }
+
+    #[test]
+    fn npm_rejects_dev_only_install() {
+        for version in ["10.9.4", "11.16.0", "12.0.2"] {
+            for frozen_lockfile in [false, true] {
+                let options = InstallArgs { dev: true, frozen_lockfile, ..Default::default() };
+                expect_unsupported(
+                    resolve(&npm(version), options),
+                    &["npm does not support --dev."],
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn npm_install_keeps_raw_dev_pass_through() {
+        let options = parse_args::<InstallArgs>(["--", "--dev"]).unwrap();
+        let resolution = resolve(&npm("11.16.0"), options);
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(expect_run(resolution.outcome).args, vec!["install", "--dev"]);
     }
 
     #[test]
@@ -735,8 +753,8 @@ mod tests {
     }
 
     #[test]
-    fn resolve_install_npm_uses_ci_for_frozen_lockfile() {
-        let command = expect_run(
+    fn npm_rejects_dev_before_ci() {
+        expect_unsupported(
             resolve(
                 &npm("11.0.0"),
                 InstallArgs {
@@ -747,18 +765,21 @@ mod tests {
                     no_lockfile: true,
                     ..Default::default()
                 },
-            )
-            .outcome,
+            ),
+            &["npm does not support --dev."],
         );
-
-        assert_eq!(command.args, vec!["ci"]);
     }
 
     #[test]
-    fn npm_rejects_fix_lockfile() {
-        let resolution =
-            resolve(&npm("11.0.0"), InstallArgs { fix_lockfile: true, ..Default::default() });
-        expect_unsupported(resolution, &["npm does not support --fix-lockfile."]);
+    fn npm_rejects_all_unsupported_install_options() {
+        let resolution = resolve(
+            &npm("11.0.0"),
+            InstallArgs { dev: true, fix_lockfile: true, silent: true, ..Default::default() },
+        );
+        expect_unsupported(
+            resolution,
+            &["npm does not support --dev.", "npm does not support --fix-lockfile."],
+        );
     }
 
     #[test]

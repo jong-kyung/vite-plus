@@ -496,21 +496,27 @@ mod tests {
 
     #[test]
     fn install_uses_install_or_add_resolver_from_packages() {
-        let manager = package_manager(PackageManagerType::Pnpm, "10.0.0");
-        let install = parse(&["install", "--frozen-lockfile"]).unwrap();
-        let add = parse(&["install", "-D", "react"]).unwrap();
+        for (client, version, install_args, add_command) in [
+            (PackageManagerType::Pnpm, "10.0.0", vec!["install", "--frozen-lockfile"], "add"),
+            (PackageManagerType::Npm, "11.16.0", vec!["ci"], "install"),
+        ] {
+            let manager = package_manager(client, version);
+            let install = parse(&["install", "--frozen-lockfile"]).unwrap();
+            let add = parse(&["install", "-D", "react"]).unwrap();
 
-        let CommandResolution::Run(install) =
-            install.resolve_for_manager(&manager).unwrap().outcome
-        else {
-            panic!("expected install command");
-        };
-        let CommandResolution::Run(add) = add.resolve_for_manager(&manager).unwrap().outcome else {
-            panic!("expected add command");
-        };
+            let CommandResolution::Run(install) =
+                install.resolve_for_manager(&manager).unwrap().outcome
+            else {
+                panic!("expected install command");
+            };
+            let CommandResolution::Run(add) = add.resolve_for_manager(&manager).unwrap().outcome
+            else {
+                panic!("expected add command");
+            };
 
-        assert_eq!(install.args, vec!["install", "--frozen-lockfile"]);
-        assert_eq!(add.args, vec!["add", "--save-dev", "react"]);
+            assert_eq!(install.args, install_args);
+            assert_eq!(add.args, vec![add_command, "--save-dev", "react"]);
+        }
     }
 
     #[test]
