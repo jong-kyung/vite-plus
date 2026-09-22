@@ -41,7 +41,7 @@ pub struct UpdateArgs {
     pub(crate) workspace_root: bool,
 
     /// Update only devDependencies
-    #[arg(short = 'D', long)]
+    #[arg(short = 'D', long, not_supported(bun < "1.4"))]
     pub(crate) dev: bool,
 
     /// Update only dependencies (production)
@@ -156,6 +156,7 @@ impl Resolve<UpdateArgs> for Bun {
         cmd.arg("update")
             .repeated("--filter", args.filter.iter())
             .arg_if("--latest", args.latest)
+            .arg_if("--dev", args.dev)
             .arg_if("--interactive", args.interactive)
             .arg_if("--production", args.prod);
         if args.no_optional {
@@ -570,6 +571,59 @@ mod tests {
 
         assert_eq!(command.program, "bun");
         assert_eq!(command.args, vec!["update", "--latest"]);
+    }
+
+    #[test]
+    fn test_bun_update_dev_only() {
+        for version in ["1.4.0", "1.4.2"] {
+            for (argv, expected) in [
+                (vec!["-D"], vec!["update", "--dev"]),
+                (
+                    vec!["react", "--dev", "--latest", "--", "--ignore-scripts"],
+                    vec!["update", "--latest", "--dev", "--ignore-scripts", "react"],
+                ),
+            ] {
+                let args = parse_args::<UpdateArgs>(argv).unwrap();
+                let resolution = resolve(&bun(version), args);
+                assert!(resolution.diagnostics.is_empty());
+                let command = expect_run(resolution.outcome);
+                assert_eq!(command.program, "bun");
+                assert_eq!(command.args, expected);
+            }
+        }
+    }
+
+    #[test]
+    fn test_bun_update_rejects_dev_before_1_4() {
+        for version in ["1.3.11", "1.3.14"] {
+            let args = parse_args::<UpdateArgs>(["--dev", "react"]).unwrap();
+            expect_unsupported(
+                resolve(&bun(version), args),
+                &["bun < 1.4 does not support --dev."],
+            );
+        }
+    }
+
+    #[test]
+    fn test_bun_update_rejects_all_unsupported_options() {
+        let args =
+            parse_args::<UpdateArgs>(["--filter", "web", "--workspace-root", "--dev"]).unwrap();
+        expect_unsupported(
+            resolve(&bun("1.3.14"), args),
+            &[
+                "bun < 1.4 does not support --filter.",
+                "bun does not support --workspace-root.",
+                "bun < 1.4 does not support --dev.",
+            ],
+        );
+    }
+
+    #[test]
+    fn test_bun_update_keeps_raw_dev_pass_through() {
+        let args = parse_args::<UpdateArgs>(["react", "--", "--dev"]).unwrap();
+        let resolution = resolve(&bun("1.3.14"), args);
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(expect_run(resolution.outcome).args, vec!["update", "--dev", "react"]);
     }
 
     #[test]
