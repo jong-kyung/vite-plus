@@ -1,6 +1,16 @@
 # remove_selectors_rejected
 
-## `vp remove --save-dev --save-optional --save-prod testnpm2`
+## `vp remove --recursive testnpm2`
+
+reject recursive removal on older Bun before invoking the package manager
+
+**Exit code:** 1
+
+```
+bun does not support --recursive.
+```
+
+## `vp remove --save-dev --save-optional --save-prod --filter app --recursive testnpm2`
 
 reject all unsupported removal selectors without changing the project
 
@@ -10,6 +20,8 @@ reject all unsupported removal selectors without changing the project
 bun does not support --save-dev.
 bun does not support --save-optional.
 bun does not support --save-prod.
+bun < 1.4 does not support --filter.
+bun does not support --recursive.
 ```
 
 ## `vpt print-file package.json`

@@ -20,7 +20,7 @@ pub struct RemoveArgs {
     pub(crate) save_prod: bool,
 
     /// Filter packages in monorepo (can be used multiple times)
-    #[arg(long, value_name = "PATTERN", not_supported(bun < "1.4"))]
+    #[arg(long, value_name = "PATTERN", not_supported(yarn < "2", bun < "1.4"))]
     pub(crate) filter: Vec<String>,
 
     /// Remove from workspace root
@@ -28,7 +28,7 @@ pub struct RemoveArgs {
     pub(crate) workspace_root: bool,
 
     /// Remove recursively from all workspace packages
-    #[arg(short = 'r', long)]
+    #[arg(short = 'r', long, not_supported(yarn < "2", bun))]
     pub(crate) recursive: bool,
 
     /// Remove global packages
@@ -104,13 +104,6 @@ impl Resolve<RemoveArgs> for Yarn {
 
         let mut cmd = CommandBuilder::new("yarn");
         if !args.filter.is_empty() {
-            if !self.is_berry() {
-                return CommandResolution::InvalidArgument(
-                    "Invalid argument: `--filter` is not supported by Yarn Classic `remove`."
-                        .to_string(),
-                );
-            }
-
             cmd.arg("workspaces").arg("foreach").arg("--all");
             cmd.repeated("--include", args.filter.iter());
         }
@@ -251,26 +244,95 @@ mod tests {
                 options.recursive = recursive;
                 let resolution = resolve(&yarn("1.22.22"), options);
 
-                assert_eq!(
-                    resolution.outcome,
-                    CommandResolution::InvalidArgument(
-                        "Invalid argument: `--filter` is not supported by Yarn Classic `remove`."
-                            .to_string()
-                    )
-                );
+                let mut messages = vec!["yarn < 2 does not support --filter."];
+                if recursive {
+                    messages.push("yarn < 2 does not support --recursive.");
+                }
+                expect_unsupported(resolution, &messages);
             }
         }
     }
 
     #[test]
     fn test_yarn_remove_recursive() {
-        let mut options = remove_args(&["lodash"]);
-        options.recursive = true;
-        let resolution = resolve(&yarn("1.22.0"), options);
-        let command = expect_run(resolution.outcome);
+        let args = parse_args::<RemoveArgs>(["--recursive", "lodash"]).unwrap();
+        expect_unsupported(
+            resolve(&yarn("1.22.22"), args.clone()),
+            &["yarn < 2 does not support --recursive."],
+        );
+        for version in ["2.4.2", "4.16.0"] {
+            let resolution = resolve(&yarn(version), args.clone());
+            assert!(resolution.diagnostics.is_empty());
+            assert_eq!(expect_run(resolution.outcome).args, vec!["remove", "--all", "lodash"]);
+        }
+    }
 
-        assert_eq!(command.program, "yarn");
-        assert_eq!(command.args, vec!["remove", "--all", "lodash"]);
+    #[test]
+    fn test_classic_remove_aggregates_scope_and_selector_errors() {
+        let args = parse_args::<RemoveArgs>(["-D", "--filter", "app", "-r", "lodash"]).unwrap();
+        expect_unsupported(
+            resolve(&yarn("1.22.22"), args),
+            &[
+                "yarn does not support --save-dev.",
+                "yarn < 2 does not support --filter.",
+                "yarn < 2 does not support --recursive.",
+            ],
+        );
+    }
+
+    #[test]
+    fn test_bun_remove_rejects_recursive() {
+        for version in ["1.3.11", "1.3.14", "1.4.0"] {
+            let args = parse_args::<RemoveArgs>(["-r", "lodash"]).unwrap();
+            expect_unsupported(
+                resolve(&bun(version), args),
+                &["bun does not support --recursive."],
+            );
+        }
+    }
+
+    #[test]
+    fn test_bun_remove_rejects_recursive_with_filters() {
+        for version in ["1.3.11", "1.3.14", "1.4.0"] {
+            let args =
+                parse_args::<RemoveArgs>(["-r", "--filter", "app", "--filter", "web", "lodash"])
+                    .unwrap();
+            let mut messages = vec![];
+            if version != "1.4.0" {
+                messages.push("bun < 1.4 does not support --filter.");
+            }
+            messages.push("bun does not support --recursive.");
+            expect_unsupported(resolve(&bun(version), args), &messages);
+        }
+    }
+
+    #[test]
+    fn test_remove_preserves_raw_workspace_options() {
+        let args =
+            parse_args::<RemoveArgs>(["lodash", "--", "--recursive", "--filter", "app"]).unwrap();
+        for resolution in [resolve(&yarn("1.22.22"), args.clone()), resolve(&bun("1.3.14"), args)] {
+            assert!(resolution.diagnostics.is_empty());
+            assert_eq!(
+                expect_run(resolution.outcome).args,
+                vec!["remove", "--recursive", "--filter", "app", "lodash"]
+            );
+        }
+    }
+
+    #[test]
+    fn test_global_remove_preserves_npm_fallback() {
+        let args = parse_args::<RemoveArgs>(["--global", "typescript"]).unwrap();
+        for resolution in [
+            resolve(&yarn("1.22.22"), args.clone()),
+            resolve(&yarn("4.16.0"), args.clone()),
+            resolve(&bun("1.3.14"), args.clone()),
+            resolve(&bun("1.4.0"), args),
+        ] {
+            assert!(resolution.diagnostics.is_empty());
+            let command = expect_run(resolution.outcome);
+            assert_eq!(command.program, "npm");
+            assert_eq!(command.args, vec!["uninstall", "--global", "typescript"]);
+        }
     }
 
     #[test]

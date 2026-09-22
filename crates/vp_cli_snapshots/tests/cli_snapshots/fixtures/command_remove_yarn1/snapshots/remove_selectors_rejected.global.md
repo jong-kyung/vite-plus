@@ -1,6 +1,26 @@
 # remove_selectors_rejected
 
-## `vp remove --save-dev --save-optional --save-prod testnpm2`
+## `vp remove --recursive testnpm2`
+
+reject recursive removal instead of passing Classic's ineffective --all flag
+
+**Exit code:** 1
+
+```
+yarn < 2 does not support --recursive.
+```
+
+## `vp remove --filter app testnpm2`
+
+report unsupported workspace filtering before execution
+
+**Exit code:** 1
+
+```
+yarn < 2 does not support --filter.
+```
+
+## `vp remove --save-dev --save-optional --save-prod --filter app --recursive testnpm2`
 
 reject all unsupported removal selectors without changing the project
 
@@ -10,6 +30,8 @@ reject all unsupported removal selectors without changing the project
 yarn does not support --save-dev.
 yarn does not support --save-optional.
 yarn does not support --save-prod.
+yarn < 2 does not support --filter.
+yarn < 2 does not support --recursive.
 ```
 
 ## `vpt print-file package.json`
