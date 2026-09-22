@@ -296,18 +296,12 @@ should remove package from all workspaces and root
 
 ## `vp remove -O test-vite-plus-package-optional -r`
 
-should remove optional package from all workspaces
+reject --save-optional before removing dependencies from any workspace
+
+**Exit code:** 1
 
 ```
-➤ YN0000: · Yarn <version>
-➤ YN0000: ┌ Resolution step
-➤ YN0085: │ - test-vite-plus-package-optional@npm:1.0.0
-➤ YN0000: └ Completed
-➤ YN0000: ┌ Fetch step
-➤ YN0000: └ Completed
-➤ YN0000: ┌ Link step
-➤ YN0000: └ Completed
-➤ YN0000: · Done in <duration>
+yarn does not support --save-optional.
 ```
 
 ## `vpt print-file package.json packages/app/package.json packages/admin/package.json packages/utils/package.json`
@@ -322,18 +316,27 @@ should remove optional package from all workspaces
   "packageManager": "yarn@4.10.3",
   "dependencies": {
     "test-vite-plus-install": "^1.0.0"
+  },
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
   }
 }
 {
   "name": "app",
   "dependencies": {
     "test-vite-plus-install": "^1.0.0"
+  },
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
   }
 }
 {
   "name": "admin",
   "dependencies": {
     "test-vite-plus-install": "^1.0.0"
+  },
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
   }
 }
 {
@@ -341,6 +344,9 @@ should remove optional package from all workspaces
   "version": "1.0.0",
   "dependencies": {
     "test-vite-plus-install": "^1.0.0"
+  },
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
   }
 }
 ```
@@ -376,15 +382,24 @@ Done in <duration>
   "packageManager": "yarn@4.10.3",
   "dependencies": {
     "test-vite-plus-install": "^1.0.0"
+  },
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
   }
 }
 {
-  "name": "app"
+  "name": "app",
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
+  }
 }
 {
   "name": "admin",
   "dependencies": {
     "test-vite-plus-install": "^1.0.0"
+  },
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
   }
 }
 {
@@ -392,6 +407,9 @@ Done in <duration>
   "version": "1.0.0",
   "dependencies": {
     "test-vite-plus-install": "^1.0.0"
+  },
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
   }
 }
 ```
@@ -463,19 +481,31 @@ Done in <duration>
   "workspaces": [
     "packages/*"
   ],
-  "packageManager": "yarn@4.10.3"
+  "packageManager": "yarn@4.10.3",
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
+  }
 }
 {
-  "name": "app"
+  "name": "app",
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
+  }
 }
 {
-  "name": "admin"
+  "name": "admin",
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
+  }
 }
 {
   "name": "@vite-plus-test/utils",
   "version": "1.0.0",
   "dependencies": {
     "test-vite-plus-install": "^1.0.0"
+  },
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
   }
 }
 ```

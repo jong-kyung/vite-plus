@@ -115,11 +115,12 @@ removed 1 package in <duration>
 
 ## `vp remove -O test-vite-plus-package-optional -r -- --no-audit`
 
-should remove optional package from all workspaces
+reject --save-optional before removing dependencies from any workspace
+
+**Exit code:** 1
 
 ```
-
-removed 1 package in <duration>
+npm does not support --save-optional.
 ```
 
 ## `vpt print-file package.json packages/app/package.json packages/utils/package.json`
@@ -140,6 +141,9 @@ removed 1 package in <duration>
   "name": "app",
   "dependencies": {
     "test-vite-plus-install": "^1.0.0"
+  },
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
   }
 }
 {
@@ -148,6 +152,9 @@ removed 1 package in <duration>
   "private": true,
   "dependencies": {
     "test-vite-plus-install": "^1.0.0"
+  },
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
   }
 }
 ```
@@ -176,7 +183,10 @@ up to date in <duration>
   }
 }
 {
-  "name": "app"
+  "name": "app",
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
+  }
 }
 {
   "name": "@vite-plus-test/utils",
@@ -184,6 +194,9 @@ up to date in <duration>
   "private": true,
   "dependencies": {
     "test-vite-plus-install": "^1.0.0"
+  },
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
   }
 }
 ```
@@ -212,11 +225,17 @@ up to date in <duration>
   }
 }
 {
-  "name": "app"
+  "name": "app",
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
+  }
 }
 {
   "name": "@vite-plus-test/utils",
   "version": "1.0.0",
-  "private": true
+  "private": true,
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
+  }
 }
 ```

@@ -1,0 +1,9 @@
+{
+  "name": "command-remove-yarn1",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "testnpm2": "1.0.0"
+  },
+  "packageManager": "yarn@1.22.22"
+}

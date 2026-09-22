@@ -2,17 +2,23 @@
 
 ## `vp remove testnpm2 -D`
 
-should error when remove not exists package
+reject unsupported --save-dev even when the package is absent
 
 **Exit code:** 1
 
 ```
-Usage Error: Pattern testnpm2 doesn't match any packages referenced by this workspace
-
-$ yarn remove [-A,--all] [--mode #0] ...
+yarn does not support --save-dev.
 ```
 
-*(skipped 1 step(s) to the next line boundary: step failed)*
+## `vpt print-file package.json`
+
+```
+{
+  "name": "command-remove-yarn4",
+  "version": "1.0.0",
+  "packageManager": "yarn@4.10.3"
+}
+```
 
 ## `vp add testnpm2`
 
@@ -111,18 +117,12 @@ should remove packages from dependencies
 
 ## `vp remove -D test-vite-plus-package-optional`
 
-support ignore -O flag and remove package from optional dependencies
+reject --save-dev without removing the optional dependency
+
+**Exit code:** 1
 
 ```
-➤ YN0000: · Yarn <version>
-➤ YN0000: ┌ Resolution step
-➤ YN0085: │ - test-vite-plus-package-optional@npm:1.0.0
-➤ YN0000: └ Completed
-➤ YN0000: ┌ Fetch step
-➤ YN0000: └ Completed
-➤ YN0000: ┌ Link step
-➤ YN0000: └ Completed
-➤ YN0000: · Done in <duration>
+yarn does not support --save-dev.
 ```
 
 ## `vpt print-file package.json`
@@ -131,7 +131,10 @@ support ignore -O flag and remove package from optional dependencies
 {
   "name": "command-remove-yarn4",
   "version": "1.0.0",
-  "packageManager": "yarn@4.10.3"
+  "packageManager": "yarn@4.10.3",
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
+  }
 }
 ```
 

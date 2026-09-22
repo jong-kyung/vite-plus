@@ -14,7 +14,7 @@ steps = [
   { argv = ["vpt", "print-file", "package.json", "packages/app/package.json", "packages/admin/package.json", "packages/utils/package.json"], comment = "root and admin keep testnpm2" },
   { argv = ["vp", "remove", "testnpm2", "-r"], comment = "should remove package from all workspaces and root" },
   { argv = ["vpt", "print-file", "package.json", "packages/app/package.json", "packages/admin/package.json", "packages/utils/package.json"], continue-on-failure = true },
-  { argv = ["vp", "remove", "-O", "test-vite-plus-package-optional", "-r"], comment = "should remove optional package from all workspaces" },
+  { argv = ["vp", "remove", "-O", "test-vite-plus-package-optional", "-r"], comment = "reject --save-optional before removing dependencies from any workspace", continue-on-failure = true },
   { argv = ["vpt", "print-file", "package.json", "packages/app/package.json", "packages/admin/package.json", "packages/utils/package.json"], continue-on-failure = true },
   { argv = ["vp", "remove", "test-vite-plus-install", "-r", "--filter=app"], comment = "recursive remove affects only app" },
   { argv = ["vpt", "print-file", "package.json", "packages/app/package.json", "packages/admin/package.json", "packages/utils/package.json"], continue-on-failure = true },

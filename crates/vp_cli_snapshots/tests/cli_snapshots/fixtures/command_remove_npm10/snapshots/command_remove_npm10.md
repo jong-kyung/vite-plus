@@ -2,11 +2,12 @@
 
 ## `vp remove testnpm2 -D -- --no-audit`
 
-should pass when remove not exists package
+reject unsupported --save-dev even when the package is absent
+
+**Exit code:** 1
 
 ```
-
-up to date in <duration>
+npm does not support --save-dev.
 ```
 
 ## `vpt print-file package.json`
@@ -85,11 +86,12 @@ removed 2 packages in <duration>
 
 ## `vp remove -D test-vite-plus-package-optional -- --loglevel=warn --no-audit`
 
-support ignore -O flag and remove package from optional dependencies
+reject --save-dev without removing the optional dependency
+
+**Exit code:** 1
 
 ```
-
-removed 1 package in <duration>
+npm does not support --save-dev.
 ```
 
 ## `vpt print-file package.json`
@@ -98,7 +100,10 @@ removed 1 package in <duration>
 {
   "name": "command-remove-npm10",
   "version": "1.0.0",
-  "packageManager": "npm@10.9.4"
+  "packageManager": "npm@10.9.4",
+  "optionalDependencies": {
+    "test-vite-plus-package-optional": "^1.0.0"
+  }
 }
 ```
 

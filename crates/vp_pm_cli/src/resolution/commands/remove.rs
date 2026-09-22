@@ -8,15 +8,15 @@ use crate::resolution::{
 #[derive(clap::Args, Clone, Debug, Default, PartialEq, Eq)]
 pub struct RemoveArgs {
     /// Only remove from `devDependencies` (pnpm-specific)
-    #[arg(short = 'D', long)]
+    #[arg(short = 'D', long, not_supported(npm, yarn, bun))]
     pub(crate) save_dev: bool,
 
     /// Only remove from `optionalDependencies` (pnpm-specific)
-    #[arg(short = 'O', long)]
+    #[arg(short = 'O', long, not_supported(npm, yarn, bun))]
     pub(crate) save_optional: bool,
 
     /// Only remove from `dependencies` (pnpm-specific)
-    #[arg(short = 'P', long)]
+    #[arg(short = 'P', long, not_supported(npm, yarn, bun))]
     pub(crate) save_prod: bool,
 
     /// Filter packages in monorepo (can be used multiple times)
@@ -435,49 +435,79 @@ mod tests {
     }
 
     #[test]
-    fn test_npm_remove_save_dev() {
+    fn test_npm_remove_rejects_save_dev() {
         let mut options = remove_args(&["typescript"]);
         options.save_dev = true;
-        let resolution = resolve(&npm("1.0.0"), options);
-        let command = expect_run(resolution.outcome);
-
-        assert_eq!(command.program, "npm");
-        assert_eq!(command.args, vec!["uninstall", "typescript"]);
+        expect_unsupported(
+            resolve(&npm("11.16.0"), options),
+            &["npm does not support --save-dev."],
+        );
     }
 
     #[test]
-    fn test_npm_remove_save_optional() {
+    fn test_npm_remove_rejects_save_optional() {
         let mut options = remove_args(&["sharp"]);
         options.save_optional = true;
-        let resolution = resolve(&npm("1.0.0"), options);
-        let command = expect_run(resolution.outcome);
-
-        assert_eq!(command.program, "npm");
-        assert_eq!(command.args, vec!["uninstall", "sharp"]);
+        expect_unsupported(
+            resolve(&npm("11.16.0"), options),
+            &["npm does not support --save-optional."],
+        );
     }
 
     #[test]
-    fn test_npm_remove_save_prod() {
+    fn test_npm_remove_rejects_save_prod() {
         let mut options = remove_args(&["react"]);
         options.save_prod = true;
-        let resolution = resolve(&npm("1.0.0"), options);
-        let command = expect_run(resolution.outcome);
-
-        assert_eq!(command.program, "npm");
-        assert_eq!(command.args, vec!["uninstall", "react"]);
+        expect_unsupported(
+            resolve(&npm("11.16.0"), options),
+            &["npm does not support --save-prod."],
+        );
     }
 
     #[test]
-    fn test_yarn_remove_save_flags_ignored() {
-        let mut options = remove_args(&["lodash"]);
-        options.save_dev = true;
-        options.save_optional = true;
-        options.save_prod = true;
-        let resolution = resolve(&yarn("1.22.0"), options);
-        let command = expect_run(resolution.outcome);
+    fn test_remove_rejects_all_save_flags() {
+        let args = parse_args::<RemoveArgs>(["-D", "-O", "-P", "lodash"]).unwrap();
+        for (resolution, name) in [
+            (resolve(&npm("10.9.4"), args.clone()), "npm"),
+            (resolve(&npm("12.0.2"), args.clone()), "npm"),
+            (resolve(&yarn("1.22.22"), args.clone()), "yarn"),
+            (resolve(&yarn("4.16.0"), args.clone()), "yarn"),
+            (resolve(&bun("1.3.11"), args.clone()), "bun"),
+            (resolve(&bun("1.4.0"), args), "bun"),
+        ] {
+            expect_unsupported(
+                resolution,
+                &[
+                    &vt_str::format!("{name} does not support --save-dev."),
+                    &vt_str::format!("{name} does not support --save-optional."),
+                    &vt_str::format!("{name} does not support --save-prod."),
+                ],
+            );
+        }
+    }
 
-        assert_eq!(command.program, "yarn");
-        assert_eq!(command.args, vec!["remove", "lodash"]);
+    #[test]
+    fn test_remove_keeps_raw_save_flags() {
+        let args = parse_args::<RemoveArgs>([
+            "lodash",
+            "--",
+            "--save-dev",
+            "--save-optional",
+            "--save-prod",
+        ])
+        .unwrap();
+        for (resolution, subcommand) in [
+            (resolve(&npm("11.16.0"), args.clone()), "uninstall"),
+            (resolve(&yarn("1.22.22"), args.clone()), "remove"),
+            (resolve(&yarn("4.16.0"), args.clone()), "remove"),
+            (resolve(&bun("1.4.0"), args), "remove"),
+        ] {
+            assert!(resolution.diagnostics.is_empty());
+            assert_eq!(
+                expect_run(resolution.outcome).args,
+                vec![subcommand, "--save-dev", "--save-optional", "--save-prod", "lodash"]
+            );
+        }
     }
 
     #[test]
