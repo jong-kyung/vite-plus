@@ -14,7 +14,7 @@ pub struct InstallArgs {
     pub(crate) prod: bool,
 
     /// Only install devDependencies (install) / Save to devDependencies (add)
-    #[arg(short = 'D', long, not_supported(npm, bun))]
+    #[arg(short = 'D', long, not_supported(npm, bun, yarn))]
     pub(crate) dev: bool,
 
     /// Do not install optionalDependencies
@@ -311,6 +311,13 @@ mod tests {
     }
 
     #[test]
+    fn test_pnpm_dev_install_stays_supported() {
+        let resolution = resolve(&pnpm("10.0.0"), InstallArgs { dev: true, ..Default::default() });
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(expect_run(resolution.outcome).args, vec!["install", "--dev"]);
+    }
+
+    #[test]
     fn test_pnpm_frozen_lockfile() {
         let command = expect_run(
             resolve(&pnpm("10.0.0"), InstallArgs { frozen_lockfile: true, ..Default::default() })
@@ -422,6 +429,40 @@ mod tests {
         );
 
         assert_eq!(command.args, vec!["install", "--workspace", "app"]);
+    }
+
+    #[test]
+    fn yarn_rejects_dev_only_install() {
+        for version in ["1.22.22", "2.4.2", "3.6.0", "4.0.0", "4.16.0"] {
+            for frozen_lockfile in [false, true] {
+                let options = InstallArgs { dev: true, frozen_lockfile, ..Default::default() };
+                expect_unsupported(
+                    resolve(&yarn(version), options),
+                    &["yarn does not support --dev."],
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn yarn_install_keeps_raw_dev_pass_through() {
+        for version in ["1.22.22", "4.16.0"] {
+            let options = parse_args::<InstallArgs>(["--", "--dev"]).unwrap();
+            let resolution = resolve(&yarn(version), options);
+            assert!(resolution.diagnostics.is_empty());
+            assert_eq!(expect_run(resolution.outcome).args, vec!["install", "--dev"]);
+        }
+    }
+
+    #[test]
+    fn yarn_rejects_all_unsupported_install_options() {
+        for version in ["1.22.22", "4.16.0"] {
+            let options = InstallArgs { dev: true, resolution_only: true, ..Default::default() };
+            expect_unsupported(
+                resolve(&yarn(version), options),
+                &["yarn does not support --dev.", "yarn does not support --resolution-only."],
+            );
+        }
     }
 
     #[test]

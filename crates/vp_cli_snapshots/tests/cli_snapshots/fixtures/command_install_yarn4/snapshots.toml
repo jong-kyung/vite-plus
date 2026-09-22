@@ -1,0 +1,22 @@
+[[case]]
+name = "yarn_berry_install_rejects_dev_only"
+vp = ["local", "global"]
+skip-platforms = ["windows"]
+steps = [
+  { argv = ["vp", "install", "-D"], comment = "reject dev-only install before installing the production dependency", continue-on-failure = true },
+  { argv = ["vpt", "stat-file", "node_modules", "--assert", "missing"], continue-on-failure = true },
+  { argv = ["vpt", "stat-file", "yarn.lock", "--assert", "missing"], continue-on-failure = true },
+  { argv = ["vp", "install", "--dev", "--frozen-lockfile"], comment = "dev-only install is also rejected in frozen-lockfile mode", continue-on-failure = true },
+  { argv = ["vp", "install", "--dev", "--resolution-only", "--silent"], comment = "report all unsupported options, including Berry's existing silent restriction", continue-on-failure = true },
+  { argv = ["vpt", "print-file", "package.json"], continue-on-failure = true },
+]
+
+[[case]]
+name = "yarn_berry_install_dev_with_package_uses_add"
+vp = ["local", "global"]
+skip-platforms = ["windows"]
+steps = [
+  { argv = ["vp", "install", "-D", "./dev-dep", "--ignore-scripts"], comment = "with a package argument, -D still saves to devDependencies" },
+  { argv = ["vpt", "print-file", "package.json"] },
+  { argv = ["vpt", "stat-file", "node_modules/dev-only-fixture/package.json", "--assert", "file"] },
+]

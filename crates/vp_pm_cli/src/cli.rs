@@ -515,6 +515,18 @@ mod tests {
                 vec!["install", "--frozen-lockfile"],
                 vec!["add", "--dev", "react"],
             ),
+            (
+                PackageManagerType::Yarn,
+                "1.22.22",
+                vec!["install", "--frozen-lockfile"],
+                vec!["add", "--dev", "react"],
+            ),
+            (
+                PackageManagerType::Yarn,
+                "4.16.0",
+                vec!["install", "--immutable"],
+                vec!["add", "--dev", "react"],
+            ),
         ] {
             let manager = package_manager(client, version);
             let install = parse(&["install", "--frozen-lockfile"]).unwrap();
