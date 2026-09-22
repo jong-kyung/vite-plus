@@ -1,20 +1,24 @@
 [[case]]
-name = "install_with_packages_drops_install_only_options"
-vp = "global"
+name = "install_with_packages_rejects_install_only_options"
+vp = ["local", "global"]
 steps = [
-  { argv = ["vp", "install", "./dep", "--fix-lockfile", "--resolution-only", "--lockfile-only"], comment = "diagnose install-only options before converting to add, while preserving common options" },
-  ["vpt", "stat-file", "package-lock.json", "--assert", "file"],
+  { argv = ["vpt", "cp", "package.json", "before.json"], snapshot = false },
+  { argv = ["vp", "install", "./dep", "--fix-lockfile", "--resolution-only", "--lockfile-only", "--silent"], comment = "reject install-only options before converting to add, even in silent mode", continue-on-failure = true },
+  { argv = ["vpt", "stat-file", "package-lock.json", "--assert", "missing"], continue-on-failure = true },
   ["vpt", "stat-file", "node_modules", "--assert", "missing"],
+  ["node", "-e", "const fs = require('node:fs'); require('node:assert/strict').equal(fs.readFileSync('package.json', 'utf8'), fs.readFileSync('before.json', 'utf8'))"],
   ["vpt", "print-file", "package.json"],
 ]
 
 [[case]]
-name = "install_without_packages_drops_add_only_options"
-vp = "global"
+name = "install_without_packages_rejects_add_only_options"
+vp = ["local", "global"]
 steps = [
-  { argv = ["vp", "install", "--save-exact", "--save-peer", "--save-optional", "--save-catalog", "--lockfile-only"], comment = "diagnose add-only options without package names instead of reporting manager support" },
-  ["vpt", "stat-file", "package-lock.json", "--assert", "file"],
+  { argv = ["vpt", "cp", "package.json", "before.json"], snapshot = false },
+  { argv = ["vp", "install", "--save-exact", "--save-peer", "--save-optional", "--save-catalog", "--lockfile-only"], comment = "reject add-only options without package names instead of reporting manager support", continue-on-failure = true },
+  { argv = ["vpt", "stat-file", "package-lock.json", "--assert", "missing"], continue-on-failure = true },
   ["vpt", "stat-file", "node_modules", "--assert", "missing"],
+  ["node", "-e", "const fs = require('node:fs'); require('node:assert/strict').equal(fs.readFileSync('package.json', 'utf8'), fs.readFileSync('before.json', 'utf8'))"],
   ["vpt", "print-file", "package.json"],
 ]
 

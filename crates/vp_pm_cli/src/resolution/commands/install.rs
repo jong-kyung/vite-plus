@@ -5,7 +5,7 @@ use crate::{
     Error, PackageManager,
     resolution::{
         AddArgs, Bun, CommandBuilder, CommandResolution, DiagnosticKind, Diagnostics, Npm, Pnpm,
-        Resolution, Resolve, SaveDependencyArgs, Yarn, resolve_for_manager,
+        Resolution, Resolve, SaveDependencyArgs, Yarn, resolve_for_manager_with_diagnostics,
     },
 };
 
@@ -152,7 +152,7 @@ impl InstallArgs {
     ) -> Result<Resolution, Error> {
         let adding_packages = !self.packages.is_empty();
         // Diagnose the selected mode before conversion discards fields, and before
-        // manager-specific support rules can produce misleading or duplicate warnings.
+        // manager-specific support rules can produce misleading or duplicate errors.
         let (mode, unsupported): (&str, &[(&str, bool)]) = if adding_packages {
             (
                 "with package names",
@@ -172,20 +172,20 @@ impl InstallArgs {
                 ],
             )
         };
-        let mut resolution = if adding_packages {
-            resolve_for_manager(manager, self.into_add_args())?
-        } else {
-            resolve_for_manager(manager, self)?
-        };
+        let mut diagnostics = Diagnostics::default();
         for &(option, supplied) in unsupported {
             if supplied {
-                resolution.diagnostics.warn(
-                    DiagnosticKind::UnsupportedOptionDropped,
+                diagnostics.warn(
+                    DiagnosticKind::UnsupportedOption,
                     vt_str::format!("install {mode} does not support {option}."),
                 );
             }
         }
-        Ok(resolution)
+        if adding_packages {
+            resolve_for_manager_with_diagnostics(manager, self.into_add_args(), diagnostics)
+        } else {
+            resolve_for_manager_with_diagnostics(manager, self, diagnostics)
+        }
     }
 
     fn into_add_args(self) -> AddArgs {
@@ -357,7 +357,7 @@ mod tests {
     };
 
     #[test]
-    fn install_with_packages_warns_on_install_only_options() {
+    fn install_with_packages_rejects_install_only_options() {
         let manager = crate::PackageManager::from_bin_prefix(
             crate::PackageManagerType::Pnpm,
             "11.24.0",
@@ -373,17 +373,9 @@ mod tests {
         };
         let resolution =
             crate::cli::PackageManagerCommand::Install(args).resolve_for_manager(&manager).unwrap();
-        assert_eq!(
-            expect_run(resolution.outcome).args,
-            ["add", "--save-exact", "--lockfile-only", "react"]
-        );
-        assert_eq!(
-            resolution
-                .diagnostics
-                .iter()
-                .map(|diagnostic| diagnostic.message.as_str())
-                .collect::<Vec<_>>(),
-            [
+        expect_unsupported(
+            resolution,
+            &[
                 "install with package names does not support --fix-lockfile.",
                 "install with package names does not support --resolution-only.",
             ],
@@ -391,7 +383,7 @@ mod tests {
     }
 
     #[test]
-    fn install_without_packages_warns_on_add_only_options() {
+    fn install_without_packages_rejects_add_only_options() {
         let manager = crate::PackageManager::from_bin_prefix(
             crate::PackageManagerType::Npm,
             "11.13.0",
@@ -408,23 +400,63 @@ mod tests {
         };
         let resolution =
             crate::cli::PackageManagerCommand::Install(args).resolve_for_manager(&manager).unwrap();
-        assert_eq!(
-            expect_run(resolution.outcome).args,
-            ["install", "--package-lock-only", "--offline"]
-        );
-        assert_eq!(
-            resolution
-                .diagnostics
-                .iter()
-                .map(|diagnostic| diagnostic.message.as_str())
-                .collect::<Vec<_>>(),
-            [
+        expect_unsupported(
+            resolution,
+            &[
                 "install without package names does not support --save-exact.",
                 "install without package names does not support --save-peer.",
                 "install without package names does not support --save-optional.",
                 "install without package names does not support --save-catalog.",
             ],
         );
+    }
+
+    #[test]
+    fn install_aggregates_mode_and_manager_restrictions() {
+        let manager = crate::PackageManager::from_bin_prefix(
+            crate::PackageManagerType::Bun,
+            "1.4.0",
+            vt_path::current_dir().unwrap().join(".test-package-manager/bin"),
+        );
+        for (argv, messages) in [
+            (
+                vec!["react", "--fix-lockfile", "--resolution-only", "--offline"],
+                vec![
+                    "install with package names does not support --fix-lockfile.",
+                    "install with package names does not support --resolution-only.",
+                    "bun does not support --offline.",
+                ],
+            ),
+            (
+                vec!["--save-exact", "--save-catalog", "--offline"],
+                vec![
+                    "install without package names does not support --save-exact.",
+                    "install without package names does not support --save-catalog.",
+                    "bun does not support --offline.",
+                ],
+            ),
+        ] {
+            let args = parse_args::<InstallArgs>(argv).unwrap();
+            expect_unsupported(args.resolve_for_manager(&manager).unwrap(), &messages);
+        }
+    }
+
+    #[test]
+    fn install_preserves_raw_mode_options() {
+        let manager = crate::PackageManager::from_bin_prefix(
+            crate::PackageManagerType::Pnpm,
+            "11.24.0",
+            vt_path::current_dir().unwrap().join(".test-package-manager/bin"),
+        );
+        for (argv, expected) in [
+            (vec!["--", "--save-exact"], vec!["install", "--save-exact"]),
+            (vec!["react", "--", "--fix-lockfile"], vec!["add", "--fix-lockfile", "react"]),
+        ] {
+            let args = parse_args::<InstallArgs>(argv).unwrap();
+            let resolution = args.resolve_for_manager(&manager).unwrap();
+            assert_eq!(expect_run(resolution.outcome).args, expected);
+            assert!(resolution.diagnostics.is_empty());
+        }
     }
 
     #[test]

@@ -21,12 +21,24 @@ pub(crate) trait Resolve<A>: PackageManagerDialect {
     fn resolve(&self, args: &A, diag: &mut Diagnostics) -> CommandResolution;
 }
 
+#[cfg(test)]
 pub(crate) fn resolve<Dialect, A>(dialect: &Dialect, args: A) -> Resolution
 where
     Dialect: Resolve<A>,
     A: Diagnosis,
 {
-    let mut diagnostics = Diagnostics::default();
+    resolve_with_diagnostics(dialect, args, Diagnostics::default())
+}
+
+fn resolve_with_diagnostics<Dialect, A>(
+    dialect: &Dialect,
+    args: A,
+    mut diagnostics: Diagnostics,
+) -> Resolution
+where
+    Dialect: Resolve<A>,
+    A: Diagnosis,
+{
     let args = args.diagnose(dialect, &mut diagnostics);
     dialect.diagnose(&args, &mut diagnostics);
     if let Some(message) = diagnostics.unsupported_options_error() {
@@ -47,23 +59,38 @@ where
     Yarn: Resolve<A>,
     Bun: Resolve<A>,
 {
+    resolve_for_manager_with_diagnostics(manager, args, Diagnostics::default())
+}
+
+pub(crate) fn resolve_for_manager_with_diagnostics<A>(
+    manager: &PackageManager,
+    args: A,
+    diagnostics: Diagnostics,
+) -> Result<Resolution, Error>
+where
+    A: Diagnosis,
+    Npm: Resolve<A>,
+    Pnpm: Resolve<A>,
+    Yarn: Resolve<A>,
+    Bun: Resolve<A>,
+{
     let mut resolution = match manager.client {
         PackageManagerType::Npm => {
             let dialect =
                 Version::parse(&manager.version).map_or_else(|_| Npm::unknown_version(), Npm::new);
-            resolve(&dialect, args)
+            resolve_with_diagnostics(&dialect, args, diagnostics)
         }
         PackageManagerType::Pnpm => {
             let dialect = Pnpm::new(parse_version(manager)?);
-            resolve(&dialect, args)
+            resolve_with_diagnostics(&dialect, args, diagnostics)
         }
         PackageManagerType::Yarn => {
             let dialect = Yarn::new(parse_version(manager)?);
-            resolve(&dialect, args)
+            resolve_with_diagnostics(&dialect, args, diagnostics)
         }
         PackageManagerType::Bun => {
             let dialect = Bun::new(parse_version(manager)?);
-            resolve(&dialect, args)
+            resolve_with_diagnostics(&dialect, args, diagnostics)
         }
     };
 
@@ -152,6 +179,21 @@ mod tests {
             "npm does not support --first.\nnpm does not support --second.\nnpm does not support --second value."
         );
         assert!(result.diagnostics.is_empty(), "errors must not also be rendered as warnings");
+
+        let mut diagnostics = Diagnostics::default();
+        diagnostics.warn(
+            crate::resolution::DiagnosticKind::UnsupportedOption,
+            "install with package names does not support --fix-lockfile.",
+        );
+        let result = resolve_with_diagnostics(
+            &Npm::new(Version::new(11, 16, 0)),
+            UnsupportedArgs { first: false, second: None },
+            diagnostics,
+        );
+        crate::resolution::test_utils::expect_unsupported(
+            result,
+            &["install with package names does not support --fix-lockfile."],
+        );
     }
 
     fn package_manager(client: PackageManagerType, version: &str) -> PackageManager {

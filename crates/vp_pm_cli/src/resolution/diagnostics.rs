@@ -83,11 +83,6 @@ impl Diagnostics {
         self.entries.len()
     }
 
-    #[cfg(test)]
-    pub(crate) fn iter(&self) -> impl Iterator<Item = &Diagnostic> {
-        self.entries.iter()
-    }
-
     pub(crate) fn render(&self) {
         for entry in &self.entries {
             match entry.level {

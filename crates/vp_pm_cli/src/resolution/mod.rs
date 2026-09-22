@@ -61,8 +61,8 @@ use resolve::Resolve;
 pub(crate) use resolve::resolve;
 /// Resolves typed arguments for a detected package manager without executing them.
 ///
-/// This is the only resolver entry point production dispatch should call.
-pub(crate) use resolve::resolve_for_manager;
+/// Install supplies additional mode diagnostics through the same support checks.
+pub(crate) use resolve::{resolve_for_manager, resolve_for_manager_with_diagnostics};
 /// Renders and executes a complete package-manager command resolution.
 pub(crate) use runner::run_resolution;
 use support::{ArgActivation, Diagnosis, PmSupportRule, VersionOperator};
