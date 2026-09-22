@@ -7,7 +7,7 @@ with a package argument, -D still saves to devDependencies
 ```
 ➤ YN0000: · Yarn <version>
 ➤ YN0000: ┌ Resolution step
-➤ YN0085: │ + dev-only-fixture@file:./dev-dep#./dev-dep::hash=6425ea&locator=command-install-yarn4%40workspace%3A., prod-only-fixture@file:prod-dep#prod-dep::hash=d14722&locator=command-install-yarn4%40workspace%3A.
+➤ YN0085: │ + dev-only-fixture@file:./dev-dep#./dev-dep::hash=<hash>&locator=command-install-yarn4%40workspace%3A., prod-only-fixture@file:prod-dep#prod-dep::hash=<hash>&locator=command-install-yarn4%40workspace%3A.
 ➤ YN0000: └ Completed
 ➤ YN0000: ┌ Fetch step
 ➤ YN0013: │ 2 packages were added to the project (+ <size> KiB).

@@ -18,6 +18,7 @@ fn masks_yarn_compound_elapsed_times_as_one_duration() {
             "➤ YN0000: Done in {elapsed}\n\
              ➤ YN0000: · Done with warnings in {elapsed}\n\
              ➤ YN0000: · Done with errors in {elapsed}\n\
+             ➤ YN0000: · Failed with errors in {elapsed}\n\
              [app]: Process exited (exit code 0), completed in {elapsed}\n"
         );
         assert_eq!(
@@ -25,6 +26,7 @@ fn masks_yarn_compound_elapsed_times_as_one_duration() {
             "➤ YN0000: Done in <duration>\n\
              ➤ YN0000: · Done with warnings in <duration>\n\
              ➤ YN0000: · Done with errors in <duration>\n\
+             ➤ YN0000: · Failed with errors in <duration>\n\
              [app]: Process exited (exit code 0), completed in <duration>\n"
         );
     }
@@ -126,6 +128,23 @@ fn masks_size_numbers_keeping_units_and_spares_plain_stems() {
         redacted,
         "dist/assets/index-<hash>.js  <size> kB | gzip: <size> kB, <size>MB total\nkeep vite-tsconfig.js\n"
     );
+}
+
+#[test]
+fn masks_yarn_file_hashes_and_lockfile_diff_checksums() {
+    let input = concat!(
+        "➤ YN0085: │ + dep@file:./dep#./dep::hash=8572a9&locator=app%40workspace%3A.\n",
+        "➤ YN0028: │ -  checksum: 10c0/deadbeef\n",
+        "➤ YN0028: │ +  version: 2.0.0\n",
+        "checksum: 10c0/deadbeef\n",
+    );
+    let expected = concat!(
+        "➤ YN0085: │ + dep@file:./dep#./dep::hash=<hash>&locator=app%40workspace%3A.\n",
+        "➤ YN0028: │ -  checksum: <hash>\n",
+        "➤ YN0028: │ +  version: 2.0.0\n",
+        "checksum: 10c0/deadbeef\n",
+    );
+    assert_eq!(redact_output(input.to_owned(), &[], true), expected);
 }
 
 #[test]
@@ -275,6 +294,21 @@ fn normalizes_pnpm_removed_dependency_versions() {
             );
             let expected = format!(
                 "Packages: -2\n--\n\n{section}:\n- testnpm2\n- @scope/pkg\n\nDone in <duration> using pnpm <version>\n"
+            );
+            assert_eq!(redact_output(input, &[], true), expected);
+        }
+    }
+}
+
+#[test]
+fn normalizes_pnpm_dedupe_removed_versions_without_done_line() {
+    for section in ["dependencies", "devDependencies", "optionalDependencies"] {
+        for version in [" 1.0.0", "", " 1.0.0-beta.1+build.2"] {
+            let input = format!(
+                "Packages: -2\n--\n\n{section}:\n- testnpm2{version}\n- @scope/pkg{version}\n testnpm2 1.0.1\n\n- after-section 3.0.0\n"
+            );
+            let expected = format!(
+                "Packages: -2\n--\n\n{section}:\n- testnpm2\n- @scope/pkg\n testnpm2 1.0.1\n\n- after-section 3.0.0\n"
             );
             assert_eq!(redact_output(input, &[], true), expected);
         }
