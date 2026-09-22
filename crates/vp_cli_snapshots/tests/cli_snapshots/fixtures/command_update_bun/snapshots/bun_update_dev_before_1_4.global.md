@@ -41,7 +41,7 @@ node_modules: missing
 bun.lock: missing
 ```
 
-## `vp update --dev --workspace-root --filter web`
+## `vp update --dev --prod --no-optional --workspace-root --filter web`
 
 report every unsupported option together
 
@@ -51,4 +51,6 @@ report every unsupported option together
 bun < 1.4 does not support --filter.
 bun does not support --workspace-root.
 bun < 1.4 does not support --dev.
+bun < 1.4 does not support --prod.
+bun < 1.4 does not support --no-optional.
 ```

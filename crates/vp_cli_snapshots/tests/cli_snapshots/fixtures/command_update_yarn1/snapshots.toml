@@ -1,0 +1,10 @@
+[[case]]
+name = "yarn_update_selectors_rejected"
+vp = ["local", "global"]
+skip-platforms = ["windows"]
+steps = [
+  { argv = ["vp", "update", "-D", "-P", "--no-optional"], comment = "report every unsupported dependency selector before updating", continue-on-failure = true },
+  ["vpt", "print-file", "package.json"],
+  ["vpt", "stat-file", "yarn.lock", "--assert", "missing"],
+  ["vpt", "stat-file", "node_modules", "--assert", "missing"],
+]

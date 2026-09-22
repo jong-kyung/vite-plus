@@ -1,4 +1,15 @@
 [[case]]
+name = "yarn_update_selectors_rejected"
+vp = ["local", "global"]
+skip-platforms = ["windows"]
+steps = [
+  { argv = ["vp", "update", "-D", "-P", "--no-optional"], comment = "report every unsupported dependency selector before updating", continue-on-failure = true },
+  ["vpt", "print-file", "package.json"],
+  ["vpt", "stat-file", "yarn.lock", "--assert", "missing"],
+  ["vpt", "stat-file", "node_modules", "--assert", "missing"],
+]
+
+[[case]]
 name = "command_update_yarn4"
 vp = "global"
 skip-platforms = ["windows"]
@@ -9,7 +20,7 @@ steps = [
   ["vp", "add", "testnpm2@1.0.0", "-D"],
   ["vp", "update", "testnpm2", "--latest"],
   { argv = ["vpt", "print-file", "package.json"], continue-on-failure = true },
-  { argv = ["vp", "update", "-D"], comment = "should update and ignore -D options" },
+  { argv = ["vp", "update", "-D"], comment = "reject unsupported dev-only updates", continue-on-failure = true },
   { argv = ["vpt", "print-file", "package.json"], continue-on-failure = true },
   { argv = ["vp", "update", "--recursive"], comment = "should update all packages but won't change the package.json" },
   { argv = ["vpt", "print-file", "package.json"], continue-on-failure = true },

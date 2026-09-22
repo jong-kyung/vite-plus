@@ -59,11 +59,12 @@ npm does not support --latest.
 
 ## `vp update -D -- --no-audit`
 
-should update only dev dependencies
+reject unsupported dev-only updates
+
+**Exit code:** 1
 
 ```
-
-up to date in <duration>
+npm does not support --dev.
 ```
 
 ## `vpt print-file package.json`
@@ -87,11 +88,12 @@ up to date in <duration>
 
 ## `vp update -P --no-save -- --no-audit`
 
-should update only dependencies and optionalDependencies without saving
+reject unsupported production-only updates even with no-save
+
+**Exit code:** 1
 
 ```
-
-up to date in <duration>
+npm does not support --prod.
 ```
 
 ## `vpt print-file package.json`
@@ -133,13 +135,12 @@ added 1 package in <duration>
 
 ## `vp update --no-optional -- --no-audit`
 
-```
-npm warn config optional Use `--omit=optional` to exclude optional dependencies, or
-npm warn config `--include=optional` to include them.
-npm warn config
-npm warn config       Default value does install optional deps unless otherwise omitted.
+reject unsupported optional dependency exclusion
 
-changed 1 package in <duration>
+**Exit code:** 1
+
+```
+npm does not support --no-optional.
 ```
 
 ## `vpt print-file package.json`
@@ -165,7 +166,7 @@ should update all packages but won't change the package.json
 
 ```
 
-added 2 packages in <duration>
+changed 1 package in <duration>
 ```
 
 ## `vpt print-file package.json`

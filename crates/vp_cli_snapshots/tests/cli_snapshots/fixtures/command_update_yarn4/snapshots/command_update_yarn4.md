@@ -96,17 +96,12 @@ should to absolute latest version
 
 ## `vp update -D`
 
-should update and ignore -D options
+reject unsupported dev-only updates
+
+**Exit code:** 1
 
 ```
-➤ YN0000: · Yarn <version>
-➤ YN0000: ┌ Resolution step
-➤ YN0000: └ Completed
-➤ YN0000: ┌ Fetch step
-➤ YN0000: └ Completed
-➤ YN0000: ┌ Link step
-➤ YN0000: └ Completed
-➤ YN0000: · Done in <duration>
+yarn does not support --dev.
 ```
 
 ## `vpt print-file package.json`
