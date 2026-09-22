@@ -31,7 +31,7 @@ pub struct ListArgs {
     pub(crate) prod: bool,
 
     /// Only dev dependencies
-    #[arg(short = 'D', long, not_supported(yarn, bun))]
+    #[arg(short = 'D', long, not_supported(npm, yarn, bun))]
     pub(crate) dev: bool,
 
     /// Exclude optional dependencies
@@ -103,10 +103,7 @@ impl Npm {
         cmd.option("--depth", args.depth).arg_if("--json", args.json);
         cmd.arg_if("--long", args.long).arg_if("--parseable", args.parseable);
         if args.prod {
-            cmd.arg("--include").arg("prod").arg("--include").arg("peer");
-        }
-        if args.dev {
-            cmd.arg("--include").arg("dev");
+            cmd.arg("--omit").arg("dev");
         }
         if args.no_optional {
             cmd.arg("--omit").arg("optional");
@@ -404,7 +401,18 @@ mod tests {
         );
 
         assert_eq!(command.program, "npm");
-        assert_eq!(command.args, vec!["list", "--include", "prod", "--include", "peer"]);
+        assert_eq!(command.args, vec!["list", "--omit", "dev"]);
+    }
+
+    #[test]
+    fn test_npm_list_prod_respects_exclusions() {
+        let args = parse_args::<ListArgs>(["--prod", "--no-optional", "--exclude-peers"]).unwrap();
+        let resolution = resolve(&npm("12.0.2"), args);
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(
+            expect_run(resolution.outcome).args,
+            vec!["list", "--omit", "dev", "--omit", "optional", "--omit", "peer"]
+        );
     }
 
     #[test]
@@ -427,13 +435,29 @@ mod tests {
     }
 
     #[test]
-    fn test_npm_list_dev() {
-        let command = expect_run(
-            resolve(&npm("11.0.0"), ListArgs { dev: true, ..Default::default() }).outcome,
-        );
+    fn test_npm_list_dev_is_rejected() {
+        for version in ["10.9.4", "11.16.0", "12.0.2"] {
+            let args = parse_args::<ListArgs>(["--dev", "--json"]).unwrap();
+            expect_unsupported(resolve(&npm(version), args), &["npm does not support --dev."]);
+        }
+    }
 
-        assert_eq!(command.program, "npm");
-        assert_eq!(command.args, vec!["list", "--include", "dev"]);
+    #[test]
+    fn test_npm_list_dev_errors_aggregate_and_raw_flags_are_preserved() {
+        let args =
+            parse_args::<ListArgs>(["--dev", "--only-projects", "--find-by", "finder"]).unwrap();
+        expect_unsupported(
+            resolve(&npm("12.0.2"), args),
+            &[
+                "npm does not support --dev.",
+                "npm does not support --only-projects.",
+                "npm does not support --find-by.",
+            ],
+        );
+        let args = parse_args::<ListArgs>(["--", "--include=dev", "--json"]).unwrap();
+        let resolution = resolve(&npm("12.0.2"), args);
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(expect_run(resolution.outcome).args, vec!["list", "--include=dev", "--json"]);
     }
 
     #[test]
