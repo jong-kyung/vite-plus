@@ -32,7 +32,7 @@ pub struct AddArgs {
     pub(crate) ignore_scripts: bool,
 
     /// Filter packages in monorepo (can be used multiple times)
-    #[arg(long, value_name = "PATTERN", not_supported(bun < "1.4"))]
+    #[arg(long, value_name = "PATTERN", not_supported(yarn < "2", bun < "1.4"))]
     pub(crate) filter: Vec<String>,
 
     /// Add to workspace root
@@ -209,13 +209,6 @@ impl Resolve<AddArgs> for Yarn {
 
         let mut cmd = CommandBuilder::new("yarn");
         if !args.filter.is_empty() {
-            if !self.is_berry() {
-                return CommandResolution::InvalidArgument(
-                    "Invalid argument: `--filter` is not supported by Yarn Classic `add`."
-                        .to_string(),
-                );
-            }
-
             cmd.arg("workspaces").arg("foreach").arg("--all");
             cmd.repeated("--include", args.filter.iter());
         }
@@ -469,14 +462,27 @@ mod tests {
             options.filter = filters;
             let resolution = resolve(&yarn("1.22.22"), options);
 
-            assert_eq!(
-                resolution.outcome,
-                CommandResolution::InvalidArgument(
-                    "Invalid argument: `--filter` is not supported by Yarn Classic `add`."
-                        .to_string()
-                )
-            );
+            expect_unsupported(resolution, &["yarn < 2 does not support --filter."]);
         }
+    }
+
+    #[test]
+    fn test_yarn_classic_add_aggregates_unsupported_options() {
+        let args =
+            parse_args::<AddArgs>(["react", "--filter", "app", "--save-catalog", "--workspace"])
+                .unwrap();
+        expect_unsupported(
+            resolve(&yarn("1.22.22"), args),
+            &[
+                "yarn does not support --save-catalog.",
+                "yarn < 2 does not support --filter.",
+                "yarn does not support --workspace.",
+            ],
+        );
+        let args = parse_args::<AddArgs>(["react", "--", "--filter", "app"]).unwrap();
+        let resolution = resolve(&yarn("1.22.22"), args);
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(expect_run(resolution.outcome).args, vec!["add", "--filter", "app", "react"]);
     }
 
     #[test]

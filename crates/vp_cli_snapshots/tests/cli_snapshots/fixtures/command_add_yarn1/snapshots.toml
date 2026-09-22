@@ -1,0 +1,12 @@
+[[case]]
+name = "classic_add_filter_rejections"
+vp = ["local", "global"]
+skip-platforms = ["windows"]
+steps = [
+  { argv = ["vp", "add", "testnpm2", "--filter", "app"], comment = "reject unsupported workspace filtering before execution", continue-on-failure = true },
+  { argv = ["vp", "add", "testnpm2", "--save-catalog", "--filter", "app", "--workspace", "--", "--help"], comment = "include the filter error alongside all other unsupported named options", continue-on-failure = true },
+  { argv = ["vp", "install", "testnpm2", "--save-catalog", "--filter", "app"], comment = "install with a package still uses add validation", continue-on-failure = true },
+  ["vpt", "print-file", "package.json"],
+  ["vpt", "stat-file", "node_modules", "--assert", "missing"],
+  ["vpt", "stat-file", "yarn.lock", "--assert", "missing"],
+]
