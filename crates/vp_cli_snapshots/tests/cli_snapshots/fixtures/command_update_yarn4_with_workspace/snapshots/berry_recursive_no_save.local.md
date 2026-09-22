@@ -1,12 +1,12 @@
 # berry_recursive_no_save
 
-## `vpt write-file package.json '{"name":"root","private":true,"packageManager":"yarn@4.10.3","workspaces":["packages/*"],"dependencies":{"testnpm2":"1.0.0","is-number":"6.0.0"}}'`
+## `vpt write-file package.json '{"name":"root","private":true,"packageManager":"yarn@4.10.3","workspaces":["packages/*"],"dependencies":{"testnpm2":"1.0.0","@test/scoped":"npm:testnpm2@1.0.0","is-number":"6.0.0"}}'`
 
 
-## `vpt write-file packages/app/package.json '{"name":"app","version":"1.0.0","dependencies":{"testnpm2":"1.0.0","is-number":"6.0.0"}}'`
+## `vpt write-file packages/app/package.json '{"name":"app","version":"1.0.0","dependencies":{"testnpm2":"1.0.0","@test/scoped":"npm:testnpm2@1.0.0","is-number":"6.0.0"}}'`
 
 
-## `vpt write-file packages/utils/package.json '{"name":"utils","version":"1.0.0","dependencies":{"testnpm2":"1.0.0","is-number":"6.0.0"}}'`
+## `vpt write-file packages/utils/package.json '{"name":"utils","version":"1.0.0","dependencies":{"testnpm2":"1.0.0","@test/scoped":"npm:testnpm2@1.0.0","is-number":"6.0.0"}}'`
 
 
 ## `vpt write-file .yarnrc.yml 'nodeLinker: node-modules
@@ -31,7 +31,7 @@ raw arguments retain native behavior, which does not update without a package pa
 
 ## `cd packages/app && vp update --recursive --no-save`
 
-omitting packages re-resolves all ranges while preserving each manifest byte-for-byte
+omitting packages re-resolves scoped and unscoped dependencies while preserving each manifest byte-for-byte
 
 ```
 ➤ YN0000: · Yarn <version>
@@ -58,6 +58,7 @@ omitting packages re-resolves all ranges while preserving each manifest byte-for
     "packages/*"
   ],
   "dependencies": {
+    "@test/scoped": "npm:testnpm2@^1.0.0",
     "is-number": "6.0.0",
     "testnpm2": "^1.0.0"
   }
@@ -66,6 +67,7 @@ omitting packages re-resolves all ranges while preserving each manifest byte-for
   "name": "app",
   "version": "1.0.0",
   "dependencies": {
+    "@test/scoped": "npm:testnpm2@^1.0.0",
     "is-number": "6.0.0",
     "testnpm2": "^1.0.0"
   }
@@ -74,6 +76,7 @@ omitting packages re-resolves all ranges while preserving each manifest byte-for
   "name": "utils",
   "version": "1.0.0",
   "dependencies": {
+    "@test/scoped": "npm:testnpm2@^1.0.0",
     "is-number": "6.0.0",
     "testnpm2": "^1.0.0"
   }
@@ -85,10 +88,18 @@ __metadata:
   version: 8
   cacheKey: 10c0
 
+"@test/scoped@npm:testnpm2@^1.0.0, testnpm2@npm:^1.0.0":
+  version: 1.0.1
+  resolution: "testnpm2@npm:1.0.1::__archiveUrl=https%3A%2F%2Fregistry.npmjs.org%2Ftestnpm2%2F-%2Ftestnpm2-1.0.1.tgz"
+  checksum: 10c0/b09252bf701b618c424bf1a92e0a54171660c8dbfb3d4dd3862e9d311957fa3ed2fd07708b74d08d0656a5ce8dfce748c0b32002613452f1beb9cd822f878f95
+  languageName: node
+  linkType: hard
+
 "app@workspace:packages/app":
   version: 0.0.0-use.local
   resolution: "app@workspace:packages/app"
   dependencies:
+    "@test/scoped": "npm:testnpm2@^1.0.0"
     is-number: "npm:6.0.0"
     testnpm2: "npm:^1.0.0"
   languageName: unknown
@@ -105,29 +116,24 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "root@workspace:."
   dependencies:
+    "@test/scoped": "npm:testnpm2@^1.0.0"
     is-number: "npm:6.0.0"
     testnpm2: "npm:^1.0.0"
   languageName: unknown
   linkType: soft
 
-"testnpm2@npm:^1.0.0":
-  version: 1.0.1
-  resolution: "testnpm2@npm:1.0.1::__archiveUrl=https%3A%2F%2Fregistry.npmjs.org%2Ftestnpm2%2F-%2Ftestnpm2-1.0.1.tgz"
-  checksum: 10c0/b09252bf701b618c424bf1a92e0a54171660c8dbfb3d4dd3862e9d311957fa3ed2fd07708b74d08d0656a5ce8dfce748c0b32002613452f1beb9cd822f878f95
-  languageName: node
-  linkType: hard
-
 "utils@workspace:packages/utils":
   version: 0.0.0-use.local
   resolution: "utils@workspace:packages/utils"
   dependencies:
+    "@test/scoped": "npm:testnpm2@^1.0.0"
     is-number: "npm:6.0.0"
     testnpm2: "npm:^1.0.0"
   languageName: unknown
   linkType: soft
 ```
 
-## `node recursive-range.cjs assert`
+## `node recursive-range.cjs assert 1.0.1 1.0.1`
 
 ```
 ```

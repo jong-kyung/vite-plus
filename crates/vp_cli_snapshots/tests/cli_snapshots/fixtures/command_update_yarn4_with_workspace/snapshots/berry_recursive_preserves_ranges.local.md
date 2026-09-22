@@ -1,12 +1,12 @@
 # berry_recursive_preserves_ranges
 
-## `vpt write-file package.json '{"name":"root","private":true,"packageManager":"yarn@4.10.3","workspaces":["packages/*"],"dependencies":{"testnpm2":"1.0.0","is-number":"6.0.0"}}'`
+## `vpt write-file package.json '{"name":"root","private":true,"packageManager":"yarn@4.10.3","workspaces":["packages/*"],"dependencies":{"testnpm2":"1.0.0","@test/scoped":"npm:testnpm2@1.0.0","is-number":"6.0.0"}}'`
 
 
-## `vpt write-file packages/app/package.json '{"name":"app","version":"1.0.0","dependencies":{"testnpm2":"1.0.0","is-number":"6.0.0"}}'`
+## `vpt write-file packages/app/package.json '{"name":"app","version":"1.0.0","dependencies":{"testnpm2":"1.0.0","@test/scoped":"npm:testnpm2@1.0.0","is-number":"6.0.0"}}'`
 
 
-## `vpt write-file packages/utils/package.json '{"name":"utils","version":"1.0.0","dependencies":{"testnpm2":"1.0.0","is-number":"6.0.0"}}'`
+## `vpt write-file packages/utils/package.json '{"name":"utils","version":"1.0.0","dependencies":{"testnpm2":"1.0.0","@test/scoped":"npm:testnpm2@1.0.0","is-number":"6.0.0"}}'`
 
 
 ## `vpt write-file .yarnrc.yml 'nodeLinker: node-modules
@@ -27,7 +27,6 @@ update the named package within its existing range across all workspaces
 ➤ YN0000: · Yarn <version>
 ➤ YN0000: ┌ Resolution step
 ➤ YN0085: │ + testnpm2@npm:1.0.1::__archiveUrl=https%3A%2F%2Fregistry.npmjs.org%2Ftestnpm2%2F-%2Ftestnpm2-1.0.1.tgz
-➤ YN0085: │ - testnpm2@npm:1.0.0::__archiveUrl=https%3A%2F%2Fregistry.npmjs.org%2Ftestnpm2%2F-%2Ftestnpm2-1.0.0.tgz
 ➤ YN0000: └ Completed
 ➤ YN0000: ┌ Fetch step
 ➤ YN0013: │ A package was added to the project (+ <size> KiB).
@@ -48,6 +47,7 @@ update the named package within its existing range across all workspaces
     "packages/*"
   ],
   "dependencies": {
+    "@test/scoped": "npm:testnpm2@^1.0.0",
     "is-number": "6.0.0",
     "testnpm2": "^1.0.0"
   }
@@ -56,6 +56,7 @@ update the named package within its existing range across all workspaces
   "name": "app",
   "version": "1.0.0",
   "dependencies": {
+    "@test/scoped": "npm:testnpm2@^1.0.0",
     "is-number": "6.0.0",
     "testnpm2": "^1.0.0"
   }
@@ -64,6 +65,7 @@ update the named package within its existing range across all workspaces
   "name": "utils",
   "version": "1.0.0",
   "dependencies": {
+    "@test/scoped": "npm:testnpm2@^1.0.0",
     "is-number": "6.0.0",
     "testnpm2": "^1.0.0"
   }
@@ -75,10 +77,18 @@ __metadata:
   version: 8
   cacheKey: 10c0
 
+"@test/scoped@npm:testnpm2@^1.0.0":
+  version: 1.0.0
+  resolution: "testnpm2@npm:1.0.0::__archiveUrl=https%3A%2F%2Fregistry.npmjs.org%2Ftestnpm2%2F-%2Ftestnpm2-1.0.0.tgz"
+  checksum: 10c0/3f686c3b65ae74825e2f1b87a91f96e0888169313df77318174f5805e26764d9e963168e5321abbe8c1c9932a37d885d38137f18772360efaa7ea1c1614adc60
+  languageName: node
+  linkType: hard
+
 "app@workspace:packages/app":
   version: 0.0.0-use.local
   resolution: "app@workspace:packages/app"
   dependencies:
+    "@test/scoped": "npm:testnpm2@^1.0.0"
     is-number: "npm:6.0.0"
     testnpm2: "npm:^1.0.0"
   languageName: unknown
@@ -95,6 +105,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "root@workspace:."
   dependencies:
+    "@test/scoped": "npm:testnpm2@^1.0.0"
     is-number: "npm:6.0.0"
     testnpm2: "npm:^1.0.0"
   languageName: unknown
@@ -111,6 +122,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "utils@workspace:packages/utils"
   dependencies:
+    "@test/scoped": "npm:testnpm2@^1.0.0"
     is-number: "npm:6.0.0"
     testnpm2: "npm:^1.0.0"
   languageName: unknown

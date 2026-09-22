@@ -165,7 +165,8 @@ impl Yarn {
             .extend(args.packages.iter());
         // Raw arguments may contain package patterns, so don't widen their selection.
         if args.recursive && args.packages.is_empty() && args.pass_through_args.is_empty() {
-            cmd.arg("*");
+            // Recursive mode needs ** to match scoped names; ordinary up treats * as all.
+            cmd.arg(if args.latest { "*" } else { "**" });
         }
         cmd.into()
     }
@@ -553,7 +554,7 @@ mod tests {
         let options = UpdateArgs { recursive: true, ..Default::default() };
         let resolution = resolve(&yarn("4.0.0"), options);
         assert!(resolution.diagnostics.is_empty());
-        assert_eq!(expect_run(resolution.outcome).args, vec!["up", "--recursive", "*"]);
+        assert_eq!(expect_run(resolution.outcome).args, vec!["up", "--recursive", "**"]);
     }
 
     #[test]
@@ -581,7 +582,10 @@ mod tests {
             for (argv, expected) in [
                 (vec!["-r", "react"], vec!["up", "--recursive", "react"]),
                 (vec!["-r", "--no-save", "react"], vec!["up", "--recursive", "react"]),
-                (vec!["-r", "--no-save"], vec!["up", "--recursive", "*"]),
+                (vec!["-r"], vec!["up", "--recursive", "**"]),
+                (vec!["-r", "--no-save"], vec!["up", "--recursive", "**"]),
+                (vec!["-r", "@test/scoped"], vec!["up", "--recursive", "@test/scoped"]),
+                (vec!["-r", "--", "@test/*"], vec!["up", "--recursive", "@test/*"]),
                 (vec!["-r", "--", "react"], vec!["up", "--recursive", "react"]),
                 (vec!["-r", "--latest", "--", "react"], vec!["up", "react"]),
                 (

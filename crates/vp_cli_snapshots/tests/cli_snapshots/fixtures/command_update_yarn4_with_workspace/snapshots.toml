@@ -39,9 +39,9 @@ vp = ["local", "global"]
 local-registry = true
 skip-platforms = ["windows"]
 steps = [
-  { argv = ["vpt", "write-file", "package.json", '{"name":"root","private":true,"packageManager":"yarn@4.10.3","workspaces":["packages/*"],"dependencies":{"testnpm2":"1.0.0","is-number":"6.0.0"}}'], snapshot = false },
-  { argv = ["vpt", "write-file", "packages/app/package.json", '{"name":"app","version":"1.0.0","dependencies":{"testnpm2":"1.0.0","is-number":"6.0.0"}}'], snapshot = false },
-  { argv = ["vpt", "write-file", "packages/utils/package.json", '{"name":"utils","version":"1.0.0","dependencies":{"testnpm2":"1.0.0","is-number":"6.0.0"}}'], snapshot = false },
+  { argv = ["vpt", "write-file", "package.json", '{"name":"root","private":true,"packageManager":"yarn@4.10.3","workspaces":["packages/*"],"dependencies":{"testnpm2":"1.0.0","@test/scoped":"npm:testnpm2@1.0.0","is-number":"6.0.0"}}'], snapshot = false },
+  { argv = ["vpt", "write-file", "packages/app/package.json", '{"name":"app","version":"1.0.0","dependencies":{"testnpm2":"1.0.0","@test/scoped":"npm:testnpm2@1.0.0","is-number":"6.0.0"}}'], snapshot = false },
+  { argv = ["vpt", "write-file", "packages/utils/package.json", '{"name":"utils","version":"1.0.0","dependencies":{"testnpm2":"1.0.0","@test/scoped":"npm:testnpm2@1.0.0","is-number":"6.0.0"}}'], snapshot = false },
   { argv = ["vpt", "write-file", ".yarnrc.yml", "nodeLinker: node-modules\n"], snapshot = false },
   { argv = ["vp", "install"], snapshot = false },
   { argv = ["node", "recursive-range.cjs", "prepare"], snapshot = false },
@@ -56,17 +56,17 @@ vp = ["local", "global"]
 local-registry = true
 skip-platforms = ["windows"]
 steps = [
-  { argv = ["vpt", "write-file", "package.json", '{"name":"root","private":true,"packageManager":"yarn@4.10.3","workspaces":["packages/*"],"dependencies":{"testnpm2":"1.0.0","is-number":"6.0.0"}}'], snapshot = false },
-  { argv = ["vpt", "write-file", "packages/app/package.json", '{"name":"app","version":"1.0.0","dependencies":{"testnpm2":"1.0.0","is-number":"6.0.0"}}'], snapshot = false },
-  { argv = ["vpt", "write-file", "packages/utils/package.json", '{"name":"utils","version":"1.0.0","dependencies":{"testnpm2":"1.0.0","is-number":"6.0.0"}}'], snapshot = false },
+  { argv = ["vpt", "write-file", "package.json", '{"name":"root","private":true,"packageManager":"yarn@4.10.3","workspaces":["packages/*"],"dependencies":{"testnpm2":"1.0.0","@test/scoped":"npm:testnpm2@1.0.0","is-number":"6.0.0"}}'], snapshot = false },
+  { argv = ["vpt", "write-file", "packages/app/package.json", '{"name":"app","version":"1.0.0","dependencies":{"testnpm2":"1.0.0","@test/scoped":"npm:testnpm2@1.0.0","is-number":"6.0.0"}}'], snapshot = false },
+  { argv = ["vpt", "write-file", "packages/utils/package.json", '{"name":"utils","version":"1.0.0","dependencies":{"testnpm2":"1.0.0","@test/scoped":"npm:testnpm2@1.0.0","is-number":"6.0.0"}}'], snapshot = false },
   { argv = ["vpt", "write-file", ".yarnrc.yml", "nodeLinker: node-modules\n"], snapshot = false },
   { argv = ["vp", "install"], snapshot = false },
   { argv = ["node", "recursive-range.cjs", "prepare"], snapshot = false },
   { argv = ["vp", "update", "--", "--recursive"], cwd = "packages/app", snapshot = false },
   { argv = ["node", "recursive-range.cjs", "assert", "1.0.0"], comment = "raw arguments retain native behavior, which does not update without a package pattern" },
-  { argv = ["vp", "update", "--recursive", "--no-save"], cwd = "packages/app", comment = "omitting packages re-resolves all ranges while preserving each manifest byte-for-byte" },
+  { argv = ["vp", "update", "--recursive", "--no-save"], cwd = "packages/app", comment = "omitting packages re-resolves scoped and unscoped dependencies while preserving each manifest byte-for-byte" },
   ["vpt", "print-file", "package.json", "packages/app/package.json", "packages/utils/package.json", "yarn.lock"],
-  ["node", "recursive-range.cjs", "assert"],
+  ["node", "recursive-range.cjs", "assert", "1.0.1", "1.0.1"],
 ]
 
 [[case]]
