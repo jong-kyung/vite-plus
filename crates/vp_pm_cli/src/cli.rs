@@ -496,9 +496,25 @@ mod tests {
 
     #[test]
     fn install_uses_install_or_add_resolver_from_packages() {
-        for (client, version, install_args, add_command) in [
-            (PackageManagerType::Pnpm, "10.0.0", vec!["install", "--frozen-lockfile"], "add"),
-            (PackageManagerType::Npm, "11.16.0", vec!["ci"], "install"),
+        for (client, version, install_args, add_args) in [
+            (
+                PackageManagerType::Pnpm,
+                "10.0.0",
+                vec!["install", "--frozen-lockfile"],
+                vec!["add", "--save-dev", "react"],
+            ),
+            (
+                PackageManagerType::Npm,
+                "11.16.0",
+                vec!["ci"],
+                vec!["install", "--save-dev", "react"],
+            ),
+            (
+                PackageManagerType::Bun,
+                "1.4.0",
+                vec!["install", "--frozen-lockfile"],
+                vec!["add", "--dev", "react"],
+            ),
         ] {
             let manager = package_manager(client, version);
             let install = parse(&["install", "--frozen-lockfile"]).unwrap();
@@ -515,7 +531,7 @@ mod tests {
             };
 
             assert_eq!(install.args, install_args);
-            assert_eq!(add.args, vec![add_command, "--save-dev", "react"]);
+            assert_eq!(add.args, add_args);
         }
     }
 

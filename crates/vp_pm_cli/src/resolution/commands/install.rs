@@ -14,7 +14,7 @@ pub struct InstallArgs {
     pub(crate) prod: bool,
 
     /// Only install devDependencies (install) / Save to devDependencies (add)
-    #[arg(short = 'D', long, not_supported(npm))]
+    #[arg(short = 'D', long, not_supported(npm, bun))]
     pub(crate) dev: bool,
 
     /// Do not install optionalDependencies
@@ -824,10 +824,32 @@ mod tests {
     }
 
     #[test]
+    fn bun_rejects_dev_only_install() {
+        for version in ["1.3.11", "1.3.14", "1.4.0"] {
+            for frozen_lockfile in [false, true] {
+                let options = InstallArgs { dev: true, frozen_lockfile, ..Default::default() };
+                expect_unsupported(
+                    resolve(&bun(version), options),
+                    &["bun does not support --dev."],
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn bun_install_keeps_raw_dev_pass_through() {
+        let options = parse_args::<InstallArgs>(["--", "--dev"]).unwrap();
+        let resolution = resolve(&bun("1.4.0"), options);
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(expect_run(resolution.outcome).args, vec!["install", "--dev"]);
+    }
+
+    #[test]
     fn bun_rejects_all_unsupported_install_options() {
         let resolution = resolve(
             &bun("1.3.11"),
             InstallArgs {
+                dev: true,
                 prefer_offline: true,
                 offline: true,
                 no_lockfile: true,
@@ -840,6 +862,7 @@ mod tests {
         expect_unsupported(
             resolution,
             &[
+                "bun does not support --dev.",
                 "bun does not support --prefer-offline.",
                 "bun does not support --offline.",
                 "bun does not support --no-lockfile.",
