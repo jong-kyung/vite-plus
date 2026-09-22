@@ -2,8 +2,7 @@ use vp_pm_cli_macros::pm_args;
 
 use super::parse_positive_usize;
 use crate::resolution::{
-    Bun, CommandBuilder, CommandResolution, DiagnosticKind, Diagnostics, Npm,
-    PackageManagerDialect, Pnpm, Resolve, Yarn,
+    Bun, CommandBuilder, CommandResolution, DiagnosticKind, Diagnostics, Npm, Pnpm, Resolve, Yarn,
 };
 
 #[pm_args]
@@ -111,11 +110,8 @@ impl Resolve<UpdateArgs> for Npm {
 impl Resolve<UpdateArgs> for Yarn {
     fn diagnose(&self, args: &UpdateArgs, diag: &mut Diagnostics) {
         let recursive_resolutions = self.is_berry() && args.recursive && !args.latest;
-        // Yarn 3 introduced the range-preserving `up --recursive` mode.
-        let supports_recursive_resolutions =
-            self.version().is_some_and(|version| version >= &semver::Version::new(3, 0, 0));
         if recursive_resolutions {
-            if !supports_recursive_resolutions {
+            if !self.supports_v3_commands() {
                 diag.warn(
                     DiagnosticKind::UnsupportedOption,
                     "yarn < 3 does not support --recursive without --latest.",
@@ -128,7 +124,7 @@ impl Resolve<UpdateArgs> for Yarn {
                 );
             }
         }
-        if args.no_save && !(recursive_resolutions && supports_recursive_resolutions) {
+        if args.no_save && !(recursive_resolutions && self.supports_v3_commands()) {
             diag.warn(DiagnosticKind::UnsupportedOption, "yarn does not support --no-save.");
         }
         if !self.is_berry() {

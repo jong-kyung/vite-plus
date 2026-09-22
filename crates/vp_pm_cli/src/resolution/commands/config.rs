@@ -1,9 +1,7 @@
-use semver::Version;
 use vp_pm_cli_macros::pm_args;
 
 use crate::resolution::{
-    Bun, CommandBuilder, CommandResolution, DiagnosticKind, Diagnostics, Npm,
-    PackageManagerDialect, Pnpm, Resolve, Yarn,
+    Bun, CommandBuilder, CommandResolution, DiagnosticKind, Diagnostics, Npm, Pnpm, Resolve, Yarn,
 };
 
 /// Configuration subcommands.
@@ -107,24 +105,20 @@ impl Resolve<ConfigCommand> for Yarn {
                 vt_str::format!("{manager} does not support --location {location}."),
             );
         }
-        // Yarn 2.2 added config set --home.
-        // https://github.com/yarnpkg/berry/blob/01586a88806a2bebd7edb28d1bee3581b1fd3762/CHANGELOG.md#220
         if self.is_berry()
             && location == "user"
             && matches!(args, ConfigCommand::Set { .. })
-            && self.version().is_some_and(|version| version < &Version::new(2, 2, 0))
+            && !self.supports_config_set_home()
         {
             diag.warn(
                 DiagnosticKind::UnsupportedOption,
                 "yarn < 2.2 does not support --location user for config set.",
             );
         }
-        // Berry introduced config unset in Yarn 3.
-        // https://github.com/yarnpkg/berry/blob/01586a88806a2bebd7edb28d1bee3581b1fd3762/CHANGELOG.md#300
         if self.is_berry()
             && location == "user"
             && matches!(args, ConfigCommand::Delete { .. })
-            && self.version().is_some_and(|version| version < &Version::new(3, 0, 0))
+            && !self.supports_v3_commands()
         {
             diag.warn(
                 DiagnosticKind::UnsupportedOption,

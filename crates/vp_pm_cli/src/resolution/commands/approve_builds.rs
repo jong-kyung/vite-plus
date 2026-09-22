@@ -1,8 +1,7 @@
 use vp_pm_cli_macros::pm_args;
 
 use crate::resolution::{
-    Bun, CommandBuilder, CommandResolution, DiagnosticKind, Diagnostics, Npm,
-    PackageManagerDialect, Pnpm, Resolve, Yarn,
+    Bun, CommandBuilder, CommandResolution, DiagnosticKind, Diagnostics, Npm, Pnpm, Resolve, Yarn,
 };
 
 const NPM_ADVISORY_NOTE: &str = "npm's allowScripts policy is advisory in npm 11.x: install scripts still run; npm only warns about unreviewed packages at install time. npm 12 enforces the policy.";
@@ -32,7 +31,7 @@ impl Resolve<ApproveBuildsArgs> for Pnpm {
             return error;
         }
         if args.packages.iter().any(|package| package.starts_with('!'))
-            && self.version().is_some_and(|version| !version_satisfies(version, ">=11.0.0"))
+            && !self.supports_build_denial()
         {
             return invalid_argument(
                 "`!<pkg>` deny syntax requires pnpm >= 11.0.0. Upgrade pnpm or omit the `!` entries.",
@@ -97,7 +96,7 @@ impl Resolve<ApproveBuildsArgs> for Npm {
         if let Some(error) = validate_all(args) {
             return error;
         }
-        if self.version().is_some_and(|version| !version_satisfies(version, ">=11.16.0")) {
+        if !self.supports_script_approval() {
             diag.warn(
                 DiagnosticKind::UnsupportedCommandNoop,
                 "npm runs lifecycle scripts by default. Upgrade to npm >= 11.16.0 for `npm approve-scripts`/`deny-scripts`, or set `ignore-scripts=true` in .npmrc and rebuild approved packages with `vp pm rebuild <package>`.",
@@ -148,7 +147,7 @@ impl Resolve<ApproveBuildsArgs> for Npm {
             // npm 12 enforces allowScripts (skipped scripts stay skipped until a
             // rebuild); 11.16 - 11.x only warn. An unknown version is treated as
             // current, matching the version-gate default above.
-            if self.version().is_none_or(|version| version_satisfies(version, ">=12.0.0")) {
+            if self.supports_v12_commands() {
                 // An approval takes effect on the next rebuild; a denial keeps
                 // the enforced default and needs no follow-up.
                 if !has_denies {
@@ -191,15 +190,6 @@ fn validate_all(args: &ApproveBuildsArgs) -> Option<CommandResolution> {
 
 fn invalid_argument(message: &str) -> CommandResolution {
     CommandResolution::InvalidArgument(message.to_string())
-}
-
-fn version_satisfies(version: &semver::Version, range: &'static str) -> bool {
-    let (operator, operand) = range.split_at(2);
-    let operand = semver::Version::parse(operand).expect("static version");
-    match operator {
-        ">=" => version >= &operand,
-        _ => unreachable!("static range operator"),
-    }
 }
 
 fn is_positional_arg(token: &str) -> bool {
