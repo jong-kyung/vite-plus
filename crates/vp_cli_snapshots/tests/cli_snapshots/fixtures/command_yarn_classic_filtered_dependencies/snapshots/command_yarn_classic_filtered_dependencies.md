@@ -7,7 +7,7 @@ Classic filtered add reports an unsupported option instead of invoking foreach
 **Exit code:** 1
 
 ```
-Invalid argument: `--filter` is not supported by Yarn Classic `add`.
+yarn < 2 does not support --filter.
 ```
 
 ## `vp install react --filter @example/app`
@@ -19,7 +19,7 @@ install with packages uses the same add guard
 ```
 VITE+ - The Unified Toolchain for the Web
 
-Invalid argument: `--filter` is not supported by Yarn Classic `add`.
+yarn < 2 does not support --filter.
 ```
 
 ## `vp remove lodash --filter @example/app`
@@ -29,7 +29,7 @@ Classic filtered remove fails before changing dependencies
 **Exit code:** 1
 
 ```
-Invalid argument: `--filter` is not supported by Yarn Classic `remove`.
+yarn < 2 does not support --filter.
 ```
 
 ## `vp remove lodash --filter @example/* --filter other --recursive`
@@ -39,7 +39,8 @@ recursive remove must not silently discard Classic filters
 **Exit code:** 1
 
 ```
-Invalid argument: `--filter` is not supported by Yarn Classic `remove`.
+yarn < 2 does not support --filter.
+yarn < 2 does not support --recursive.
 ```
 
 ## `vpt print-file package.json packages/web/package.json`
