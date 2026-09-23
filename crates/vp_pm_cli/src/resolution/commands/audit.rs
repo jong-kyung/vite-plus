@@ -20,7 +20,7 @@ pub struct AuditArgs {
     pub(crate) level: Option<String>,
 
     /// Only audit production dependencies
-    #[arg(long, not_supported(bun))]
+    #[arg(long)]
     pub(crate) production: bool,
 
     /// Additional arguments
@@ -85,7 +85,9 @@ impl Resolve<AuditArgs> for Bun {
     fn resolve(&self, args: &AuditArgs, _diag: &mut Diagnostics) -> CommandResolution {
         let mut cmd = CommandBuilder::new("bun");
         cmd.arg("audit").arg_if("fix", args.fix);
-        cmd.option("--audit-level", args.level.as_ref()).arg_if("--json", args.json);
+        cmd.option("--audit-level", args.level.as_ref())
+            .arg_if("--production", args.production)
+            .arg_if("--json", args.json);
         cmd.extend(args.pass_through_args.iter());
         cmd.into()
     }
@@ -233,12 +235,9 @@ mod tests {
     }
 
     #[test]
-    fn test_bun_audit_collects_unsupported_options() {
+    fn test_bun_audit_rejects_fix_with_supported_production() {
         let args = parse_args::<AuditArgs>(["--fix", "--production", "--", "--help"]).unwrap();
-        expect_unsupported(
-            resolve(&bun("1.3.11"), args),
-            &["bun < 1.4 does not support --fix.", "bun does not support --production."],
-        );
+        expect_unsupported(resolve(&bun("1.3.11"), args), &["bun < 1.4 does not support --fix."]);
     }
 
     #[test]
@@ -256,11 +255,12 @@ mod tests {
 
     #[test]
     fn test_bun_audit_fix() {
-        let resolution = resolve(&bun("1.4.0"), AuditArgs { fix: true, ..Default::default() });
+        let resolution =
+            resolve(&bun("1.4.0"), AuditArgs { fix: true, production: true, ..Default::default() });
         let command = expect_run(resolution.outcome);
 
         assert_eq!(command.program, "bun");
-        assert_eq!(command.args, vec!["audit", "fix"]);
+        assert_eq!(command.args, vec!["audit", "fix", "--production"]);
         assert!(resolution.diagnostics.is_empty());
     }
 
@@ -301,7 +301,7 @@ mod tests {
         let pnpm_command = expect_run(pnpm_resolution.outcome);
         let yarn_command = expect_run(yarn_resolution.outcome);
         let yarn_berry_command = expect_run(yarn_berry_resolution.outcome);
-        expect_unsupported(bun_resolution, &["bun does not support --production."]);
+        let bun_command = expect_run(bun_resolution.outcome);
 
         assert_eq!(npm_command.program, "npm");
         assert_eq!(npm_command.args, vec!["audit", "--omit=dev"]);
@@ -311,5 +311,6 @@ mod tests {
         assert_eq!(yarn_command.args, vec!["audit", "--groups", "dependencies"]);
         assert_eq!(yarn_berry_command.program, "yarn");
         assert_eq!(yarn_berry_command.args, vec!["npm", "audit", "--environment", "production"]);
+        assert_eq!(bun_command.args, vec!["audit", "--production"]);
     }
 }

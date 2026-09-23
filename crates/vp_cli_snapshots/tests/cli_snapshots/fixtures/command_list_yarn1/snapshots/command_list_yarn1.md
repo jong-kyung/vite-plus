@@ -21,15 +21,14 @@ success Saved lockfile.
 Done in <duration>.
 ```
 
-## `vp pm list`
+## `NODE_ENV=production vp pm list`
 
-should list installed packages
+production environment excludes installed dev dependencies
 
 ```
 yarn list <version>
 warning package.json: No license field
 warning command-list-yarn1@1.0.0: No license field
-├─ test-vite-plus-package@1.0.0
 └─ testnpm2@1.0.1
 
 Done in <duration>.
@@ -90,14 +89,18 @@ warning command-list-yarn1@1.0.0: No license field
 Done in <duration>.
 ```
 
-## `vp pm list --dev`
+## `NODE_ENV=production vp pm list --dev`
 
-should reject --dev because yarn@1 does not support it
-
-**Exit code:** 1
+include installed dev dependencies using yarn --production=false
 
 ```
-yarn does not support --dev.
+yarn list <version>
+warning package.json: No license field
+warning command-list-yarn1@1.0.0: No license field
+├─ test-vite-plus-package@1.0.0
+└─ testnpm2@1.0.1
+
+Done in <duration>.
 ```
 
 ## `vp pm list --no-optional`

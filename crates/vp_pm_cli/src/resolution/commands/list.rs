@@ -30,8 +30,8 @@ pub struct ListArgs {
     #[arg(short = 'P', long, not_supported(yarn >= "2", bun))]
     pub(crate) prod: bool,
 
-    /// Only dev dependencies
-    #[arg(short = 'D', long, not_supported(npm, yarn, bun))]
+    /// Include dev dependencies
+    #[arg(short = 'D', long, not_supported(yarn >= "2", bun))]
     pub(crate) dev: bool,
 
     /// Exclude optional dependencies
@@ -105,6 +105,9 @@ impl Npm {
         if args.prod {
             cmd.arg("--omit").arg("dev");
         }
+        if args.dev {
+            cmd.arg("--include").arg("dev");
+        }
         if args.no_optional {
             cmd.arg("--omit").arg("optional");
         }
@@ -147,7 +150,8 @@ impl Resolve<ListArgs> for Yarn {
         }
         cmd.option("--depth", args.depth)
             .arg_if("--json", args.json)
-            .arg_if("--production", args.prod);
+            .arg_if("--production", args.prod)
+            .arg_if("--production=false", args.dev);
         cmd.extend(args.pass_through_args.iter());
         cmd.into()
     }
@@ -435,24 +439,19 @@ mod tests {
     }
 
     #[test]
-    fn test_npm_list_dev_is_rejected() {
-        for version in ["10.9.4", "11.16.0", "12.0.2"] {
-            let args = parse_args::<ListArgs>(["--dev", "--json"]).unwrap();
-            expect_unsupported(resolve(&npm(version), args), &["npm does not support --dev."]);
-        }
+    fn test_npm_list_dev_includes_dev_dependencies() {
+        let args = parse_args::<ListArgs>(["--dev", "--json"]).unwrap();
+        let command = expect_run(resolve(&npm("11.16.0"), args).outcome);
+        assert_eq!(command.args, vec!["list", "--json", "--include", "dev"]);
     }
 
     #[test]
-    fn test_npm_list_dev_errors_aggregate_and_raw_flags_are_preserved() {
+    fn test_npm_list_unsupported_errors_aggregate_and_raw_flags_are_preserved() {
         let args =
             parse_args::<ListArgs>(["--dev", "--only-projects", "--find-by", "finder"]).unwrap();
         expect_unsupported(
             resolve(&npm("12.0.2"), args),
-            &[
-                "npm does not support --dev.",
-                "npm does not support --only-projects.",
-                "npm does not support --find-by.",
-            ],
+            &["npm does not support --only-projects.", "npm does not support --find-by."],
         );
         let args = parse_args::<ListArgs>(["--", "--include=dev", "--json"]).unwrap();
         let resolution = resolve(&npm("12.0.2"), args);
@@ -461,11 +460,11 @@ mod tests {
     }
 
     #[test]
-    fn test_yarn1_list_dev_is_rejected() {
-        expect_unsupported(
-            resolve(&yarn("1.22.0"), ListArgs { dev: true, ..Default::default() }),
-            &["yarn does not support --dev."],
-        );
+    fn test_yarn_list_dev_follows_native_support() {
+        let args = ListArgs { dev: true, ..Default::default() };
+        let command = expect_run(resolve(&yarn("1.22.22"), args.clone()).outcome);
+        assert_eq!(command.args, vec!["list", "--production=false"]);
+        expect_unsupported(resolve(&yarn("4.18.0"), args), &["yarn >= 2 does not support --dev."]);
     }
 
     #[test]

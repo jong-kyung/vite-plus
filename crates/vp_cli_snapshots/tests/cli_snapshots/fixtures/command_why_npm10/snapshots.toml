@@ -9,7 +9,7 @@ steps = [
 name = "unsupported_why_workspace_selectors"
 vp = ["local", "global"]
 steps = [
-  { argv = ["vp", "why", "react", "--recursive", "--workspace-root", "--filter", "app", "--json", "--", "--help"], comment = "Reject selectors instead of silently narrowing the request to the filter.", continue-on-failure = true },
+  { argv = ["vp", "why", "react", "--recursive", "--workspace-root", "--filter", "app", "--json", "--", "--help"], comment = "Reject unsupported workspace-root instead of silently discarding it.", continue-on-failure = true },
 ]
 
 [[case]]

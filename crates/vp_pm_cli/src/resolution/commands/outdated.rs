@@ -75,8 +75,8 @@ pub struct OutdatedArgs {
     #[arg(short = 'P', long, not_supported(yarn))]
     pub(crate) prod: bool,
 
-    /// Only dev dependencies
-    #[arg(short = 'D', long, not_supported(npm, yarn, bun))]
+    /// Include dev dependencies
+    #[arg(short = 'D', long, not_supported(yarn, bun))]
     pub(crate) dev: bool,
 
     /// Exclude optional dependencies
@@ -148,6 +148,7 @@ impl Npm {
             .arg_if("--all", args.recursive)
             .extend(args.packages.iter());
         cmd.arg_if("--omit=dev", args.prod)
+            .arg_if("--include=dev", args.dev)
             .arg_if("--omit=optional", args.no_optional)
             .extend(args.pass_through_args.iter());
         if args.global {
@@ -679,16 +680,16 @@ mod tests {
 
     #[test]
     fn npm_outdated_maps_dependency_type_filters() {
-        for version in ["10.9.4", "11.16.0", "12.0.2"] {
-            let resolution = resolve(
-                &npm(version),
+        for (args, expected) in [
+            (
                 OutdatedArgs { prod: true, no_optional: true, ..Default::default() },
-            );
-            assert!(resolution.diagnostics.is_empty());
-            assert_eq!(
-                expect_run(resolution.outcome).args,
                 vec!["outdated", "--omit=dev", "--omit=optional"],
-            );
+            ),
+            (OutdatedArgs { dev: true, ..Default::default() }, vec!["outdated", "--include=dev"]),
+        ] {
+            let resolution = resolve(&npm("11.16.0"), args);
+            assert!(resolution.diagnostics.is_empty());
+            assert_eq!(expect_run(resolution.outcome).args, expected);
         }
     }
 

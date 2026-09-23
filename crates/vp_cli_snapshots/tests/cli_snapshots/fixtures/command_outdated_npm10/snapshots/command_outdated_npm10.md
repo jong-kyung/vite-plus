@@ -123,14 +123,17 @@ test-vite-plus-other-optional    1.0.0   1.0.0   1.1.0  node_modules/test-vite-p
 testnpm2                         1.0.0   1.0.0   1.0.1  node_modules/testnpm2                       workspace
 ```
 
-## `vp outdated -D`
+## `NODE_ENV=production vp outdated -D`
 
-should reject unsupported --dev
+include outdated dev dependencies in a production environment
 
 **Exit code:** 1
 
 ```
-npm does not support --dev.
+Package                        Current  Wanted  Latest  Location                                    Depended by
+test-vite-plus-other-optional    1.0.0   1.0.0   1.1.0  node_modules/test-vite-plus-other-optional  workspace
+test-vite-plus-top-package       1.0.0   1.0.0   1.1.0  node_modules/test-vite-plus-top-package     workspace
+testnpm2                         1.0.0   1.0.0   1.0.1  node_modules/testnpm2                       workspace
 ```
 
 ## `vp outdated --no-optional`

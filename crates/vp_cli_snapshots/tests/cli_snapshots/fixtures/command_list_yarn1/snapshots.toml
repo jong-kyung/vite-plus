@@ -4,12 +4,12 @@ vp = "global"
 env = { NODE_OPTIONS = "--no-deprecation" }
 steps = [
   { argv = ["vp", "install"], comment = "should install packages first", continue-on-failure = true },
-  { argv = ["vp", "pm", "list"], comment = "should list installed packages", continue-on-failure = true },
+  { argv = ["vp", "pm", "list"], envs = [["NODE_ENV", "production"]], comment = "production environment excludes installed dev dependencies" },
   { argv = ["vp", "pm", "list", "testnpm2"], comment = "should list specific package", continue-on-failure = true },
   { argv = ["vp", "pm", "list", "--depth", "0"], comment = "should list packages with depth limit", continue-on-failure = true },
   { argv = ["vp", "pm", "list", "--json"], comment = "should list packages in JSON format", continue-on-failure = true },
   { argv = ["vp", "pm", "list", "--prod"], comment = "should list production dependencies using yarn --production", continue-on-failure = true },
-  { argv = ["vp", "pm", "list", "--dev"], comment = "should reject --dev because yarn@1 does not support it", continue-on-failure = true },
+  { argv = ["vp", "pm", "list", "--dev"], envs = [["NODE_ENV", "production"]], comment = "include installed dev dependencies using yarn --production=false" },
   { argv = ["vp", "pm", "list", "--no-optional"], comment = "should reject --no-optional because yarn@1 does not support it", continue-on-failure = true },
   { argv = ["vp", "pm", "list", "--exclude-peers"], comment = "should reject --exclude-peers because yarn@1 does not support it", continue-on-failure = true },
   { argv = ["vp", "pm", "list", "--only-projects"], comment = "should reject --only-projects because yarn@1 does not support it", continue-on-failure = true },

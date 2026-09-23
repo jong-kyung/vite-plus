@@ -24,7 +24,7 @@ pub struct WhyArgs {
     pub(crate) parseable: bool,
 
     /// Check recursively across all workspaces
-    #[arg(short = 'r', long, not_supported(npm, yarn < "2", bun))]
+    #[arg(short = 'r', long, not_supported(yarn < "2", bun))]
     pub(crate) recursive: bool,
 
     /// Filter packages in monorepo
@@ -108,6 +108,7 @@ impl Resolve<WhyArgs> for Npm {
     fn resolve(&self, args: &WhyArgs, _diag: &mut Diagnostics) -> CommandResolution {
         let mut cmd = CommandBuilder::new("npm");
         cmd.arg("explain")
+            .arg_if("--workspaces", args.recursive)
             .repeated("--workspace", args.filter.iter())
             .arg_if("--json", args.json)
             .extend(args.packages.iter())
@@ -351,7 +352,7 @@ mod tests {
     }
 
     #[test]
-    fn workspace_selectors_preserve_pnpm_and_raw_arguments() {
+    fn workspace_selectors_preserve_native_and_raw_arguments() {
         let args = WhyArgs { recursive: true, workspace_root: true, ..why_args(&["react"]) };
         let resolution = resolve(&pnpm("11.3.0"), args);
         assert!(resolution.diagnostics.is_empty());
@@ -359,6 +360,11 @@ mod tests {
             expect_run(resolution.outcome).args,
             vec!["why", "--recursive", "--workspace-root", "react"]
         );
+
+        let args = WhyArgs { recursive: true, ..why_args(&["react"]) };
+        let resolution = resolve(&npm("11.16.0"), args);
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(expect_run(resolution.outcome).args, vec!["explain", "--workspaces", "react"]);
 
         let args = WhyArgs {
             pass_through_args: [
@@ -447,7 +453,6 @@ mod tests {
             &[
                 "npm does not support --long.",
                 "npm does not support --parseable.",
-                "npm does not support --recursive.",
                 "npm does not support --workspace-root.",
                 "npm does not support --prod.",
                 "npm does not support --dev.",

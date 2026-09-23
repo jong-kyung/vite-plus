@@ -115,14 +115,14 @@ should remove packages from dependencies
 }
 ```
 
-## `vp remove -D test-vite-plus-package-optional`
+## `vp remove -O test-vite-plus-package-optional`
 
-reject --save-dev without removing the optional dependency
+reject unsupported --save-optional without removing the optional dependency
 
 **Exit code:** 1
 
 ```
-yarn does not support --save-dev.
+yarn does not support --save-optional.
 ```
 
 ## `vpt print-file package.json`
@@ -138,6 +138,32 @@ yarn does not support --save-dev.
 }
 ```
 
+## `vp remove test-vite-plus-package-optional`
+
+remove optional dependencies without a section selector
+
+```
+➤ YN0000: · Yarn <version>
+➤ YN0000: ┌ Resolution step
+➤ YN0085: │ - test-vite-plus-package-optional@npm:1.0.0
+➤ YN0000: └ Completed
+➤ YN0000: ┌ Fetch step
+➤ YN0000: └ Completed
+➤ YN0000: ┌ Link step
+➤ YN0000: └ Completed
+➤ YN0000: · Done in <duration>
+```
+
+## `vpt print-file package.json`
+
+```
+{
+  "name": "command-remove-yarn4",
+  "version": "1.0.0",
+  "packageManager": "yarn@4.10.3"
+}
+```
+
 ## `vp remove -g --dry-run testnpm2`
 
 support remove global package with dry-run
@@ -147,5 +173,3 @@ support remove global package with dry-run
 ```
 Failed to uninstall testnpm2: Package testnpm2 is not installed
 ```
-
-*(skipped 1 step(s) to the next line boundary: step failed)*

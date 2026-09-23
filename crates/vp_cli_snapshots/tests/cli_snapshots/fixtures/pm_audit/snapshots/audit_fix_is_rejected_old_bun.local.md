@@ -3,25 +3,14 @@
 ## `vpt json-edit package.json packageManager bun@1.3.11`
 
 
-## `vp pm audit --fix -- --help`
-
-Bun before 1.4 rejects the named option instead of reporting a successful Noop.
-
-**Exit code:** 1
-
-```
-bun < 1.4 does not support --fix.
-```
-
 ## `vp pm audit --fix --production -- --help`
 
-Collect fix and production errors together.
+Bun before 1.4 rejects fix even when combined with supported production filtering.
 
 **Exit code:** 1
 
 ```
 bun < 1.4 does not support --fix.
-bun does not support --production.
 ```
 
 ## `vpt stat-file bun.lock --assert missing`

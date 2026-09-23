@@ -52,14 +52,37 @@ production listing respects both exclusions
 }
 ```
 
-## `vp pm list --dev --json`
+## `NODE_ENV=production vp pm list --dev --json`
 
-dev-only listing fails even with JSON output
-
-**Exit code:** 1
+include installed dev dependencies without excluding other dependency types
 
 ```
-npm does not support --dev.
+{
+  "version": "1.0.0",
+  "name": "command-list-npm10",
+  "dependencies": {
+    "test-vite-plus-package-optional": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/test-vite-plus-package-optional/-/test-vite-plus-package-optional-1.0.0.tgz",
+      "overridden": false
+    },
+    "test-vite-plus-package": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/test-vite-plus-package/-/test-vite-plus-package-1.0.0.tgz",
+      "overridden": false
+    },
+    "testnpm2": {
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/testnpm2/-/testnpm2-1.0.1.tgz",
+      "overridden": false
+    },
+    "yocto-queue": {
+      "version": "0.1.0",
+      "resolved": "https://registry.npmjs.org/yocto-queue/-/yocto-queue-0.1.0.tgz",
+      "overridden": false
+    }
+  }
+}
 ```
 
 ## `vp pm list --dev --only-projects --find-by finder --json`
@@ -69,7 +92,6 @@ report all unsupported named options together
 **Exit code:** 1
 
 ```
-npm does not support --dev.
 npm does not support --only-projects.
 npm does not support --find-by.
 ```

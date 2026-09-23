@@ -207,14 +207,32 @@ should exclude dev dependencies using --omit dev
 }
 ```
 
-## `vp pm list --dev --json`
+## `NODE_ENV=production vp pm list --dev --json`
 
-reject unsupported dev-only listing instead of listing every dependency
-
-**Exit code:** 1
+include installed dev dependencies in a production environment
 
 ```
-npm does not support --dev.
+{
+  "version": "1.0.0",
+  "name": "command-list-npm10",
+  "dependencies": {
+    "test-vite-plus-package-optional": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/test-vite-plus-package-optional/-/test-vite-plus-package-optional-1.0.0.tgz",
+      "overridden": false
+    },
+    "test-vite-plus-package": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/test-vite-plus-package/-/test-vite-plus-package-1.0.0.tgz",
+      "overridden": false
+    },
+    "testnpm2": {
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/testnpm2/-/testnpm2-1.0.1.tgz",
+      "overridden": false
+    }
+  }
+}
 ```
 
 ## `vp pm list --no-optional --json`
