@@ -22,24 +22,23 @@ VITE+ - The Unified Toolchain for the Web
 yarn < 2 does not support --filter.
 ```
 
-## `vp remove lodash --filter @example/app`
+## `vp remove lodash --filter @example/app --filter other`
 
-Classic filtered remove fails before changing dependencies
-
-**Exit code:** 1
-
-```
-yarn < 2 does not support --filter.
-```
-
-## `vp remove lodash --filter @example/* --filter other --recursive`
-
-recursive remove must not silently discard Classic filters
+Classic remove rejects multiple filters before changing dependencies
 
 **Exit code:** 1
 
 ```
-yarn < 2 does not support --filter.
+yarn < 2 does not support multiple --filter options.
+```
+
+## `vp remove lodash --filter @example/* --recursive`
+
+recursive remove is rejected before the Classic filter translation
+
+**Exit code:** 1
+
+```
 yarn < 2 does not support --recursive.
 ```
 
