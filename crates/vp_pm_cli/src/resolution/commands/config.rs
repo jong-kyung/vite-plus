@@ -105,25 +105,17 @@ impl Resolve<ConfigCommand> for Yarn {
                 vt_str::format!("{manager} does not support --location {location}."),
             );
         }
-        if self.is_berry()
-            && location == "user"
-            && matches!(args, ConfigCommand::Set { .. })
-            && !self.supports_v2_2_commands()
-        {
-            diag.warn(
-                DiagnosticKind::UnsupportedOption,
-                "yarn < 2.2 does not support --location user for config set.",
-            );
-        }
-        if self.is_berry()
-            && location == "user"
-            && matches!(args, ConfigCommand::Delete { .. })
-            && !self.supports_v3_commands()
-        {
-            diag.warn(
-                DiagnosticKind::UnsupportedOption,
-                "yarn < 3 does not support --location user for config delete.",
-            );
+        if self.is_berry() && location == "user" {
+            let message = match args {
+                ConfigCommand::Set { .. } if !self.supports_v2_2_commands() => {
+                    "yarn < 2.2 does not support --location user for config set."
+                }
+                ConfigCommand::Delete { .. } if !self.supports_v3_commands() => {
+                    "yarn < 3 does not support --location user for config delete."
+                }
+                _ => return,
+            };
+            diag.warn(DiagnosticKind::UnsupportedOption, message);
         }
     }
 
