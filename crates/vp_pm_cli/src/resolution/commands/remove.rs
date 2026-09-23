@@ -20,7 +20,7 @@ pub struct RemoveArgs {
     pub(crate) save_prod: bool,
 
     /// Filter packages in monorepo (can be used multiple times)
-    #[arg(long, value_name = "PATTERN", not_supported(yarn < "2", bun < "1.4"))]
+    #[arg(long, value_name = "PATTERN", not_supported(bun < "1.4"))]
     pub(crate) filter: Vec<String>,
 
     /// Remove from workspace root
@@ -107,8 +107,19 @@ impl Resolve<RemoveArgs> for Yarn {
 
         let mut cmd = CommandBuilder::new("yarn");
         if !args.filter.is_empty() {
-            cmd.arg("workspaces").arg("foreach").arg("--all");
-            cmd.repeated("--include", args.filter.iter());
+            if self.is_berry() {
+                cmd.arg("workspaces").arg("foreach").arg("--all");
+                cmd.repeated("--include", args.filter.iter());
+            } else {
+                // Classic runs one workspace at a time: `yarn workspace <name> remove`.
+                // https://classic.yarnpkg.com/en/docs/cli/workspace
+                if args.filter.len() > 1 {
+                    return CommandResolution::InvalidArgument(
+                        "yarn < 2 does not support multiple --filter options.".into(),
+                    );
+                }
+                cmd.arg("workspace").arg(&args.filter[0]);
+            }
         }
         cmd.arg("remove")
             .arg_if("--all", args.recursive && args.filter.is_empty())
@@ -237,23 +248,25 @@ mod tests {
     }
 
     #[test]
-    fn test_yarn_classic_rejects_filtered_remove() {
-        for filters in
-            [vec!["app".to_string()], vec!["app-*".to_string(), "@scope/web".to_string()]]
-        {
-            for recursive in [false, true] {
-                let mut options = remove_args(&["lodash"]);
-                options.filter = filters.clone();
-                options.recursive = recursive;
-                let resolution = resolve(&yarn("1.22.22"), options);
+    fn test_yarn_classic_single_filter_uses_workspace_remove() {
+        let mut options = remove_args(&["lodash"]);
+        options.filter = vec!["app".to_string()];
+        let resolution = resolve(&yarn("1.22.22"), options);
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(
+            expect_run(resolution.outcome).args,
+            vec!["workspace", "app", "remove", "lodash"]
+        );
+    }
 
-                let mut messages = vec!["yarn < 2 does not support --filter."];
-                if recursive {
-                    messages.push("yarn < 2 does not support --recursive.");
-                }
-                expect_unsupported(resolution, &messages);
-            }
-        }
+    #[test]
+    fn test_yarn_classic_rejects_multiple_filters() {
+        let mut options = remove_args(&["lodash"]);
+        options.filter = vec!["app".to_string(), "web".to_string()];
+        expect_unsupported(
+            resolve(&yarn("1.22.22"), options),
+            &["yarn < 2 does not support multiple --filter options."],
+        );
     }
 
     #[test]
@@ -275,11 +288,7 @@ mod tests {
         let args = parse_args::<RemoveArgs>(["-D", "--filter", "app", "-r", "lodash"]).unwrap();
         expect_unsupported(
             resolve(&yarn("1.22.22"), args),
-            &[
-                "yarn does not support --save-dev.",
-                "yarn < 2 does not support --filter.",
-                "yarn < 2 does not support --recursive.",
-            ],
+            &["yarn does not support --save-dev.", "yarn < 2 does not support --recursive."],
         );
     }
 

@@ -10,7 +10,6 @@ reject all unsupported removal selectors without changing the project
 yarn does not support --save-dev.
 yarn does not support --save-optional.
 yarn does not support --save-prod.
-yarn < 2 does not support --filter.
 yarn < 2 does not support --recursive.
 ```
 
