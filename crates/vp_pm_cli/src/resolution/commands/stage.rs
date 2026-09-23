@@ -199,7 +199,7 @@ impl Resolve<StageCommand> for Yarn {
         if !self.supports_v4_16_commands() {
             return;
         }
-        let StageCommand::Publish { target: None, recursive, filter, registry, .. } = args else {
+        let StageCommand::Publish { target: None, recursive, filter, .. } = args else {
             return;
         };
         if *recursive {
@@ -212,12 +212,6 @@ impl Resolve<StageCommand> for Yarn {
             diag.warn(
                 DiagnosticKind::UnsupportedOption,
                 "yarn does not support --filter for native staged publishing.",
-            );
-        }
-        if registry.is_some() {
-            diag.warn(
-                DiagnosticKind::UnsupportedOption,
-                "yarn does not support --registry for native staged publishing.",
             );
         }
     }
@@ -823,7 +817,6 @@ mod tests {
                 &[
                     "yarn does not support --recursive for native staged publishing.",
                     "yarn does not support --filter for native staged publishing.",
-                    "yarn does not support --registry for native staged publishing.",
                 ],
             );
         }

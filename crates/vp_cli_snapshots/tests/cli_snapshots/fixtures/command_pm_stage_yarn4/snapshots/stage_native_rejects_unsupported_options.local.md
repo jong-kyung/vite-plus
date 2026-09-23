@@ -2,14 +2,13 @@
 
 ## `vp pm stage publish --recursive --filter vp-stage-yarn-a --registry http://127.0.0.1:9 -- --help`
 
-Collect all unsupported native options before invoking Yarn, even with raw help.
+Reject workspace selection that cannot be translated to native staged publishing, even with raw help.
 
 **Exit code:** 1
 
 ```
 yarn does not support --recursive for native staged publishing.
 yarn does not support --filter for native staged publishing.
-yarn does not support --registry for native staged publishing.
 ```
 
 ## `vp pm stage list --registry http://127.0.0.1:9 -- --help`

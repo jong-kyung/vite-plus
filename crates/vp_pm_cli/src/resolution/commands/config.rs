@@ -105,18 +105,6 @@ impl Resolve<ConfigCommand> for Yarn {
                 vt_str::format!("{manager} does not support --location {location}."),
             );
         }
-        if self.is_berry() && location == "user" {
-            let message = match args {
-                ConfigCommand::Set { .. } if !self.supports_v2_2_commands() => {
-                    "yarn < 2.2 does not support --location user for config set."
-                }
-                ConfigCommand::Delete { .. } if !self.supports_v3_commands() => {
-                    "yarn < 3 does not support --location user for config delete."
-                }
-                _ => return,
-            };
-            diag.warn(DiagnosticKind::UnsupportedOption, message);
-        }
     }
 
     fn resolve(&self, args: &ConfigCommand, _diag: &mut Diagnostics) -> CommandResolution {
@@ -567,45 +555,6 @@ mod tests {
             );
             assert!(resolution.diagnostics.is_empty());
         }
-    }
-
-    #[test]
-    fn test_old_berry_rejects_user_writes_without_home_support() {
-        for version in ["2.0.0", "2.1.1", "2.2.0-rc.0"] {
-            expect_unsupported(
-                resolve(&yarn(version), set_config(Some("user"))),
-                &["yarn < 2.2 does not support --location user for config set."],
-            );
-            for location in [None, Some("project"), Some("global")] {
-                let resolution = resolve(&yarn(version), set_config(location));
-                assert!(resolution.diagnostics.is_empty());
-                expect_run(resolution.outcome);
-            }
-            for command in [vec!["list"], vec!["get", "npmRegistryServer"]] {
-                let args = parse_subcommand::<ConfigCommand>(
-                    command.into_iter().chain(["--location", "user"]),
-                )
-                .unwrap();
-                let resolution = resolve(&yarn(version), args);
-                assert!(resolution.diagnostics.is_empty());
-                expect_run(resolution.outcome);
-            }
-        }
-    }
-
-    #[test]
-    fn test_yarn2_rejects_user_deletion_without_native_unset() {
-        let args = parse_subcommand::<ConfigCommand>([
-            "delete",
-            "npmRegistryServer",
-            "--location",
-            "user",
-        ])
-        .unwrap();
-        expect_unsupported(
-            resolve(&yarn("2.4.2"), args),
-            &["yarn < 3 does not support --location user for config delete."],
-        );
     }
 
     #[test]

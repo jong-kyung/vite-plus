@@ -110,21 +110,7 @@ impl Resolve<UpdateArgs> for Npm {
 impl Resolve<UpdateArgs> for Yarn {
     fn diagnose(&self, args: &UpdateArgs, diag: &mut Diagnostics) {
         let recursive_resolutions = self.is_berry() && args.recursive && !args.latest;
-        if recursive_resolutions {
-            if !self.supports_v3_commands() {
-                diag.warn(
-                    DiagnosticKind::UnsupportedOption,
-                    "yarn < 3 does not support --recursive without --latest.",
-                );
-            }
-            if args.interactive {
-                diag.warn(
-                    DiagnosticKind::UnsupportedOption,
-                    "yarn does not support --recursive with --interactive without --latest.",
-                );
-            }
-        }
-        if args.no_save && !(recursive_resolutions && self.supports_v3_commands()) {
+        if args.no_save && !recursive_resolutions {
             diag.warn(DiagnosticKind::UnsupportedOption, "yarn does not support --no-save.");
         }
         if !self.is_berry() && args.filter.len() > 1 {
@@ -582,18 +568,8 @@ mod tests {
     }
 
     #[test]
-    fn test_yarn_recursive_rejects_incompatible_modes() {
-        let args = parse_args::<UpdateArgs>(["-r", "react"]).unwrap();
-        expect_unsupported(
-            resolve(&yarn("2.4.2"), args),
-            &["yarn < 3 does not support --recursive without --latest."],
-        );
+    fn test_yarn_recursive_latest_rejects_no_save() {
         for version in ["3.0.0", "4.16.0"] {
-            let args = parse_args::<UpdateArgs>(["-r", "--interactive", "react"]).unwrap();
-            expect_unsupported(
-                resolve(&yarn(version), args),
-                &["yarn does not support --recursive with --interactive without --latest."],
-            );
             let args = parse_args::<UpdateArgs>(["-r", "--latest", "--no-save", "react"]).unwrap();
             expect_unsupported(
                 resolve(&yarn(version), args),

@@ -90,18 +90,6 @@ impl Yarn {
         crate::package_manager::is_yarn_berry(&self.version)
     }
 
-    /// `config set --home` landed in Yarn 2.2.
-    /// https://github.com/yarnpkg/berry/blob/01586a88806a2bebd7edb28d1bee3581b1fd3762/CHANGELOG.md#220
-    pub(crate) fn supports_v2_2_commands(&self) -> bool {
-        self.version >= Version::new(2, 2, 0)
-    }
-
-    /// `config unset` and range-preserving `up --recursive` landed in Yarn 3.
-    /// https://github.com/yarnpkg/berry/blob/01586a88806a2bebd7edb28d1bee3581b1fd3762/CHANGELOG.md#300
-    pub(crate) fn supports_v3_commands(&self) -> bool {
-        self.version >= Version::new(3, 0, 0)
-    }
-
     /// `npm publish --staged` and `npm stage list/approve/reject` landed in Yarn 4.16.0.
     /// https://github.com/yarnpkg/berry/releases/tag/%40yarnpkg/cli/4.16.0
     pub(crate) fn supports_v4_16_commands(&self) -> bool {

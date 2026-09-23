@@ -10,7 +10,9 @@ range-preserving recursive updates require Yarn 3
 **Exit code:** 1
 
 ```
-yarn < 3 does not support --recursive without --latest.
+Unknown Syntax Error: Unsupported option name ("--recursive").
+
+$ yarn up [-i,--interactive] [-E,--exact] [-T,--tilde] [-C,--caret] ...
 ```
 
 ## `vpt json-edit package.json packageManager yarn@4.10.3`
@@ -23,7 +25,9 @@ interactive mode cannot be combined with range-preserving re-resolution
 **Exit code:** 1
 
 ```
-yarn does not support --recursive with --interactive without --latest.
+Usage Error: Invalid option schema: property "recursive" forbids using property "interactive"
+
+$ yarn up [-i,--interactive] [-F,--fixed] [-E,--exact] [-T,--tilde] [-C,--caret] [-R,--recursive] [--mode #0] ...
 ```
 
 ## `vp update --recursive --latest --no-save testnpm2`

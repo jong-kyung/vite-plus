@@ -119,5 +119,7 @@ Yarn 2 has no native config unset command.
 **Exit code:** 1
 
 ```
-yarn < 3 does not support --location user for config delete.
+Unknown Syntax Error: Extraneous positional argument ("unset").
+
+$ yarn config [-v,--verbose] [--why] [--json]
 ```
