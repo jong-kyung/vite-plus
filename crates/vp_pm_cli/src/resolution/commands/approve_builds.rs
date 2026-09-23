@@ -62,7 +62,7 @@ impl Resolve<ApproveBuildsArgs> for Bun {
                 .map(|package| package.strip_prefix('!').unwrap_or(package))
                 .collect::<Vec<_>>();
             diag.warn(
-                DiagnosticKind::UnsupportedOptionDropped,
+                DiagnosticKind::BehaviorChange,
                 vt_str::format!(
                     "bun does not support denylisting build scripts. Packages outside `trustedDependencies` in package.json are already denied by default. Skipping: {}",
                     names.join(", ")
@@ -199,7 +199,7 @@ fn is_positional_arg(token: &str) -> bool {
 fn warn_dropped_pass_through(extras: &[String], diag: &mut Diagnostics) {
     if !extras.is_empty() {
         diag.warn(
-            DiagnosticKind::UnsupportedOptionDropped,
+            DiagnosticKind::UnsupportedCommandNoop,
             vt_str::format!(
                 "Ignoring pass-through args ({}): this package manager has no native approve-builds command to forward them to.",
                 extras.join(" ")

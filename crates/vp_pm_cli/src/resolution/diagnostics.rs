@@ -4,8 +4,6 @@ use std::ops::Index;
 pub(crate) enum DiagnosticKind {
     /// Support checks reject the request before command lowering.
     UnsupportedOption,
-    /// Legacy resolver-level warnings retain their existing behavior.
-    UnsupportedOptionDropped,
     UnsupportedCommandNoop,
     FallbackCommand,
     BehaviorChange,
