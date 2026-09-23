@@ -404,7 +404,7 @@ mod tests {
     use clap::{FromArgMatches, Subcommand};
 
     use super::*;
-    use crate::{PackageManagerType, resolution::CommandResolution};
+    use crate::{PackageManagerType, resolution::test_utils::expect_run};
 
     fn parse(args: &[&str]) -> Result<PackageManagerCommand, clap::Error> {
         let command = PackageManagerCommand::augment_subcommands(clap::Command::new("vp"));
@@ -531,15 +531,8 @@ mod tests {
             let install = parse(&["install", "--frozen-lockfile"]).unwrap();
             let add = parse(&["install", "-D", "react"]).unwrap();
 
-            let CommandResolution::Run(install) =
-                install.resolve_for_manager(&manager).unwrap().outcome
-            else {
-                panic!("expected install command");
-            };
-            let CommandResolution::Run(add) = add.resolve_for_manager(&manager).unwrap().outcome
-            else {
-                panic!("expected add command");
-            };
+            let install = expect_run(install.resolve_for_manager(&manager).unwrap().outcome);
+            let add = expect_run(add.resolve_for_manager(&manager).unwrap().outcome);
 
             assert_eq!(install.args, install_args);
             assert_eq!(add.args, add_args);
