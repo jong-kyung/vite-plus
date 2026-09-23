@@ -31,7 +31,7 @@ raw arguments retain native behavior, which does not update without a package pa
 
 ## `cd packages/app && vp update --recursive --no-save`
 
-omitting packages re-resolves scoped and unscoped dependencies while preserving each manifest byte-for-byte
+omitting packages re-resolves scoped and unscoped dependencies while preserving each manifest
 
 ```
 ➤ YN0000: · Yarn <version>

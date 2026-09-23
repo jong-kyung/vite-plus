@@ -1,8 +1,5 @@
 # npm_install_rejects_dev_only
 
-## `vpt cp package.json package.json.before`
-
-
 ## `vp install --dev`
 
 reject dev-only install rather than installing every dependency type
@@ -39,9 +36,6 @@ npm does not support --fix-lockfile.
 ## `vp install --ignore-scripts`
 
 
-## `vpt cp package-lock.json package-lock.json.before`
-
-
 ## `vpt mkdir node_modules`
 
 
@@ -64,9 +58,25 @@ npm does not support --dev.
 node_modules/preserved.txt: file
 ```
 
-## `node assert-unchanged.cjs`
+## `vpt print-file package.json package-lock.json`
 
 ```
-package.json: unchanged
-package-lock.json: unchanged
+{
+  "name": "command-install-npm11",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "npm@11.16.0"
+}
+{
+  "name": "command-install-npm11",
+  "version": "1.0.0",
+  "lockfileVersion": 3,
+  "requires": true,
+  "packages": {
+    "": {
+      "name": "command-install-npm11",
+      "version": "1.0.0"
+    }
+  }
+}
 ```

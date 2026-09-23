@@ -1,8 +1,5 @@
 # install_with_packages_rejects_install_only_options
 
-## `vpt cp package.json before.json`
-
-
 ## `vp install ./dep --fix-lockfile --resolution-only --lockfile-only --silent`
 
 reject install-only options before converting to add, even in silent mode
@@ -24,11 +21,6 @@ package-lock.json: missing
 
 ```
 node_modules: missing
-```
-
-## `node -e 'const fs = require('\''node:fs'\''); require('\''node:assert/strict'\'').equal(fs.readFileSync('\''package.json'\'', '\''utf8'\''), fs.readFileSync('\''before.json'\'', '\''utf8'\''))'`
-
-```
 ```
 
 ## `vpt print-file package.json`

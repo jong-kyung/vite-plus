@@ -64,7 +64,7 @@ steps = [
   { argv = ["node", "recursive-range.cjs", "prepare"], snapshot = false },
   { argv = ["vp", "update", "--", "--recursive"], cwd = "packages/app", snapshot = false },
   { argv = ["node", "recursive-range.cjs", "assert", "1.0.0"], comment = "raw arguments retain native behavior, which does not update without a package pattern" },
-  { argv = ["vp", "update", "--recursive", "--no-save"], cwd = "packages/app", comment = "omitting packages re-resolves scoped and unscoped dependencies while preserving each manifest byte-for-byte" },
+  { argv = ["vp", "update", "--recursive", "--no-save"], cwd = "packages/app", comment = "omitting packages re-resolves scoped and unscoped dependencies while preserving each manifest" },
   ["vpt", "print-file", "package.json", "packages/app/package.json", "packages/utils/package.json", "yarn.lock"],
   ["node", "recursive-range.cjs", "assert", "1.0.1", "1.0.1"],
 ]
