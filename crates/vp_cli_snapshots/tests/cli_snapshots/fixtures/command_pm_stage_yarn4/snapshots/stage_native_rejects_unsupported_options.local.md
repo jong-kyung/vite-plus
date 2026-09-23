@@ -8,6 +8,17 @@ Reject workspace selection that cannot be translated to native staged publishing
 
 ```
 yarn does not support --recursive or --filter for native staged publishing.
+yarn >= 4.16.0 does not support --registry.
+```
+
+## `vp pm stage publish --dry-run --registry http://127.0.0.1:9 -- --help`
+
+yarn npm publish --staged has no --registry option.
+
+**Exit code:** 1
+
+```
+yarn >= 4.16.0 does not support --registry.
 ```
 
 ## `vp pm stage list --registry http://127.0.0.1:9 -- --help`

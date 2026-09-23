@@ -3,6 +3,7 @@ name = "stage_native_rejects_unsupported_options"
 vp = ["local", "global"]
 steps = [
   { argv = ["vp", "pm", "stage", "publish", "--recursive", "--filter", "vp-stage-yarn-a", "--registry", "http://127.0.0.1:9", "--", "--help"], comment = "Reject workspace selection that cannot be translated to native staged publishing, even with raw help.", continue-on-failure = true },
+  { argv = ["vp", "pm", "stage", "publish", "--dry-run", "--registry", "http://127.0.0.1:9", "--", "--help"], comment = "yarn npm publish --staged has no --registry option.", continue-on-failure = true },
   { argv = ["vp", "pm", "stage", "list", "--registry", "http://127.0.0.1:9", "--", "--help"], continue-on-failure = true },
   { argv = ["vp", "pm", "stage", "approve", "abc123", "--registry", "http://127.0.0.1:9", "--", "--help"], continue-on-failure = true },
   { argv = ["vp", "pm", "stage", "reject", "abc123", "--registry", "http://127.0.0.1:9", "--", "--help"], continue-on-failure = true },

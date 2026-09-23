@@ -212,11 +212,20 @@ impl Resolve<StageCommand> for Yarn {
             );
                 return Npm::resolve_stage(args);
             }
-            StageCommand::Publish { recursive, filter, .. } => {
+            StageCommand::Publish { recursive, filter, registry, .. } => {
+                let mut errors = Vec::new();
                 if *recursive || filter.as_ref().is_some_and(|filters| !filters.is_empty()) {
-                    return CommandResolution::InvalidArgument(
-                        "yarn does not support --recursive or --filter for native staged publishing.".into(),
+                    errors.push(
+                        "yarn does not support --recursive or --filter for native staged publishing.",
                     );
+                }
+                // `yarn npm publish` has no --registry; use npmPublishRegistry instead.
+                // https://yarnpkg.com/cli/npm/publish
+                if registry.is_some() {
+                    errors.push("yarn >= 4.16.0 does not support --registry.");
+                }
+                if !errors.is_empty() {
+                    return CommandResolution::InvalidArgument(errors.join("\n"));
                 }
                 let mut cmd = CommandBuilder::new("yarn");
                 append_yarn_publish_staged(&mut cmd, args);
@@ -798,7 +807,29 @@ mod tests {
             .unwrap();
             expect_unsupported(
                 resolve(&yarn(version), args),
-                &["yarn does not support --recursive or --filter for native staged publishing."],
+                &[
+                    "yarn does not support --recursive or --filter for native staged publishing.",
+                    "yarn >= 4.16.0 does not support --registry.",
+                ],
+            );
+        }
+    }
+
+    #[test]
+    fn test_yarn_native_stage_publish_rejects_registry() {
+        for version in ["4.16.0", "4.18.0"] {
+            let args = parse_subcommand::<StageCommand>([
+                "publish",
+                "--dry-run",
+                "--registry",
+                "https://registry.example.com",
+                "--",
+                "--help",
+            ])
+            .unwrap();
+            expect_unsupported(
+                resolve(&yarn(version), args),
+                &["yarn >= 4.16.0 does not support --registry."],
             );
         }
     }
