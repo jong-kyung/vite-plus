@@ -20,7 +20,9 @@ pub struct AuditArgs {
     pub(crate) level: Option<String>,
 
     /// Only audit production dependencies
-    #[arg(long)]
+    /// Bun ignores the flag before 1.2.21, when `bun audit --prod` landed.
+    /// https://bun.sh/blog/bun-v1.2.21
+    #[arg(long, not_supported(bun < "1.2.21"))]
     pub(crate) production: bool,
 
     /// Additional arguments
@@ -232,6 +234,17 @@ mod tests {
             let resolution = resolve(&bun(version), AuditArgs { fix: true, ..Default::default() });
             expect_unsupported(resolution, &["bun < 1.4 does not support --fix."]);
         }
+    }
+
+    #[test]
+    fn test_bun_audit_production_follows_native_support() {
+        let args = AuditArgs { production: true, ..Default::default() };
+        expect_unsupported(
+            resolve(&bun("1.2.20"), args.clone()),
+            &["bun < 1.2.21 does not support --production."],
+        );
+        let command = expect_run(resolve(&bun("1.2.21"), args).outcome);
+        assert_eq!(command.args, vec!["audit", "--production"]);
     }
 
     #[test]
