@@ -12,6 +12,24 @@ steps = [
 ]
 
 [[case]]
+name = "yarn_berry_install_rejects_unsupported_options"
+vp = ["local", "global"]
+skip-platforms = ["windows"]
+steps = [
+  { argv = ["vp", "install", "--prefer-offline"], continue-on-failure = true },
+  { argv = ["vp", "install", "--offline"], continue-on-failure = true },
+  { argv = ["vp", "install", "--no-lockfile"], continue-on-failure = true },
+  { argv = ["vp", "install", "--force"], continue-on-failure = true },
+  { argv = ["vp", "install", "--no-optional"], continue-on-failure = true },
+  { argv = ["vp", "install", "--prefer-offline", "--offline", "--no-lockfile", "--force", "--no-optional", "--silent"], comment = "report all unsupported options, including Berry's existing silent restriction", continue-on-failure = true },
+  { argv = ["vpt", "stat-file", "node_modules", "--assert", "missing"], continue-on-failure = true },
+  { argv = ["vpt", "stat-file", "yarn.lock", "--assert", "missing"], continue-on-failure = true },
+  { argv = ["vpt", "print-file", "package.json"], continue-on-failure = true },
+  { argv = ["vp", "install", "--ignore-scripts"], comment = "ordinary installation remains supported" },
+  { argv = ["vpt", "stat-file", "node_modules/prod-only-fixture/package.json", "--assert", "file"] },
+]
+
+[[case]]
 name = "yarn_berry_install_dev_with_package_uses_add"
 vp = ["local", "global"]
 skip-platforms = ["windows"]

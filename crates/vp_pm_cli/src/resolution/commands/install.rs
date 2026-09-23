@@ -21,7 +21,7 @@ pub struct InstallArgs {
     pub(crate) dev: bool,
 
     /// Do not install optionalDependencies
-    #[arg(long)]
+    #[arg(long, not_supported(yarn >= "2"))]
     pub(crate) no_optional: bool,
 
     /// Fail if lockfile needs to be updated (CI mode)
@@ -37,15 +37,15 @@ pub struct InstallArgs {
     pub(crate) lockfile_only: bool,
 
     /// Use cached packages when available
-    #[arg(long, not_supported(bun))]
+    #[arg(long, not_supported(yarn >= "2", bun))]
     pub(crate) prefer_offline: bool,
 
     /// Only use packages already in cache
-    #[arg(long, not_supported(bun))]
+    #[arg(long, not_supported(yarn >= "2", bun))]
     pub(crate) offline: bool,
 
     /// Force reinstall all dependencies
-    #[arg(short = 'f', long)]
+    #[arg(short = 'f', long, not_supported(yarn >= "2"))]
     pub(crate) force: bool,
 
     /// Do not run lifecycle scripts
@@ -53,7 +53,7 @@ pub struct InstallArgs {
     pub(crate) ignore_scripts: bool,
 
     /// Don't read or generate lockfile
-    #[arg(long, not_supported(bun))]
+    #[arg(long, not_supported(yarn >= "2", bun))]
     pub(crate) no_lockfile: bool,
 
     /// Fix broken lockfile entries (pnpm and yarn@2+ only)
@@ -1023,15 +1023,71 @@ mod tests {
     }
 
     #[test]
-    fn yarn_berry_drops_cache_flags_without_warning() {
-        let resolution = resolve(
-            &yarn("4.1.0"),
-            InstallArgs { prefer_offline: true, offline: true, ..Default::default() },
-        );
-        let command = expect_run(resolution.outcome);
+    fn yarn_berry_rejects_unsupported_install_options() {
+        for version in ["2.0.0", "2.4.2", "3.6.0", "4.16.0"] {
+            for option in
+                ["--prefer-offline", "--offline", "--no-lockfile", "--force", "--no-optional"]
+            {
+                let args = parse_args::<InstallArgs>([option]).unwrap();
+                expect_unsupported(
+                    resolve(&yarn(version), args),
+                    &[&vt_str::format!("yarn >= 2 does not support {option}.")],
+                );
+            }
+        }
+    }
 
-        assert_eq!(command.args, vec!["install"]);
+    #[test]
+    fn yarn_classic_keeps_supported_install_options() {
+        let args = parse_args::<InstallArgs>([
+            "--prefer-offline",
+            "--offline",
+            "--no-lockfile",
+            "--force",
+            "--no-optional",
+        ])
+        .unwrap();
+        let resolution = resolve(&yarn("1.22.22"), args);
         assert!(resolution.diagnostics.is_empty());
+        assert_eq!(
+            expect_run(resolution.outcome).args,
+            vec![
+                "install",
+                "--ignore-optional",
+                "--prefer-offline",
+                "--offline",
+                "--force",
+                "--no-lockfile",
+            ],
+        );
+    }
+
+    #[test]
+    fn yarn_berry_keeps_raw_install_options() {
+        for version in ["2.0.0", "3.6.0", "4.16.0"] {
+            let args = parse_args::<InstallArgs>([
+                "--",
+                "--prefer-offline",
+                "--offline",
+                "--no-lockfile",
+                "--force",
+                "--no-optional",
+            ])
+            .unwrap();
+            let resolution = resolve(&yarn(version), args);
+            assert!(resolution.diagnostics.is_empty());
+            assert_eq!(
+                expect_run(resolution.outcome).args,
+                vec![
+                    "install",
+                    "--prefer-offline",
+                    "--offline",
+                    "--no-lockfile",
+                    "--force",
+                    "--no-optional",
+                ],
+            );
+        }
     }
 
     #[test]
