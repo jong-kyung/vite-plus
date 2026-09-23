@@ -3,4 +3,5 @@ name = "unsupported_logout_selectors"
 vp = ["local", "global"]
 steps = [
   { argv = ["vp", "pm", "logout", "--registry", "http://127.0.0.1:9", "--scope", "company", "--", "--help"], comment = "Berry supports scope but not an explicit registry URL flag.", continue-on-failure = true },
+  { argv = ["vp", "pm", "logout", "--scope", "@company"], comment = "Berry rejects an @-prefixed scope, so the prefix is stripped before forwarding." },
 ]

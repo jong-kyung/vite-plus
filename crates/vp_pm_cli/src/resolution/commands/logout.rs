@@ -41,7 +41,9 @@ impl Resolve<LogoutArgs> for Npm {
 impl Resolve<LogoutArgs> for Yarn {
     fn resolve(&self, args: &LogoutArgs, _diag: &mut Diagnostics) -> CommandResolution {
         if self.is_berry() {
-            resolve_logout("yarn", &["npm", "logout"], args)
+            // Berry takes the scope name without "@": https://yarnpkg.com/cli/npm/logout
+            let scope = args.scope.as_ref().map(|scope| scope.trim_start_matches('@').to_string());
+            resolve_logout("yarn", &["npm", "logout"], &LogoutArgs { scope, ..args.clone() })
         } else {
             resolve_logout("yarn", &["logout"], args)
         }
@@ -165,7 +167,7 @@ mod tests {
         assert!(resolution.diagnostics.is_empty());
         assert_eq!(
             expect_run(resolution.outcome).args,
-            vec!["npm", "logout", "--scope", "@company", "--publish"]
+            vec!["npm", "logout", "--scope", "company", "--publish"]
         );
     }
 
