@@ -152,6 +152,24 @@ mod tests {
     }
 
     #[test]
+    fn test_yarn_berry_login_selector_support() {
+        let registry =
+            parse_args::<LoginArgs>(["--registry", "https://registry.example.com"]).unwrap();
+        expect_unsupported(
+            resolve(&yarn("4.18.0"), registry),
+            &["yarn does not support --registry."],
+        );
+
+        let scope = parse_args::<LoginArgs>(["--scope", "@company", "--", "--publish"]).unwrap();
+        let resolution = resolve(&yarn("4.18.0"), scope);
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(
+            expect_run(resolution.outcome).args,
+            vec!["npm", "login", "--scope", "@company", "--publish"]
+        );
+    }
+
+    #[test]
     fn test_login_with_registry() {
         let resolution = resolve(
             &npm("11.0.0"),
