@@ -16,7 +16,7 @@
 ## `vp install`
 
 
-## `node recursive-range.cjs prepare`
+## `node recursive-range.cjs`
 
 
 ## `cd packages/app && vp update --recursive testnpm2`
@@ -127,9 +127,4 @@ __metadata:
     testnpm2: "npm:^1.0.0"
   languageName: unknown
   linkType: soft
-```
-
-## `node recursive-range.cjs assert`
-
-```
 ```

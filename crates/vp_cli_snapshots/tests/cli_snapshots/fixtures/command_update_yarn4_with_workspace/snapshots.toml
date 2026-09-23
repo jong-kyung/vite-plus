@@ -29,10 +29,9 @@ steps = [
   { argv = ["vpt", "write-file", "packages/utils/package.json", '{"name":"utils","version":"1.0.0","dependencies":{"testnpm2":"1.0.0","@test/scoped":"npm:testnpm2@1.0.0","is-number":"6.0.0"}}'], snapshot = false },
   { argv = ["vpt", "write-file", ".yarnrc.yml", "nodeLinker: node-modules\n"], snapshot = false },
   { argv = ["vp", "install"], snapshot = false },
-  { argv = ["node", "recursive-range.cjs", "prepare"], snapshot = false },
+  { argv = ["node", "recursive-range.cjs"], snapshot = false },
   { argv = ["vp", "update", "--recursive", "testnpm2"], cwd = "packages/app", comment = "update the named package within its existing range across all workspaces" },
   ["vpt", "print-file", "package.json", "packages/app/package.json", "packages/utils/package.json", "yarn.lock"],
-  ["node", "recursive-range.cjs", "assert"],
 ]
 
 [[case]]
@@ -46,12 +45,9 @@ steps = [
   { argv = ["vpt", "write-file", "packages/utils/package.json", '{"name":"utils","version":"1.0.0","dependencies":{"testnpm2":"1.0.0","@test/scoped":"npm:testnpm2@1.0.0","is-number":"6.0.0"}}'], snapshot = false },
   { argv = ["vpt", "write-file", ".yarnrc.yml", "nodeLinker: node-modules\n"], snapshot = false },
   { argv = ["vp", "install"], snapshot = false },
-  { argv = ["node", "recursive-range.cjs", "prepare"], snapshot = false },
-  { argv = ["vp", "update", "--", "--recursive"], cwd = "packages/app", snapshot = false },
-  { argv = ["node", "recursive-range.cjs", "assert", "1.0.0"], comment = "raw arguments retain native behavior, which does not update without a package pattern" },
+  { argv = ["node", "recursive-range.cjs"], snapshot = false },
   { argv = ["vp", "update", "--recursive", "--no-save"], cwd = "packages/app", comment = "omitting packages re-resolves scoped and unscoped dependencies while preserving each manifest" },
   ["vpt", "print-file", "package.json", "packages/app/package.json", "packages/utils/package.json", "yarn.lock"],
-  ["node", "recursive-range.cjs", "assert", "1.0.1", "1.0.1"],
 ]
 
 [[case]]

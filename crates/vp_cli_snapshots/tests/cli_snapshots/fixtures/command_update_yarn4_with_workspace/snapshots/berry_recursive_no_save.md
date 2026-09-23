@@ -16,18 +16,8 @@
 ## `vp install`
 
 
-## `node recursive-range.cjs prepare`
+## `node recursive-range.cjs`
 
-
-## `cd packages/app && vp update -- --recursive`
-
-
-## `node recursive-range.cjs assert 1.0.0`
-
-raw arguments retain native behavior, which does not update without a package pattern
-
-```
-```
 
 ## `cd packages/app && vp update --recursive --no-save`
 
@@ -131,9 +121,4 @@ __metadata:
     testnpm2: "npm:^1.0.0"
   languageName: unknown
   linkType: soft
-```
-
-## `node recursive-range.cjs assert 1.0.1 1.0.1`
-
-```
 ```

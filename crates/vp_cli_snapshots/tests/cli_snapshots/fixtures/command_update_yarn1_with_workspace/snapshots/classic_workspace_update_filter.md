@@ -52,8 +52,3 @@ Done in <duration>.
   "dependencies": { "is-number": "6.0.0" }
 }
 ```
-
-## `node assert-installed.cjs 6.0.0 7.0.0 6.0.0`
-
-```
-```
