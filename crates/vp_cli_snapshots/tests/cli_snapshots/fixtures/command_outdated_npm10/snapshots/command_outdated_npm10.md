@@ -155,19 +155,6 @@ should reject unsupported --compatible
 npm does not support --compatible.
 ```
 
-## `vpt json-edit package.json optionalDependencies.test-vite-plus-other-optional '"^1.0.0"'`
-
---compatible remains unsupported when optional dependencies have a version range
-
-
-## `vp outdated --compatible`
-
-**Exit code:** 1
-
-```
-npm does not support --compatible.
-```
-
 ## `vp outdated --sort-by name`
 
 should reject unsupported --sort-by

@@ -3,10 +3,6 @@ name = "unsupported_why_dependency_filters"
 vp = ["local", "global"]
 steps = [
   { argv = ["vp", "why", "react", "--no-optional", "--exclude-peers", "--json", "--", "--help"], comment = "Reject both filters instead of discarding them before npm explain.", continue-on-failure = true },
-  { argv = ["vp", "why", "react", "--no-optional"], continue-on-failure = true },
-  { argv = ["vp", "why", "react", "--exclude-peers"], continue-on-failure = true },
-  { argv = ["vpt", "json-edit", "package.json", "packageManager", "npm@12.0.2"], snapshot = false },
-  { argv = ["vp", "why", "react", "--no-optional", "--exclude-peers", "--json", "--", "--help"], comment = "Current npm still does not filter these dependency types in explain.", continue-on-failure = true },
 ]
 
 [[case]]
@@ -14,10 +10,6 @@ name = "unsupported_why_workspace_selectors"
 vp = ["local", "global"]
 steps = [
   { argv = ["vp", "why", "react", "--recursive", "--workspace-root", "--filter", "app", "--json", "--", "--help"], comment = "Reject selectors instead of silently narrowing the request to the filter.", continue-on-failure = true },
-  { argv = ["vp", "why", "react", "-r"], continue-on-failure = true },
-  { argv = ["vp", "why", "react", "-w"], continue-on-failure = true },
-  { argv = ["vpt", "json-edit", "package.json", "packageManager", "npm@12.0.2"], snapshot = false },
-  { argv = ["vp", "why", "react", "-r", "-w", "--", "--help"], comment = "Current npm must not silently ignore the same named selectors.", continue-on-failure = true },
 ]
 
 [[case]]

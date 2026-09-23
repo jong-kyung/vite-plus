@@ -20,7 +20,7 @@ Yarn 4.16.0 retains native staged publishing without contacting the registry.
 
 ## `PATH=${workspace}/node_modules/.bin${PATH_SEPARATOR}${PATH} vp pm stage publish . --recursive --filter vp-stage-yarn-a --dry-run --registry http://127.0.0.1:9 -- --ignore-scripts --loglevel error --fetch-retries 0`
 
-An explicit target still uses npm and preserves workspace selection and registry.
+An explicit target falls back to npm and preserves workspace selection.
 
 ```
 warn: yarn cannot stage a prebuilt tarball or folder; using npm stage publish for the given target

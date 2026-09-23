@@ -16,8 +16,6 @@ name = "yarn_classic_install_rejects_lockfile_only_and_filter"
 vp = ["local", "global"]
 skip-platforms = ["windows"]
 steps = [
-  { argv = ["vp", "install", "--lockfile-only"], comment = "reject lockfile-only instead of performing a full install", continue-on-failure = true },
-  { argv = ["vp", "install", "--filter", "app"], comment = "reject filtering instead of installing every package", continue-on-failure = true },
   { argv = ["vp", "install", "--lockfile-only", "--filter", "app", "--silent"], comment = "report both unsupported options even in silent mode", continue-on-failure = true },
   { argv = ["vpt", "stat-file", "node_modules", "--assert", "missing"], continue-on-failure = true },
   { argv = ["vpt", "stat-file", "yarn.lock", "--assert", "missing"], continue-on-failure = true },

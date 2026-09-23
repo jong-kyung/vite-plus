@@ -4,9 +4,9 @@ vp = ["local", "global"]
 env = { npm_config_audit = "false", npm_config_fund = "false" }
 steps = [
   { argv = ["vp", "install", "--dev"], comment = "reject dev-only install rather than installing every dependency type", continue-on-failure = true },
+  { argv = ["vp", "install", "--dev", "--fix-lockfile", "--silent"], comment = "silent mode still reports all unsupported options", continue-on-failure = true },
   { argv = ["vpt", "stat-file", "package-lock.json", "--assert", "missing"], continue-on-failure = true },
   { argv = ["vpt", "stat-file", "node_modules", "--assert", "missing"], continue-on-failure = true },
-  { argv = ["vp", "install", "--dev", "--fix-lockfile", "--silent"], comment = "silent mode still reports all unsupported options", continue-on-failure = true },
   { argv = ["vp", "install", "--ignore-scripts"], snapshot = false, continue-on-failure = true },
   { argv = ["vpt", "mkdir", "node_modules"], snapshot = false },
   { argv = ["vpt", "write-file", "node_modules/preserved.txt", "keep"], snapshot = false },

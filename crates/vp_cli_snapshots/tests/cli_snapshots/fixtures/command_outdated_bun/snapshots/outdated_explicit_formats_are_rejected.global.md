@@ -1,4 +1,4 @@
-# outdated_json_format_is_rejected
+# outdated_explicit_formats_are_rejected
 
 ## `vp outdated --format json -- --help`
 
@@ -24,6 +24,16 @@ bun does not support --format.
 ## `vp outdated --format table`
 
 Reject explicit table format too; omit --format for Bun's default output.
+
+**Exit code:** 1
+
+```
+bun does not support --format.
+```
+
+## `vp outdated --format list -- --help`
+
+Reject named list format instead of silently using Bun's table output.
 
 **Exit code:** 1
 

@@ -21,19 +21,3 @@ Reject both unsupported selectors before invoking Classic.
 yarn < 2 does not support --recursive.
 yarn < 2 does not support --exclude-peers.
 ```
-
-## `vp why react -r`
-
-**Exit code:** 1
-
-```
-yarn < 2 does not support --recursive.
-```
-
-## `vp why react --exclude-peers`
-
-**Exit code:** 1
-
-```
-yarn < 2 does not support --exclude-peers.
-```

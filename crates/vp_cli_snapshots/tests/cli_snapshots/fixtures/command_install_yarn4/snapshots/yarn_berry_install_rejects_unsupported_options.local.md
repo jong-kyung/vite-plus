@@ -1,45 +1,5 @@
 # yarn_berry_install_rejects_unsupported_options
 
-## `vp install --prefer-offline`
-
-**Exit code:** 1
-
-```
-yarn >= 2 does not support --prefer-offline.
-```
-
-## `vp install --offline`
-
-**Exit code:** 1
-
-```
-yarn >= 2 does not support --offline.
-```
-
-## `vp install --no-lockfile`
-
-**Exit code:** 1
-
-```
-yarn >= 2 does not support --no-lockfile.
-```
-
-## `vp install --force`
-
-**Exit code:** 1
-
-```
-yarn >= 2 does not support --force.
-```
-
-## `vp install --no-optional`
-
-**Exit code:** 1
-
-```
-yarn >= 2 does not support --no-optional.
-```
-
 ## `vp install --prefer-offline --offline --no-lockfile --force --no-optional --silent`
 
 report all unsupported options, including Berry's existing silent restriction

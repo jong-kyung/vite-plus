@@ -3,8 +3,6 @@ name = "remove_selectors_rejected"
 vp = ["local", "global"]
 skip-platforms = ["windows"]
 steps = [
-  { argv = ["vp", "remove", "--recursive", "testnpm2"], comment = "reject recursive removal instead of passing Classic's ineffective --all flag", continue-on-failure = true },
-  { argv = ["vp", "remove", "--filter", "app", "testnpm2"], comment = "report unsupported workspace filtering before execution", continue-on-failure = true },
   { argv = ["vp", "remove", "--save-dev", "--save-optional", "--save-prod", "--filter", "app", "--recursive", "testnpm2"], comment = "reject all unsupported removal selectors without changing the project", continue-on-failure = true },
   ["vpt", "print-file", "package.json"],
   ["vpt", "stat-file", "node_modules", "--assert", "missing"],

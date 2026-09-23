@@ -1,25 +1,5 @@
 # yarn_classic_install_rejects_lockfile_only_and_filter
 
-## `vp install --lockfile-only`
-
-reject lockfile-only instead of performing a full install
-
-**Exit code:** 1
-
-```
-yarn < 2 does not support --lockfile-only.
-```
-
-## `vp install --filter app`
-
-reject filtering instead of installing every package
-
-**Exit code:** 1
-
-```
-yarn < 2 does not support --filter.
-```
-
 ## `vp install --lockfile-only --filter app --silent`
 
 report both unsupported options even in silent mode

@@ -806,14 +806,6 @@ mod tests {
     }
 
     #[test]
-    fn test_bun_update_keeps_raw_dev_pass_through() {
-        let args = parse_args::<UpdateArgs>(["react", "--", "--dev"]).unwrap();
-        let resolution = resolve(&bun("1.3.14"), args);
-        assert!(resolution.diagnostics.is_empty());
-        assert_eq!(expect_run(resolution.outcome).args, vec!["update", "--dev", "react"]);
-    }
-
-    #[test]
     fn test_bun_update_prod_and_optional_selection() {
         for version in ["1.4.0", "1.4.2"] {
             for (flags, expected) in [

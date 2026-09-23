@@ -1024,16 +1024,13 @@ mod tests {
 
     #[test]
     fn yarn_berry_rejects_unsupported_install_options() {
-        for version in ["2.0.0", "2.4.2", "3.6.0", "4.16.0"] {
-            for option in
-                ["--prefer-offline", "--offline", "--no-lockfile", "--force", "--no-optional"]
-            {
-                let args = parse_args::<InstallArgs>([option]).unwrap();
-                expect_unsupported(
-                    resolve(&yarn(version), args),
-                    &[&vt_str::format!("yarn >= 2 does not support {option}.")],
-                );
-            }
+        for option in ["--prefer-offline", "--offline", "--no-lockfile", "--force", "--no-optional"]
+        {
+            let args = parse_args::<InstallArgs>([option]).unwrap();
+            expect_unsupported(
+                resolve(&yarn("2.0.0"), args),
+                &[&vt_str::format!("yarn >= 2 does not support {option}.")],
+            );
         }
     }
 

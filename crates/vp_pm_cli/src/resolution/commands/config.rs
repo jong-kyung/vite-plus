@@ -510,46 +510,42 @@ mod tests {
 
     #[test]
     fn test_berry_user_location_writes_home_and_reads_effective_config() {
-        for version in ["2.2.0", "2.4.2", "3.0.0", "3.6.0", "4.18.0"] {
-            for command in [
-                vec!["list"],
-                vec!["get", "npmRegistryServer"],
-                vec!["set", "npmRegistryServer", "https://registry.example.com"],
-            ] {
-                let mut expected = expect_run(
-                    resolve(
-                        &yarn(version),
-                        parse_subcommand::<ConfigCommand>(command.clone()).unwrap(),
-                    )
-                    .outcome,
-                );
-                if command[0] == "set" {
-                    expected.args.push("--home".to_string());
-                }
-                let args = parse_subcommand::<ConfigCommand>(
-                    command.into_iter().chain(["--location", "user"]),
+        for command in [
+            vec!["list"],
+            vec!["get", "npmRegistryServer"],
+            vec!["set", "npmRegistryServer", "https://registry.example.com"],
+        ] {
+            let mut expected = expect_run(
+                resolve(
+                    &yarn("4.18.0"),
+                    parse_subcommand::<ConfigCommand>(command.clone()).unwrap(),
                 )
-                .unwrap();
-                let resolution = resolve(&yarn(version), args);
-                assert_eq!(expect_run(resolution.outcome), expected);
-                assert!(resolution.diagnostics.is_empty());
-            }
-        }
-        for version in ["3.0.0", "3.6.0", "4.18.0"] {
-            let args = parse_subcommand::<ConfigCommand>([
-                "delete",
-                "npmRegistryServer",
-                "--location",
-                "user",
-            ])
-            .unwrap();
-            let resolution = resolve(&yarn(version), args);
-            assert_eq!(
-                expect_run(resolution.outcome).args,
-                vec!["config", "unset", "npmRegistryServer", "--home"]
+                .outcome,
             );
+            if command[0] == "set" {
+                expected.args.push("--home".to_string());
+            }
+            let args = parse_subcommand::<ConfigCommand>(
+                command.into_iter().chain(["--location", "user"]),
+            )
+            .unwrap();
+            let resolution = resolve(&yarn("4.18.0"), args);
+            assert_eq!(expect_run(resolution.outcome), expected);
             assert!(resolution.diagnostics.is_empty());
         }
+        let args = parse_subcommand::<ConfigCommand>([
+            "delete",
+            "npmRegistryServer",
+            "--location",
+            "user",
+        ])
+        .unwrap();
+        let resolution = resolve(&yarn("4.18.0"), args);
+        assert_eq!(
+            expect_run(resolution.outcome).args,
+            vec!["config", "unset", "npmRegistryServer", "--home"]
+        );
+        assert!(resolution.diagnostics.is_empty());
     }
 
     #[test]

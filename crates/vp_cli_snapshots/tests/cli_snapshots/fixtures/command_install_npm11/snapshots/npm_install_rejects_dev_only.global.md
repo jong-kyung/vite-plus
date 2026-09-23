@@ -12,6 +12,17 @@ VITE+ - The Unified Toolchain for the Web
 npm does not support --dev.
 ```
 
+## `vp install --dev --fix-lockfile --silent`
+
+silent mode still reports all unsupported options
+
+**Exit code:** 1
+
+```
+npm does not support --dev.
+npm does not support --fix-lockfile.
+```
+
 ## `vpt stat-file package-lock.json --assert missing`
 
 ```
@@ -22,17 +33,6 @@ package-lock.json: missing
 
 ```
 node_modules: missing
-```
-
-## `vp install --dev --fix-lockfile --silent`
-
-silent mode still reports all unsupported options
-
-**Exit code:** 1
-
-```
-npm does not support --dev.
-npm does not support --fix-lockfile.
 ```
 
 ## `vp install --ignore-scripts`
