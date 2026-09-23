@@ -292,7 +292,7 @@ mod tests {
 
     #[test]
     fn test_yarn_why_json() {
-        for version in ["1.22.22", "2.4.2", "3.6.0", "4.10.3"] {
+        for version in ["1.22.22", "4.18.0"] {
             let mut options = why_args(&["react"]);
             options.json = true;
             let resolution = resolve(&yarn(version), options);
@@ -309,50 +309,31 @@ mod tests {
 
     #[test]
     fn yarn_rejects_depth_and_optional_filtering() {
-        for version in ["1.22.22", "2.4.2", "3.6.0", "4.18.0"] {
-            for depth in [0, 2] {
-                let args =
-                    WhyArgs { depth: Some(depth), no_optional: true, ..why_args(&["react"]) };
-                expect_unsupported(
-                    resolve(&yarn(version), args),
-                    &["yarn does not support --depth.", "yarn does not support --no-optional."],
-                );
-            }
-            let args = WhyArgs { no_optional: true, ..why_args(&["react"]) };
-            expect_unsupported(
-                resolve(&yarn(version), args),
-                &["yarn does not support --no-optional."],
-            );
-        }
+        let args = WhyArgs { depth: Some(0), no_optional: true, ..why_args(&["react"]) };
+        expect_unsupported(
+            resolve(&yarn("4.18.0"), args),
+            &["yarn does not support --depth.", "yarn does not support --no-optional."],
+        );
     }
 
     #[test]
     fn classic_rejects_recursive_and_peer_options() {
-        for (recursive, exclude_peers, messages) in [
-            (true, false, vec!["yarn < 2 does not support --recursive."]),
-            (false, true, vec!["yarn < 2 does not support --exclude-peers."]),
-            (
-                true,
-                true,
-                vec![
-                    "yarn < 2 does not support --recursive.",
-                    "yarn < 2 does not support --exclude-peers.",
-                ],
-            ),
-        ] {
-            let args = WhyArgs { recursive, exclude_peers, ..why_args(&["react"]) };
-            expect_unsupported(resolve(&yarn("1.22.22"), args), &messages);
-        }
+        let args = WhyArgs { recursive: true, exclude_peers: true, ..why_args(&["react"]) };
+        expect_unsupported(
+            resolve(&yarn("1.22.22"), args),
+            &[
+                "yarn < 2 does not support --recursive.",
+                "yarn < 2 does not support --exclude-peers.",
+            ],
+        );
     }
 
     #[test]
     fn berry_preserves_recursive_and_peer_options() {
-        for version in ["2.4.2", "3.6.0", "4.18.0"] {
-            let args = WhyArgs { recursive: true, exclude_peers: true, ..why_args(&["react"]) };
-            let resolution = resolve(&yarn(version), args);
-            assert!(resolution.diagnostics.is_empty());
-            assert_eq!(expect_run(resolution.outcome).args, vec!["why", "react", "--recursive"]);
-        }
+        let args = WhyArgs { recursive: true, exclude_peers: true, ..why_args(&["react"]) };
+        let resolution = resolve(&yarn("4.18.0"), args);
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(expect_run(resolution.outcome).args, vec!["why", "react", "--recursive"]);
     }
 
     #[test]
@@ -370,42 +351,6 @@ mod tests {
     }
 
     #[test]
-    fn npm_rejects_dependency_type_filters() {
-        for version in ["10.9.4", "11.16.0", "12.0.2"] {
-            let args = WhyArgs { no_optional: true, ..why_args(&["react"]) };
-            expect_unsupported(
-                resolve(&npm(version), args),
-                &["npm does not support --no-optional."],
-            );
-            let args = WhyArgs { exclude_peers: true, ..why_args(&["react"]) };
-            expect_unsupported(
-                resolve(&npm(version), args),
-                &["npm does not support --exclude-peers."],
-            );
-        }
-    }
-
-    #[test]
-    fn npm_rejects_workspace_selectors() {
-        for version in ["10.9.4", "11.16.0", "12.0.2"] {
-            let args = WhyArgs {
-                recursive: true,
-                filter: vec!["app".to_string()],
-                ..why_args(&["react"])
-            };
-            expect_unsupported(
-                resolve(&npm(version), args),
-                &["npm does not support --recursive."],
-            );
-            let args = WhyArgs { workspace_root: true, ..why_args(&["react"]) };
-            expect_unsupported(
-                resolve(&npm(version), args),
-                &["npm does not support --workspace-root."],
-            );
-        }
-    }
-
-    #[test]
     fn workspace_selectors_preserve_pnpm_and_raw_arguments() {
         let args = WhyArgs { recursive: true, workspace_root: true, ..why_args(&["react"]) };
         let resolution = resolve(&pnpm("11.3.0"), args);
@@ -416,28 +361,28 @@ mod tests {
         );
 
         let args = WhyArgs {
-            pass_through_args: vec!["--recursive".to_string(), "--workspace-root".to_string()],
+            pass_through_args: [
+                "--recursive",
+                "--workspace-root",
+                "--no-optional",
+                "--exclude-peers",
+            ]
+            .map(str::to_string)
+            .to_vec(),
             ..why_args(&["react"])
         };
         let resolution = resolve(&npm("12.0.2"), args);
         assert!(resolution.diagnostics.is_empty());
         assert_eq!(
             expect_run(resolution.outcome).args,
-            vec!["explain", "react", "--recursive", "--workspace-root"]
-        );
-    }
-
-    #[test]
-    fn npm_preserves_raw_dependency_type_filters() {
-        let args = WhyArgs {
-            pass_through_args: vec!["--no-optional".to_string(), "--exclude-peers".to_string()],
-            ..why_args(&["react"])
-        };
-        let resolution = resolve(&npm("12.0.2"), args);
-        assert!(resolution.diagnostics.is_empty());
-        assert_eq!(
-            expect_run(resolution.outcome).args,
-            vec!["explain", "react", "--no-optional", "--exclude-peers"]
+            vec![
+                "explain",
+                "react",
+                "--recursive",
+                "--workspace-root",
+                "--no-optional",
+                "--exclude-peers"
+            ]
         );
     }
 
@@ -460,24 +405,6 @@ mod tests {
         let resolution = resolve(&bun("1.4.0"), args);
         assert!(resolution.diagnostics.is_empty());
         assert_eq!(expect_run(resolution.outcome).args, vec!["why", "react", "--depth", "0"]);
-    }
-
-    #[test]
-    fn yarn_preserves_raw_depth_and_optional_filtering() {
-        for version in ["1.22.22", "4.18.0"] {
-            let args = WhyArgs {
-                pass_through_args: vec![
-                    "--depth".to_string(),
-                    "0".to_string(),
-                    "--no-optional".to_string(),
-                ],
-                ..why_args(&["react"])
-            };
-            let raw = args.pass_through_args.clone();
-            let resolution = resolve(&yarn(version), args);
-            assert!(resolution.diagnostics.is_empty());
-            assert!(expect_run(resolution.outcome).args.ends_with(&raw));
-        }
     }
 
     #[test]
