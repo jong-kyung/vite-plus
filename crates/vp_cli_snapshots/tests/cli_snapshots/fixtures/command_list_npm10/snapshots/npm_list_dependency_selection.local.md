@@ -1,6 +1,6 @@
 # npm_list_dependency_selection
 
-## `node -e 'const fs = require('\''node:fs'\''); const p = JSON.parse(fs.readFileSync('\''package.json'\'')); p.optionalDependencies = {'\''yocto-queue'\'': '\''0.1.0'\''}; fs.writeFileSync('\''package.json'\'', JSON.stringify(p));'`
+## `vpt json-edit package.json optionalDependencies.yocto-queue '"0.1.0"'`
 
 
 ## `vp install --ignore-scripts`

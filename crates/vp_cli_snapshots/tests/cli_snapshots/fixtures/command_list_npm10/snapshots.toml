@@ -23,7 +23,7 @@ vp = ["local", "global"]
 local-registry = true
 skip-platforms = ["windows"]
 steps = [
-  { argv = ["node", "-e", "const fs = require('node:fs'); const p = JSON.parse(fs.readFileSync('package.json')); p.optionalDependencies = {'yocto-queue': '0.1.0'}; fs.writeFileSync('package.json', JSON.stringify(p));"], snapshot = false },
+  { argv = ["vpt", "json-edit", "package.json", "optionalDependencies.yocto-queue", "\"0.1.0\""], snapshot = false },
   { argv = ["vp", "install", "--ignore-scripts"], snapshot = false },
   { argv = ["vp", "pm", "list", "--prod", "--json"], comment = "production listing excludes dev but keeps optional and peer dependencies" },
   { argv = ["vp", "pm", "list", "--prod", "--no-optional", "--exclude-peers", "--json"], comment = "production listing respects both exclusions" },
