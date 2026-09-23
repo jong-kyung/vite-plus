@@ -14,7 +14,8 @@ name = "outdated_json_format_is_rejected"
 vp = ["local", "global"]
 steps = [
   { argv = ["vp", "outdated", "--format", "json", "--", "--help"], comment = "Reject named JSON format before running Bun, even when help is passed through.", continue-on-failure = true },
-  { argv = ["vp", "outdated", "--format", "json", "--long"], comment = "Collect value-specific and declarative support errors together.", continue-on-failure = true },
+  { argv = ["vp", "outdated", "--format", "json", "--long"], comment = "Collect declarative support errors together.", continue-on-failure = true },
+  { argv = ["vp", "outdated", "--format", "table"], comment = "Reject explicit table format too; omit --format for Bun's default output.", continue-on-failure = true },
 ]
 
 [[case]]
@@ -29,7 +30,7 @@ name = "outdated_list_format_is_rejected"
 vp = ["local", "global"]
 steps = [
   { argv = ["vp", "outdated", "--format", "list", "--", "--help"], comment = "Reject named list format instead of silently using Bun's table output.", continue-on-failure = true },
-  { argv = ["vp", "outdated", "--format", "list", "--long"], comment = "Collect value-specific and declarative support errors together.", continue-on-failure = true },
+  { argv = ["vp", "outdated", "--format", "list", "--long"], comment = "Collect declarative support errors together.", continue-on-failure = true },
 ]
 
 [[case]]

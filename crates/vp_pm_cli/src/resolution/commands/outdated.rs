@@ -56,7 +56,7 @@ pub struct OutdatedArgs {
     pub(crate) long: bool,
 
     /// Output format: table (default), list, or json
-    #[arg(long, value_name = "FORMAT", value_parser = clap::value_parser!(OutdatedFormat), not_supported(yarn >= "2"))]
+    #[arg(long, value_name = "FORMAT", value_parser = clap::value_parser!(OutdatedFormat), not_supported(yarn >= "2", bun))]
     pub(crate) format: Option<OutdatedFormat>,
 
     /// Check recursively across all workspaces
@@ -202,17 +202,6 @@ impl Resolve<OutdatedArgs> for Yarn {
 }
 
 impl Resolve<OutdatedArgs> for Bun {
-    fn diagnose(&self, args: &OutdatedArgs, diag: &mut Diagnostics) {
-        if let Some(format) = args.format
-            && format != OutdatedFormat::Table
-        {
-            diag.warn(
-                DiagnosticKind::UnsupportedOption,
-                vt_str::format!("bun does not support --format {}.", format.as_str()),
-            );
-        }
-    }
-
     fn resolve(&self, args: &OutdatedArgs, _diag: &mut Diagnostics) -> CommandResolution {
         if args.global {
             return Npm::resolve_outdated(args);
@@ -442,8 +431,8 @@ mod tests {
             bun_resolution,
             &[
                 "bun does not support --long.",
+                "bun does not support --format.",
                 "bun does not support --workspace-root.",
-                "bun does not support --format list.",
             ],
         );
     }
@@ -636,12 +625,11 @@ mod tests {
     }
 
     #[test]
-    fn bun_outdated_preserves_table_and_supported_flags() {
+    fn bun_outdated_preserves_default_and_supported_flags() {
         let resolution = resolve(
             &bun("1.3.11"),
             OutdatedArgs {
                 packages: vec!["react".to_string()],
-                format: Some(OutdatedFormat::Table),
                 filter: vec!["app".to_string()],
                 recursive: true,
                 prod: true,
@@ -669,13 +657,13 @@ mod tests {
     }
 
     #[test]
-    fn bun_outdated_rejects_non_table_formats() {
+    fn bun_outdated_rejects_explicit_formats() {
         for version in ["1.3.11", "1.3.14", "1.4.0"] {
-            for format in ["json", "list"] {
+            for format in ["table", "json", "list"] {
                 let args = parse_args::<OutdatedArgs>(["--format", format]).unwrap();
                 expect_unsupported(
                     resolve(&bun(version), args),
-                    &[&vt_str::format!("bun does not support --format {format}.")],
+                    &["bun does not support --format."],
                 );
             }
         }
@@ -683,14 +671,11 @@ mod tests {
 
     #[test]
     fn bun_outdated_reports_formats_with_other_unsupported_options() {
-        for format in ["json", "list"] {
+        for format in ["table", "json", "list"] {
             let args = parse_args::<OutdatedArgs>(["--format", format, "--long"]).unwrap();
             expect_unsupported(
                 resolve(&bun("1.4.0"), args),
-                &[
-                    "bun does not support --long.",
-                    &vt_str::format!("bun does not support --format {format}."),
-                ],
+                &["bun does not support --long.", "bun does not support --format."],
             );
         }
     }
