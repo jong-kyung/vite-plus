@@ -9,7 +9,7 @@ reject dev-only install before installing the production dependency
 ```
 VITE+ - The Unified Toolchain for the Web
 
-yarn does not support --dev.
+yarn >= 2 does not support --dev.
 ```
 
 ## `vpt stat-file node_modules --assert missing`
@@ -33,7 +33,7 @@ dev-only install is also rejected in frozen-lockfile mode
 ```
 VITE+ - The Unified Toolchain for the Web
 
-yarn does not support --dev.
+yarn >= 2 does not support --dev.
 ```
 
 ## `vp install --dev --resolution-only --silent`
@@ -43,7 +43,7 @@ report all unsupported options, including Berry's existing silent restriction
 **Exit code:** 1
 
 ```
-yarn does not support --dev.
+yarn >= 2 does not support --dev.
 yarn does not support --resolution-only.
 yarn >= 2 does not support --silent.
 ```

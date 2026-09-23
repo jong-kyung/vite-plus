@@ -8,10 +8,7 @@ Report every unsupported option without changing dependencies.
 
 ```
 npm does not support --latest.
-npm does not support --dev.
-npm does not support --prod.
 npm does not support --interactive.
-npm does not support --no-optional.
 npm does not support --workspace.
 ```
 

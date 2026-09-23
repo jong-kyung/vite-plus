@@ -8,8 +8,6 @@ report every unsupported dependency selector before updating
 
 ```
 yarn does not support --dev.
-yarn does not support --prod.
-yarn does not support --no-optional.
 yarn does not support --workspace.
 ```
 

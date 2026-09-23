@@ -113,10 +113,8 @@ vp = "global"
 # dep-v2's manifest must differ in size because Classic skips copying files with equal size/mtime.
 steps = [
   { argv = ["vpt", "json-edit", "package.json", "packageManager", "yarn@1.22.22"], snapshot = false },
-  { argv = ["vp", "install", "./dep", "--frozen-lockfile"], comment = "named-package installs reject the unsupported add option", continue-on-failure = true },
+  { argv = ["vp", "install", "./dep", "--frozen-lockfile"], comment = "Classic adds the package without writing a lockfile" },
   ["vpt", "stat-file", "yarn.lock", "--assert", "missing"],
-  { argv = ["vp", "add", "./dep", "--frozen-lockfile"], comment = "direct add also rejects the unsupported option", continue-on-failure = true },
-  ["vpt", "stat-file", "node_modules", "--assert", "missing"],
   ["vp", "install", "./dep"],
   ["node", "-p", "require('./node_modules/install-option-dep/package.json').version"],
   { argv = ["vp", "install", "--frozen-lockfile"], comment = "package-free frozen installs succeed when the manifest and lockfile agree" },
@@ -127,6 +125,9 @@ steps = [
   ["node", "-p", "require('./node_modules/install-option-dep/package.json').version"],
   { argv = ["vp", "add", "./dep", "--no-frozen-lockfile"], comment = "Classic add rejects the unsupported negated flag without downgrading the installed package", continue-on-failure = true },
   ["node", "-p", "require('./node_modules/install-option-dep/package.json').version"],
+  { argv = ["vp", "add", "./dep", "--frozen-lockfile"], comment = "Classic add changes the installed package but preserves the existing lockfile" },
+  ["node", "-p", "require('./node_modules/install-option-dep/package.json').version"],
+  ["vpt", "print-file", "package.json", "yarn.lock"],
 ]
 
 [[case]]

@@ -1,13 +1,14 @@
 [[case]]
-name = "bun_install_rejects_dev_only"
+name = "bun_install_preserves_native_dev"
 vp = ["local", "global"]
 skip-platforms = ["windows"]
 steps = [
-  { argv = ["vp", "install", "-D"], comment = "reject dev-only install before installing the production dependency", continue-on-failure = true },
+  { argv = ["vp", "install", "--dev", "--prefer-offline", "--silent"], comment = "unsupported options still fail before installation", continue-on-failure = true },
   { argv = ["vpt", "stat-file", "node_modules", "--assert", "missing"], continue-on-failure = true },
   { argv = ["vpt", "stat-file", "bun.lock", "--assert", "missing"], continue-on-failure = true },
-  { argv = ["vp", "install", "--dev", "--frozen-lockfile"], comment = "dev-only install is also rejected in frozen-lockfile mode", continue-on-failure = true },
-  { argv = ["vp", "install", "--dev", "--prefer-offline", "--silent"], comment = "silent mode still reports all unsupported options", continue-on-failure = true },
+  { argv = ["vp", "install", "-D"], comment = "Bun's native dev option does not exclude production dependencies" },
+  ["vpt", "stat-file", "node_modules/prod-only-fixture/package.json", "--assert", "file"],
+  { argv = ["vp", "install", "--dev", "--frozen-lockfile"], comment = "preserve the dev option in frozen-lockfile mode too" },
   { argv = ["vpt", "print-file", "package.json"], continue-on-failure = true },
 ]
 

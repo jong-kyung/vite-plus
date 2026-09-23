@@ -51,12 +51,12 @@ up to date in <duration>
 
 ## `vp up -D --filter app -- --no-audit`
 
-reject dev-only updates before changing the selected workspace
-
-**Exit code:** 1
+include dev dependencies using npm's native behavior in the selected workspace
 
 ```
-npm does not support --dev.
+npm warn workspaces app in filter set, but no workspace folder present
+
+up to date in <duration>
 ```
 
 ## `vpt print-file packages/app/package.json`

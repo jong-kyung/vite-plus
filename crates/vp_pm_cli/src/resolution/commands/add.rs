@@ -35,12 +35,12 @@ pub struct AddArgs {
     #[arg(long, conflicts_with = "global", not_supported(yarn >= "2"))]
     pub(crate) no_optional: bool,
 
-    /// Fail if lockfile needs to be updated
+    /// Don't update lockfile
     #[arg(
         long,
         conflicts_with = "global",
         overrides_with = "no_frozen_lockfile",
-        not_supported(npm, pnpm, yarn)
+        not_supported(npm, pnpm, yarn >= "2")
     )]
     pub(crate) frozen_lockfile: bool,
 
@@ -295,7 +295,8 @@ impl Resolve<AddArgs> for Yarn {
         if self.is_berry() {
             Self::apply_berry_install_mode(&mut cmd, args.lockfile_only, args.ignore_scripts, diag);
         } else {
-            cmd.arg_if("--ignore-scripts", args.ignore_scripts)
+            cmd.arg_if("--frozen-lockfile", args.frozen_lockfile)
+                .arg_if("--ignore-scripts", args.ignore_scripts)
                 .arg_if("--ignore-optional", args.no_optional)
                 .arg_if("--prefer-offline", args.prefer_offline)
                 .arg_if("--offline", args.offline)
@@ -658,16 +659,21 @@ mod tests {
     }
 
     #[test]
-    fn yarn_add_rejects_frozen_lockfile_options() {
-        for version in ["1.22.22", "4.0.0"] {
-            for flag in ["--frozen-lockfile", "--no-frozen-lockfile"] {
-                let args = parse_args::<AddArgs>([flag, "react"]).unwrap();
-                let resolution = resolve(&yarn(version), args);
-                expect_unsupported(
-                    resolution,
-                    &[vt_str::format!("yarn does not support {flag}.").as_str()],
-                );
-            }
+    fn yarn_add_frozen_lockfile_options_follow_native_support() {
+        let args = parse_args::<AddArgs>(["--frozen-lockfile", "react"]).unwrap();
+        let resolution = resolve(&yarn("1.22.22"), args.clone());
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(expect_run(resolution.outcome).args, ["add", "--frozen-lockfile", "react"]);
+        expect_unsupported(
+            resolve(&yarn("2.0.0"), args),
+            &["yarn >= 2 does not support --frozen-lockfile."],
+        );
+        for version in ["1.22.22", "2.0.0"] {
+            let args = parse_args::<AddArgs>(["--no-frozen-lockfile", "react"]).unwrap();
+            expect_unsupported(
+                resolve(&yarn(version), args),
+                &["yarn does not support --no-frozen-lockfile."],
+            );
         }
     }
 

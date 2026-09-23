@@ -16,8 +16,8 @@ pub struct InstallArgs {
     #[arg(short = 'P', long)]
     pub(crate) prod: bool,
 
-    /// Only install devDependencies (install) / Save to devDependencies (add)
-    #[arg(short = 'D', long, not_supported(npm, bun, yarn))]
+    /// Install devDependencies (install) / Save to devDependencies (add)
+    #[arg(short = 'D', long, not_supported(yarn >= "2"))]
     pub(crate) dev: bool,
 
     /// Do not install optionalDependencies
@@ -148,8 +148,8 @@ impl Resolve<InstallArgs> for Pnpm {
 impl InstallArgs {
     pub(crate) fn resolve_for_manager(self, manager: &PackageManager) -> Result<Resolution, Error> {
         let adding_packages = !self.packages.is_empty();
-        // Reject invalid install modes before conversion discards fields or
-        // manager-specific support checks report unrelated errors.
+        // Diagnose the selected mode before conversion discards fields, and before
+        // manager-specific support rules can produce misleading or duplicate errors.
         let (mode, unsupported): (&str, &[(&str, bool)]) = if adding_packages {
             (
                 "with package names",
@@ -238,8 +238,9 @@ impl Resolve<InstallArgs> for Npm {
         let use_ci = args.frozen_lockfile && !args.no_frozen_lockfile;
         let mut cmd = CommandBuilder::new("npm");
         cmd.arg(if use_ci { "ci" } else { "install" });
-        cmd.arg_if("--omit=dev", args.prod);
-        cmd.arg_if("--omit=optional", args.no_optional);
+        cmd.arg_if("--omit=dev", args.prod)
+            .arg_if("--include=dev", args.dev)
+            .arg_if("--omit=optional", args.no_optional);
         cmd.arg_if("--package-lock-only", args.lockfile_only && !use_ci)
             .arg_if("--prefer-offline", args.prefer_offline)
             .arg_if("--offline", args.offline)
@@ -271,6 +272,7 @@ impl Yarn {
         let mut cmd = CommandBuilder::new("yarn");
         cmd.arg("install")
             .arg_if("--production", args.prod)
+            .arg_if("--production=false", args.dev)
             .arg_if("--ignore-optional", args.no_optional);
         if args.no_frozen_lockfile {
             cmd.arg("--no-frozen-lockfile");
@@ -333,7 +335,7 @@ impl Yarn {
 impl Resolve<InstallArgs> for Bun {
     fn resolve(&self, args: &InstallArgs, _diag: &mut Diagnostics) -> CommandResolution {
         let mut cmd = CommandBuilder::new("bun");
-        cmd.arg("install").arg_if("--production", args.prod);
+        cmd.arg("install").arg_if("--production", args.prod).arg_if("--dev", args.dev);
         if args.no_frozen_lockfile {
             cmd.arg("--no-frozen-lockfile");
         } else {
@@ -568,15 +570,15 @@ mod tests {
     }
 
     #[test]
-    fn npm_rejects_dev_only_install() {
-        for version in ["10.9.4", "11.16.0", "12.0.2"] {
-            for frozen_lockfile in [false, true] {
-                let options = InstallArgs { dev: true, frozen_lockfile, ..Default::default() };
-                expect_unsupported(
-                    resolve(&npm(version), options),
-                    &["npm does not support --dev."],
-                );
-            }
+    fn npm_install_includes_dev_dependencies() {
+        for frozen_lockfile in [false, true] {
+            let options = InstallArgs { dev: true, frozen_lockfile, ..Default::default() };
+            let resolution = resolve(&npm("11.16.0"), options);
+            assert!(resolution.diagnostics.is_empty());
+            assert_eq!(
+                expect_run(resolution.outcome).args,
+                [if frozen_lockfile { "ci" } else { "install" }, "--include=dev"]
+            );
         }
     }
 
@@ -602,15 +604,20 @@ mod tests {
     }
 
     #[test]
-    fn yarn_rejects_dev_only_install() {
-        for version in ["1.22.22", "2.4.2", "3.6.0", "4.0.0", "4.16.0"] {
-            for frozen_lockfile in [false, true] {
-                let options = InstallArgs { dev: true, frozen_lockfile, ..Default::default() };
-                expect_unsupported(
-                    resolve(&yarn(version), options),
-                    &["yarn does not support --dev."],
-                );
+    fn yarn_install_dev_follows_native_support() {
+        for frozen_lockfile in [false, true] {
+            let options = InstallArgs { dev: true, frozen_lockfile, ..Default::default() };
+            let resolution = resolve(&yarn("1.22.22"), options.clone());
+            assert!(resolution.diagnostics.is_empty());
+            let mut expected = vec!["install", "--production=false"];
+            if frozen_lockfile {
+                expected.push("--frozen-lockfile");
             }
+            assert_eq!(expect_run(resolution.outcome).args, expected);
+            expect_unsupported(
+                resolve(&yarn("2.0.0"), options),
+                &["yarn >= 2 does not support --dev."],
+            );
         }
     }
 
@@ -626,12 +633,18 @@ mod tests {
 
     #[test]
     fn yarn_rejects_all_unsupported_install_options() {
-        for version in ["1.22.22", "4.16.0"] {
+        for (version, messages) in [
+            ("1.22.22", vec!["yarn does not support --resolution-only."]),
+            (
+                "4.16.0",
+                vec![
+                    "yarn >= 2 does not support --dev.",
+                    "yarn does not support --resolution-only.",
+                ],
+            ),
+        ] {
             let options = InstallArgs { dev: true, resolution_only: true, ..Default::default() };
-            expect_unsupported(
-                resolve(&yarn(version), options),
-                &["yarn does not support --dev.", "yarn does not support --resolution-only."],
-            );
+            expect_unsupported(resolve(&yarn(version), options), &messages);
         }
     }
 
@@ -993,8 +1006,8 @@ mod tests {
     }
 
     #[test]
-    fn npm_rejects_dev_before_ci() {
-        expect_unsupported(
+    fn npm_ci_preserves_dev_without_install_only_flags() {
+        let command = expect_run(
             resolve(
                 &npm("11.0.0"),
                 InstallArgs {
@@ -1005,9 +1018,10 @@ mod tests {
                     no_lockfile: true,
                     ..Default::default()
                 },
-            ),
-            &["npm does not support --dev."],
+            )
+            .outcome,
         );
+        assert_eq!(command.args, ["ci", "--include=dev"]);
     }
 
     #[test]
@@ -1016,10 +1030,7 @@ mod tests {
             &npm("11.0.0"),
             InstallArgs { dev: true, fix_lockfile: true, silent: true, ..Default::default() },
         );
-        expect_unsupported(
-            resolution,
-            &["npm does not support --dev.", "npm does not support --fix-lockfile."],
-        );
+        expect_unsupported(resolution, &["npm does not support --fix-lockfile."]);
     }
 
     #[test]
@@ -1117,15 +1128,16 @@ mod tests {
     }
 
     #[test]
-    fn bun_rejects_dev_only_install() {
-        for version in ["1.3.11", "1.3.14", "1.4.0"] {
-            for frozen_lockfile in [false, true] {
-                let options = InstallArgs { dev: true, frozen_lockfile, ..Default::default() };
-                expect_unsupported(
-                    resolve(&bun(version), options),
-                    &["bun does not support --dev."],
-                );
+    fn bun_install_preserves_native_dev_option() {
+        for frozen_lockfile in [false, true] {
+            let options = InstallArgs { dev: true, frozen_lockfile, ..Default::default() };
+            let resolution = resolve(&bun("1.3.11"), options);
+            assert!(resolution.diagnostics.is_empty());
+            let mut expected = vec!["install", "--dev"];
+            if frozen_lockfile {
+                expected.push("--frozen-lockfile");
             }
+            assert_eq!(expect_run(resolution.outcome).args, expected);
         }
     }
 
@@ -1155,7 +1167,6 @@ mod tests {
         expect_unsupported(
             resolution,
             &[
-                "bun does not support --dev.",
                 "bun does not support --prefer-offline.",
                 "bun does not support --offline.",
                 "bun does not support --no-lockfile.",

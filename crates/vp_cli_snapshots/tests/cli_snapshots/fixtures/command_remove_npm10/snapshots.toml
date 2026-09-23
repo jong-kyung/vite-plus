@@ -1,11 +1,9 @@
 [[case]]
-name = "remove_selectors_rejected"
+name = "npm_remove_preserves_native_save_flags"
 vp = ["local", "global"]
 steps = [
-  { argv = ["vp", "remove", "--save-dev", "--save-optional", "--save-prod", "testnpm2"], comment = "reject all unsupported removal selectors without changing the project", continue-on-failure = true },
+  { argv = ["vp", "remove", "--save-dev", "--save-optional", "--save-prod", "testnpm2", "--", "--no-audit", "--no-fund"], comment = "let npm handle its native save flags" },
   ["vpt", "print-file", "package.json"],
-  ["vpt", "stat-file", "node_modules", "--assert", "missing"],
-  ["vpt", "stat-file", "package-lock.json", "--assert", "missing"],
 ]
 
 [[case]]
@@ -14,7 +12,7 @@ vp = "global"
 serial = true
 skip-platforms = ["windows"]
 steps = [
-  { argv = ["vp", "remove", "testnpm2", "-D", "--", "--no-audit"], comment = "reject unsupported --save-dev even when the package is absent", continue-on-failure = true },
+  { argv = ["vp", "remove", "testnpm2", "-D", "--", "--no-audit"], comment = "delegate removal of an absent package to npm" },
   { argv = ["vpt", "print-file", "package.json"], continue-on-failure = true },
   { argv = ["vp", "add", "testnpm2", "--", "--no-audit"], comment = "should add packages to dependencies" },
   ["vp", "add", "-D", "test-vite-plus-install", "--", "--no-audit"],
@@ -22,7 +20,7 @@ steps = [
   { argv = ["vpt", "print-file", "package.json"], continue-on-failure = true },
   { argv = ["vp", "remove", "testnpm2", "test-vite-plus-install", "--", "--no-audit"], comment = "should remove packages from dependencies" },
   { argv = ["vpt", "print-file", "package.json"], continue-on-failure = true },
-  { argv = ["vp", "remove", "-D", "test-vite-plus-package-optional", "--", "--loglevel=warn", "--no-audit"], comment = "reject --save-dev without removing the optional dependency", continue-on-failure = true },
+  { argv = ["vp", "remove", "-D", "test-vite-plus-package-optional", "--", "--loglevel=warn", "--no-audit"], comment = "npm removes the optional dependency even with --save-dev" },
   { argv = ["vpt", "print-file", "package.json"], continue-on-failure = true },
   { argv = ["vp", "remove", "-g", "--dry-run", "testnpm2"], comment = "support remove global package with dry-run" },
   { argv = ["vpt", "print-file", "package.json"], continue-on-failure = true },

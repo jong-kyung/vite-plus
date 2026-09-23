@@ -16,7 +16,7 @@ named-package installs reject add's unsupported immutable option
 ```
 VITE+ - The Unified Toolchain for the Web
 
-yarn does not support --frozen-lockfile.
+yarn >= 2 does not support --frozen-lockfile.
 ```
 
 ## `vpt stat-file yarn.lock --assert missing`
