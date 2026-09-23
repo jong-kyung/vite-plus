@@ -143,11 +143,18 @@ fn resolve_yarn_config(args: &ConfigCommand, is_berry: bool) -> CommandResolutio
     append_key_value(&mut cmd, args);
     cmd.arg_if("--json", args.json());
     // Reads keep the merged configuration, as npm and pnpm do for user scope.
-    let user_write = is_berry
-        && args.effective_location() == Some("user")
-        && matches!(args, ConfigCommand::Set { .. } | ConfigCommand::Delete { .. });
-    if args.effective_location() == Some("global") || user_write {
-        cmd.arg(if is_berry { "--home" } else { "--global" });
+    // Berry only accepts `--home` on `config set` and `config unset`.
+    // https://yarnpkg.com/cli/config/set
+    // https://yarnpkg.com/cli/config/get
+    let is_write = matches!(args, ConfigCommand::Set { .. } | ConfigCommand::Delete { .. });
+    match args.effective_location() {
+        Some("global") if !is_berry => {
+            cmd.arg("--global");
+        }
+        Some("user" | "global") if is_berry && is_write => {
+            cmd.arg("--home");
+        }
+        _ => {}
     }
     cmd.into()
 }
@@ -462,6 +469,25 @@ mod tests {
         );
         assert_eq!(expect_run(user_get.outcome).args, vec!["config", "get", "registry"]);
         assert!(user_get.diagnostics.is_empty());
+
+        // `yarn config get` and `yarn config` have no `--home`; reads stay merged.
+        let global_get = resolve(
+            &yarn("4.18.0"),
+            ConfigCommand::Get {
+                key: "registry".to_string(),
+                json: false,
+                global: true,
+                location: None,
+            },
+        );
+        assert_eq!(expect_run(global_get.outcome).args, vec!["config", "get", "registry"]);
+        assert!(global_get.diagnostics.is_empty());
+        let global_list = resolve(
+            &yarn("4.18.0"),
+            ConfigCommand::List { json: false, global: true, location: None },
+        );
+        assert_eq!(expect_run(global_list.outcome).args, vec!["config"]);
+        assert!(global_list.diagnostics.is_empty());
 
         let user_delete = resolve(
             &yarn("4.18.0"),

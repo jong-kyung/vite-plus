@@ -23,6 +23,14 @@ User writes target the home config without creating a project config.
 https://home.example.com
 ```
 
+## `vp pm config get npmRegistryServer --global`
+
+Global reads stay merged because yarn config get has no --home.
+
+```
+https://home.example.com
+```
+
 ## `vp pm config set npmRegistryServer https://project.example.com --location project`
 
 ```

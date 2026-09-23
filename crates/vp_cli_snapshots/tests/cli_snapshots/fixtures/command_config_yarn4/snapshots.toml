@@ -16,6 +16,7 @@ steps = [
   { argv = ["vp", "pm", "config", "set", "npmRegistryServer", "https://home.example.com", "--location", "user"], comment = "User writes target the home config without creating a project config." },
   ["vpt", "stat-file", ".yarnrc.yml", "--assert", "missing"],
   ["vp", "pm", "config", "get", "npmRegistryServer", "--location", "user"],
+  { argv = ["vp", "pm", "config", "get", "npmRegistryServer", "--global"], comment = "Global reads stay merged because yarn config get has no --home." },
   ["vp", "pm", "config", "set", "npmRegistryServer", "https://project.example.com", "--location", "project"],
   { argv = ["vp", "pm", "config", "set", "npmRegistryServer", "https://updated-home.example.com", "--location", "user"], comment = "The home value changes, but Yarn reports the effective project value." },
   { argv = ["vp", "pm", "config", "get", "npmRegistryServer", "--location", "user"], comment = "Reads retain project precedence, matching npm and pnpm." },
