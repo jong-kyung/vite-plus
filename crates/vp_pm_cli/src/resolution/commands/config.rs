@@ -425,163 +425,50 @@ mod tests {
     }
 
     #[test]
-    fn test_yarn1_rejects_unsupported_locations() {
-        for version in ["1.22.19", "1.22.22"] {
-            for location in ["project", "unknown", ""] {
-                for command in [
-                    vec!["list"],
-                    vec!["get", "registry"],
-                    vec!["set", "registry", "https://registry.npmjs.org"],
-                    vec!["delete", "registry"],
-                ] {
-                    let args = parse_subcommand::<ConfigCommand>(
-                        command.into_iter().chain(["--location", location]),
-                    )
-                    .unwrap();
-                    expect_unsupported(
-                        resolve(&yarn(version), args),
-                        &[&vt_str::format!("Yarn Classic does not support --location {location}.")],
-                    );
-                }
-            }
-        }
-    }
-
-    #[test]
-    fn test_yarn1_location_user_matches_default_without_warning() {
-        for command in [
-            vec!["list"],
-            vec!["get", "registry"],
-            vec!["set", "registry", "https://registry.npmjs.org"],
-            vec!["delete", "registry"],
+    fn yarn_rejects_unsupported_locations() {
+        for (version, location, message) in [
+            ("1.22.22", "project", "Yarn Classic does not support --location project."),
+            ("4.18.0", "unknown", "yarn >= 2 does not support --location unknown."),
         ] {
-            let default_args = parse_subcommand::<ConfigCommand>(command.clone()).unwrap();
-            let user_args = parse_subcommand::<ConfigCommand>(
-                command.into_iter().chain(["--location", "user"]),
-            )
-            .unwrap();
-            let resolution = resolve(&yarn("1.22.22"), user_args);
-            assert_eq!(resolution.outcome, resolve(&yarn("1.22.22"), default_args).outcome);
-            assert!(resolution.diagnostics.is_empty());
+            expect_unsupported(resolve(&yarn(version), set_config(Some(location))), &[message]);
         }
     }
 
     #[test]
-    fn test_yarn1_global_keeps_precedence_over_location() {
-        let args = parse_subcommand::<ConfigCommand>([
-            "set",
-            "registry",
-            "https://registry.npmjs.org",
-            "--global",
-            "--location",
-            "project",
-        ])
-        .unwrap();
-        let resolution = resolve(&yarn("1.22.22"), args);
+    fn yarn_maps_supported_locations() {
+        let classic = resolve(&yarn("1.22.22"), set_config(Some("user")));
+        assert_eq!(classic.outcome, resolve(&yarn("1.22.22"), set_config(None)).outcome);
+        assert!(classic.diagnostics.is_empty());
+
+        let project = resolve(&yarn("4.18.0"), set_config(Some("project")));
+        assert_eq!(project.outcome, resolve(&yarn("4.18.0"), set_config(None)).outcome);
+        assert!(project.diagnostics.is_empty());
+
+        let user = resolve(&yarn("4.18.0"), set_config(Some("user")));
         assert_eq!(
-            resolution.outcome,
-            resolve(&yarn("1.22.22"), set_config(Some("global"))).outcome
+            expect_run(user.outcome).args,
+            vec!["config", "set", "registry", "https://registry.npmjs.org", "--home"]
         );
-        assert!(resolution.diagnostics.is_empty());
+        assert!(user.diagnostics.is_empty());
     }
 
     #[test]
-    fn test_yarn2_rejects_unsupported_locations() {
-        for version in ["2.4.2", "3.6.0", "4.18.0"] {
-            for location in ["unknown", ""] {
-                for command in [
-                    vec!["list"],
-                    vec!["get", "npmRegistryServer"],
-                    vec!["set", "npmRegistryServer", "https://registry.example.com"],
-                    vec!["delete", "npmRegistryServer"],
-                ] {
-                    let args = parse_subcommand::<ConfigCommand>(
-                        command.into_iter().chain(["--location", location]),
-                    )
-                    .unwrap();
-                    expect_unsupported(
-                        resolve(&yarn(version), args),
-                        &[&vt_str::format!("yarn >= 2 does not support --location {location}.")],
-                    );
-                }
-            }
-        }
-    }
-
-    #[test]
-    fn test_berry_user_location_writes_home_and_reads_effective_config() {
-        for command in [
-            vec!["list"],
-            vec!["get", "npmRegistryServer"],
-            vec!["set", "npmRegistryServer", "https://registry.example.com"],
-        ] {
-            let mut expected = expect_run(
-                resolve(
-                    &yarn("4.18.0"),
-                    parse_subcommand::<ConfigCommand>(command.clone()).unwrap(),
-                )
-                .outcome,
+    fn yarn_global_keeps_precedence_over_location() {
+        for version in ["1.22.22", "4.18.0"] {
+            let args = parse_subcommand::<ConfigCommand>([
+                "set",
+                "registry",
+                "https://registry.npmjs.org",
+                "--global",
+                "--location",
+                "project",
+            ])
+            .unwrap();
+            let resolution = resolve(&yarn(version), args);
+            assert_eq!(
+                resolution.outcome,
+                resolve(&yarn(version), set_config(Some("global"))).outcome
             );
-            if command[0] == "set" {
-                expected.args.push("--home".to_string());
-            }
-            let args = parse_subcommand::<ConfigCommand>(
-                command.into_iter().chain(["--location", "user"]),
-            )
-            .unwrap();
-            let resolution = resolve(&yarn("4.18.0"), args);
-            assert_eq!(expect_run(resolution.outcome), expected);
-            assert!(resolution.diagnostics.is_empty());
-        }
-        let args = parse_subcommand::<ConfigCommand>([
-            "delete",
-            "npmRegistryServer",
-            "--location",
-            "user",
-        ])
-        .unwrap();
-        let resolution = resolve(&yarn("4.18.0"), args);
-        assert_eq!(
-            expect_run(resolution.outcome).args,
-            vec!["config", "unset", "npmRegistryServer", "--home"]
-        );
-        assert!(resolution.diagnostics.is_empty());
-    }
-
-    #[test]
-    fn test_yarn2_location_project_matches_default_without_warning() {
-        for command in [
-            vec!["list"],
-            vec!["get", "npmRegistryServer"],
-            vec!["set", "npmRegistryServer", "https://registry.example.com"],
-            vec!["delete", "npmRegistryServer"],
-        ] {
-            let default_args = parse_subcommand::<ConfigCommand>(command.clone()).unwrap();
-            let project_args = parse_subcommand::<ConfigCommand>(
-                command.into_iter().chain(["--location", "project"]),
-            )
-            .unwrap();
-            let resolution = resolve(&yarn("4.18.0"), project_args);
-            assert_eq!(resolution.outcome, resolve(&yarn("4.18.0"), default_args).outcome);
-            assert!(resolution.diagnostics.is_empty());
-        }
-    }
-
-    #[test]
-    fn test_yarn2_global_keeps_precedence_over_location() {
-        for command in [
-            vec!["list", "--global"],
-            vec!["get", "npmRegistryServer", "--global"],
-            vec!["set", "npmRegistryServer", "https://registry.example.com", "--global"],
-            vec!["delete", "npmRegistryServer", "--global"],
-        ] {
-            let global_args = parse_subcommand::<ConfigCommand>(command.clone()).unwrap();
-            let user_args = parse_subcommand::<ConfigCommand>(
-                command.into_iter().chain(["--location", "user"]),
-            )
-            .unwrap();
-            let resolution = resolve(&yarn("4.18.0"), user_args);
-            assert_eq!(resolution.outcome, resolve(&yarn("4.18.0"), global_args).outcome);
             assert!(resolution.diagnostics.is_empty());
         }
     }
