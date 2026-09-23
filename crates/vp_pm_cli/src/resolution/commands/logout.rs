@@ -152,6 +152,24 @@ mod tests {
     }
 
     #[test]
+    fn test_yarn_berry_logout_selector_support() {
+        let registry =
+            parse_args::<LogoutArgs>(["--registry", "https://registry.example.com"]).unwrap();
+        expect_unsupported(
+            resolve(&yarn("4.18.0"), registry),
+            &["yarn does not support --registry."],
+        );
+
+        let scope = parse_args::<LogoutArgs>(["--scope", "@company", "--", "--publish"]).unwrap();
+        let resolution = resolve(&yarn("4.18.0"), scope);
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(
+            expect_run(resolution.outcome).args,
+            vec!["npm", "logout", "--scope", "@company", "--publish"]
+        );
+    }
+
+    #[test]
     fn test_logout_with_registry() {
         let resolution = resolve(
             &npm("11.0.0"),
