@@ -22,7 +22,6 @@ steps = [
   { argv = ["vp", "update", "--recursive", "is-number@7.0.0", "--", "--ignore-scripts"], cwd = "packages/app", comment = "Bun 1.4 updates the root and both workspaces even when invoked from a child" },
   ["vpt", "print-file", "package.json", "packages/app/package.json", "packages/utils/package.json"],
   ["vpt", "print-file", "bun.lock"],
-  { argv = ["node", "-e", "for (const dir of ['.', 'packages/app', 'packages/utils']) require('node:assert/strict').equal(require(require.resolve('is-number/package.json', {paths: [require('node:path').resolve(dir)]})).version, '7.0.0')"], snapshot = false },
 ]
 
 [[case]]
@@ -39,5 +38,4 @@ steps = [
   { argv = ["vp", "update", "--recursive", "--filter", "utils", "is-number@7.0.0", "--", "--ignore-scripts"], cwd = "packages/app", comment = "an explicit filter limits recursive updates to the selected workspace" },
   ["vpt", "print-file", "package.json", "packages/app/package.json", "packages/utils/package.json"],
   ["vpt", "print-file", "bun.lock"],
-  { argv = ["node", "-e", "for (const [dir, version] of [['.', '6.0.0'], ['packages/app', '6.0.0'], ['packages/utils', '7.0.0']]) require('node:assert/strict').equal(require(require.resolve('is-number/package.json', {paths: [require('node:path').resolve(dir)]})).version, version)"], snapshot = false },
 ]

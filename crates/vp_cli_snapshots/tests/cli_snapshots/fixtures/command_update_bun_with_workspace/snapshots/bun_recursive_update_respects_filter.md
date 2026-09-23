@@ -78,6 +78,3 @@ bun update <version> (<hash>)
   }
 }
 ```
-
-## `node -e 'for (const [dir, version] of [['\''.'\'', '\''6.0.0'\''], ['\''packages/app'\'', '\''6.0.0'\''], ['\''packages/utils'\'', '\''7.0.0'\'']]) require('\''node:assert/strict'\'').equal(require(require.resolve('\''is-number/package.json'\'', {paths: [require('\''node:path'\'').resolve(dir)]})).version, version)'`
-

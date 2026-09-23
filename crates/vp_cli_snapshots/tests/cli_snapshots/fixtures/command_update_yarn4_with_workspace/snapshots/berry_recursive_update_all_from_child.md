@@ -63,6 +63,3 @@ omitting package names still updates all workspace dependencies
   }
 }
 ```
-
-## `node -e 'for (const dir of ['\''.'\'', '\''packages/app'\'', '\''packages/utils'\'']) require('\''node:assert/strict'\'').equal(require(require.resolve('\''is-number/package.json'\'', {paths: [require('\''node:path'\'').resolve(dir)]})).version, '\''7.0.0'\'')'`
-

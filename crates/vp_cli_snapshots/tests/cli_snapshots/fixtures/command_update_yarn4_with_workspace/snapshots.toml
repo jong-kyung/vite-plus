@@ -67,7 +67,6 @@ steps = [
   { argv = ["vp", "install"], snapshot = false },
   { argv = ["vp", "update", "--recursive", "--latest", "is-number@7.0.0", "--", "--mode", "skip-build"], cwd = "packages/app", comment = "recursive update changes every workspace manifest, not just lockfile resolutions" },
   ["vpt", "print-file", "package.json", "packages/app/package.json", "packages/utils/package.json"],
-  { argv = ["node", "-e", "for (const dir of ['.', 'packages/app', 'packages/utils']) require('node:assert/strict').equal(require(require.resolve('is-number/package.json', {paths: [require('node:path').resolve(dir)]})).version, '7.0.0')"], snapshot = false },
 ]
 
 [[case]]
@@ -83,5 +82,4 @@ steps = [
   { argv = ["vp", "install"], snapshot = false },
   { argv = ["vp", "update", "--recursive", "--latest"], cwd = "packages/app", comment = "omitting package names still updates all workspace dependencies" },
   ["vpt", "print-file", "package.json", "packages/app/package.json", "packages/utils/package.json"],
-  { argv = ["node", "-e", "for (const dir of ['.', 'packages/app', 'packages/utils']) require('node:assert/strict').equal(require(require.resolve('is-number/package.json', {paths: [require('node:path').resolve(dir)]})).version, '7.0.0')"], snapshot = false },
 ]

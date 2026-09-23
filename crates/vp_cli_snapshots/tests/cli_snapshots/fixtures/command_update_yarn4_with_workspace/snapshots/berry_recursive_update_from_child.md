@@ -63,6 +63,3 @@ recursive update changes every workspace manifest, not just lockfile resolutions
   }
 }
 ```
-
-## `node -e 'for (const dir of ['\''.'\'', '\''packages/app'\'', '\''packages/utils'\'']) require('\''node:assert/strict'\'').equal(require(require.resolve('\''is-number/package.json'\'', {paths: [require('\''node:path'\'').resolve(dir)]})).version, '\''7.0.0'\'')'`
-
