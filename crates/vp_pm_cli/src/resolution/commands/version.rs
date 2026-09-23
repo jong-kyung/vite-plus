@@ -59,7 +59,7 @@ impl Resolve<VersionArgs> for Bun {
         if args.json {
             return unsupported_json("Bun");
         }
-        if !self.supports_version_command() {
+        if !self.supports_v1_2_18_commands() {
             diag.warn(
                 DiagnosticKind::BehaviorChange,
                 vt_str::format!(

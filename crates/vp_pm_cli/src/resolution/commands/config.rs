@@ -108,7 +108,7 @@ impl Resolve<ConfigCommand> for Yarn {
         if self.is_berry()
             && location == "user"
             && matches!(args, ConfigCommand::Set { .. })
-            && !self.supports_config_set_home()
+            && !self.supports_v2_2_commands()
         {
             diag.warn(
                 DiagnosticKind::UnsupportedOption,

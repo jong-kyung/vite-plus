@@ -31,7 +31,7 @@ impl Resolve<ApproveBuildsArgs> for Pnpm {
             return error;
         }
         if args.packages.iter().any(|package| package.starts_with('!'))
-            && !self.supports_build_denial()
+            && !self.supports_v11_commands()
         {
             return invalid_argument(
                 "`!<pkg>` deny syntax requires pnpm >= 11.0.0. Upgrade pnpm or omit the `!` entries.",
@@ -96,7 +96,7 @@ impl Resolve<ApproveBuildsArgs> for Npm {
         if let Some(error) = validate_all(args) {
             return error;
         }
-        if !self.supports_script_approval() {
+        if !self.supports_v11_16_commands() {
             diag.warn(
                 DiagnosticKind::UnsupportedCommandNoop,
                 "npm runs lifecycle scripts by default. Upgrade to npm >= 11.16.0 for `npm approve-scripts`/`deny-scripts`, or set `ignore-scripts=true` in .npmrc and rebuild approved packages with `vp pm rebuild <package>`.",

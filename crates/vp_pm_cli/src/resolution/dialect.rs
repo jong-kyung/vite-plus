@@ -57,8 +57,9 @@ impl Npm {
         Self { version: None }
     }
 
-    /// Script approval commands landed in npm 11.16.0; unknown versions are current.
-    pub(crate) fn supports_script_approval(&self) -> bool {
+    /// `approve-scripts` and `deny-scripts` landed in npm 11.16.0.
+    /// Unknown versions are treated as current.
+    pub(crate) fn supports_v11_16_commands(&self) -> bool {
         self.version.as_ref().is_none_or(|version| version >= &Version::new(11, 16, 0))
     }
 
@@ -78,8 +79,8 @@ impl PackageManagerDialect for Npm {
 }
 
 impl Pnpm {
-    /// Build approval deny syntax landed in pnpm 11.
-    pub(crate) fn supports_build_denial(&self) -> bool {
+    /// `approve-builds !<pkg>` deny syntax landed in pnpm 11.
+    pub(crate) fn supports_v11_commands(&self) -> bool {
         self.version >= Version::new(11, 0, 0)
     }
 }
@@ -89,9 +90,9 @@ impl Yarn {
         crate::package_manager::is_yarn_berry(&self.version)
     }
 
-    /// Yarn 2.2 added config set --home.
+    /// `config set --home` landed in Yarn 2.2.
     /// https://github.com/yarnpkg/berry/blob/01586a88806a2bebd7edb28d1bee3581b1fd3762/CHANGELOG.md#220
-    pub(crate) fn supports_config_set_home(&self) -> bool {
+    pub(crate) fn supports_v2_2_commands(&self) -> bool {
         self.version >= Version::new(2, 2, 0)
     }
 
@@ -101,16 +102,16 @@ impl Yarn {
         self.version >= Version::new(3, 0, 0)
     }
 
-    /// Staged publishing landed in Yarn 4.16.0.
+    /// `npm publish --staged` and `npm stage list/approve/reject` landed in Yarn 4.16.0.
     /// https://github.com/yarnpkg/berry/releases/tag/%40yarnpkg/cli/4.16.0
-    pub(crate) fn supports_staged_publishing(&self) -> bool {
+    pub(crate) fn supports_v4_16_commands(&self) -> bool {
         self.version >= Version::new(4, 16, 0)
     }
 }
 
 impl Bun {
     /// `bun pm version` landed in Bun 1.2.18.
-    pub(crate) fn supports_version_command(&self) -> bool {
+    pub(crate) fn supports_v1_2_18_commands(&self) -> bool {
         self.version >= Version::new(1, 2, 18)
     }
 

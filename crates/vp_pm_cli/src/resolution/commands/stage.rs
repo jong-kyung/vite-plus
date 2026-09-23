@@ -196,7 +196,7 @@ impl Resolve<StageCommand> for Npm {
 
 impl Resolve<StageCommand> for Yarn {
     fn diagnose(&self, args: &StageCommand, diag: &mut Diagnostics) {
-        if !self.supports_staged_publishing() {
+        if !self.supports_v4_16_commands() {
             return;
         }
         let StageCommand::Publish { target: None, recursive, filter, registry, .. } = args else {
@@ -223,7 +223,7 @@ impl Resolve<StageCommand> for Yarn {
     }
 
     fn resolve(&self, args: &StageCommand, diag: &mut Diagnostics) -> CommandResolution {
-        if !self.supports_staged_publishing() {
+        if !self.supports_v4_16_commands() {
             diag.warn(
                 DiagnosticKind::FallbackCommand,
                 "yarn < 4.16.0 does not support staged publishing, falling back to npm stage",
