@@ -24,7 +24,7 @@ where
     A: Diagnosis,
 {
     let mut diagnostics = Diagnostics::default();
-    let args = args.diagnose(dialect, &mut diagnostics);
+    args.diagnose(dialect, &mut diagnostics);
     if let Some(message) = diagnostics.unsupported_options_error() {
         return Resolution {
             outcome: CommandResolution::InvalidArgument(message),

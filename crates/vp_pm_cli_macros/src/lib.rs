@@ -66,13 +66,11 @@ fn pm_args_struct_impl(mut input: ItemStruct) -> Result<TokenStream2> {
 
         impl #impl_generics crate::resolution::Diagnosis for #struct_ident #ty_generics #where_clause {
             fn diagnose<#dialect_ident: crate::resolution::PackageManagerDialect>(
-                self,
+                &self,
                 dialect: &#dialect_ident,
                 diag: &mut crate::resolution::Diagnostics,
-            ) -> Self
-            {
+            ) {
                 #(#diagnose_statements)*
-                self
             }
         }
     })
@@ -151,15 +149,13 @@ fn pm_args_enum_impl(mut input: ItemEnum) -> Result<TokenStream2> {
 
         impl #impl_generics crate::resolution::Diagnosis for #enum_ident #ty_generics #where_clause {
             fn diagnose<#dialect_ident: crate::resolution::PackageManagerDialect>(
-                self,
+                &self,
                 dialect: &#dialect_ident,
                 diag: &mut crate::resolution::Diagnostics,
-            ) -> Self
-            {
-                match &self {
+            ) {
+                match self {
                     #(#variant_diagnosis),*
                 }
-                self
             }
         }
     })
@@ -639,7 +635,7 @@ mod tests {
 
         assert!(!output.contains("not_supported"));
         assert!(output.contains("impl crate :: resolution :: Diagnosis for Demo"));
-        assert!(output.contains("match & self"));
+        assert!(output.contains("match self"));
         assert!(!output.contains("Default :: default"));
         assert!(output.contains("Self :: Ping"));
         assert!(output.contains("Self :: List"));

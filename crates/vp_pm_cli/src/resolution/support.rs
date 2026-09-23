@@ -2,12 +2,8 @@ use semver::Version;
 
 use crate::resolution::{Diagnostics, PackageManagerDialect};
 
-pub(crate) trait Diagnosis: Sized {
-    fn diagnose<Dialect: PackageManagerDialect>(
-        self,
-        dialect: &Dialect,
-        diag: &mut Diagnostics,
-    ) -> Self;
+pub(crate) trait Diagnosis {
+    fn diagnose<Dialect: PackageManagerDialect>(&self, dialect: &Dialect, diag: &mut Diagnostics);
 }
 
 pub(crate) trait ArgActivation {
@@ -166,7 +162,7 @@ mod tests {
             option_vec_field: Some(vec!["two".to_string()]),
         };
         let mut diagnostics = Diagnostics::default();
-        let shape = shape.diagnose(&resolver, &mut diagnostics);
+        shape.diagnose(&resolver, &mut diagnostics);
         assert!(shape.bool_field);
         assert_eq!(shape.option_field.as_deref(), Some("value"));
         assert_eq!(shape.vec_field, vec!["one"]);
@@ -187,7 +183,8 @@ mod tests {
         }
 
         let mut diagnostics = Diagnostics::default();
-        let shape = ShapeArgs::List { json: true }.diagnose(&bun("1.3.0"), &mut diagnostics);
+        let shape = ShapeArgs::List { json: true };
+        shape.diagnose(&bun("1.3.0"), &mut diagnostics);
 
         assert_eq!(shape, ShapeArgs::List { json: true });
         assert_eq!(diagnostics.len(), 1);
@@ -209,8 +206,8 @@ mod tests {
         }
 
         let mut diagnostics = Diagnostics::default();
-        let args = ShadowingArgs::Check { diag: true, dialect: true, rules: true }
-            .diagnose(&bun("1.3.0"), &mut diagnostics);
+        let args = ShadowingArgs::Check { diag: true, dialect: true, rules: true };
+        args.diagnose(&bun("1.3.0"), &mut diagnostics);
 
         assert_eq!(args, ShadowingArgs::Check { diag: true, dialect: true, rules: true });
         assert_eq!(diagnostics.len(), 3);
@@ -238,10 +235,10 @@ mod tests {
 
         let mut diagnostics = Diagnostics::default();
         let dialect = bun("1.3.0");
-        let args =
-            GenericStruct { value: "value".to_string() }.diagnose(&dialect, &mut diagnostics);
-        let command =
-            GenericEnum::Value { value: "value".to_string() }.diagnose(&dialect, &mut diagnostics);
+        let args = GenericStruct { value: "value".to_string() };
+        let command = GenericEnum::Value { value: "value".to_string() };
+        args.diagnose(&dialect, &mut diagnostics);
+        command.diagnose(&dialect, &mut diagnostics);
 
         assert_eq!(args, GenericStruct { value: "value".to_string() });
         assert_eq!(command, GenericEnum::Value { value: "value".to_string() });
@@ -281,9 +278,10 @@ mod tests {
 
         let mut diagnostics = Diagnostics::default();
         let dialect = bun("1.3.0");
-        let args = ConditionalStruct { visible: true }.diagnose(&dialect, &mut diagnostics);
-        let command =
-            ConditionalEnum::Visible { visible: true }.diagnose(&dialect, &mut diagnostics);
+        let args = ConditionalStruct { visible: true };
+        let command = ConditionalEnum::Visible { visible: true };
+        args.diagnose(&dialect, &mut diagnostics);
+        command.diagnose(&dialect, &mut diagnostics);
 
         assert_eq!(args, ConditionalStruct { visible: true });
         assert_eq!(command, ConditionalEnum::Visible { visible: true });
@@ -300,7 +298,8 @@ mod tests {
         }
 
         let mut diagnostics = Diagnostics::default();
-        let shape = ShapeArgs { future: true }.diagnose(&Npm::unknown_version(), &mut diagnostics);
+        let shape = ShapeArgs { future: true };
+        shape.diagnose(&Npm::unknown_version(), &mut diagnostics);
 
         assert!(shape.future);
         assert!(diagnostics.is_empty());
