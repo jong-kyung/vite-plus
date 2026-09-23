@@ -76,6 +76,9 @@ steps = [
   { argv = ["vp", "install", "./dep-v2", "--lockfile-only"], comment = "positional install rejects the same unsupported option", continue-on-failure = true },
   ["vpt", "stat-file", "yarn.lock", "--assert", "missing"],
   ["vpt", "stat-file", "node_modules", "--assert", "missing"],
+  { argv = ["vp", "install", "--lockfile-only"], comment = "bare install rejects lockfile-only because Yarn 2 install has no --mode", continue-on-failure = true },
+  ["vpt", "stat-file", "yarn.lock", "--assert", "missing"],
+  ["vpt", "stat-file", "node_modules", "--assert", "missing"],
   ["vpt", "print-file", "package.json"],
 ]
 

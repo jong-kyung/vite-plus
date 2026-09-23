@@ -53,6 +53,30 @@ yarn.lock: missing
 node_modules: missing
 ```
 
+## `vp install --lockfile-only`
+
+bare install rejects lockfile-only because Yarn 2 install has no --mode
+
+**Exit code:** 1
+
+```
+VITE+ - The Unified Toolchain for the Web
+
+yarn < 3 does not support --lockfile-only.
+```
+
+## `vpt stat-file yarn.lock --assert missing`
+
+```
+yarn.lock: missing
+```
+
+## `vpt stat-file node_modules --assert missing`
+
+```
+node_modules: missing
+```
+
 ## `vpt print-file package.json`
 
 ```

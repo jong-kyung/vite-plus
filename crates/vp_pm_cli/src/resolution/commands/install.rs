@@ -33,7 +33,9 @@ pub struct InstallArgs {
     pub(crate) no_frozen_lockfile: bool,
 
     /// Only update lockfile, don't install
-    #[arg(long, not_supported(yarn < "2"))]
+    /// `yarn install --mode update-lockfile` landed in Yarn 3.0.0.
+    /// https://github.com/yarnpkg/berry/blob/master/CHANGELOG.md#300
+    #[arg(long, not_supported(yarn < "3"))]
     pub(crate) lockfile_only: bool,
 
     /// Use cached packages when available
@@ -653,12 +655,12 @@ mod tests {
     #[test]
     fn yarn_classic_rejects_lockfile_only_and_filter() {
         for (argv, messages) in [
-            (vec!["--lockfile-only"], vec!["yarn < 2 does not support --lockfile-only."]),
+            (vec!["--lockfile-only"], vec!["yarn < 3 does not support --lockfile-only."]),
             (vec!["--filter", "app"], vec!["yarn < 2 does not support --filter."]),
             (
                 vec!["--lockfile-only", "--filter", "app", "--silent"],
                 vec![
-                    "yarn < 2 does not support --lockfile-only.",
+                    "yarn < 3 does not support --lockfile-only.",
                     "yarn < 2 does not support --filter.",
                 ],
             ),
@@ -666,6 +668,17 @@ mod tests {
             let args = parse_args::<InstallArgs>(argv).unwrap();
             expect_unsupported(resolve(&yarn("1.22.22"), args), &messages);
         }
+    }
+
+    #[test]
+    fn yarn_2_rejects_lockfile_only_without_packages() {
+        let args = parse_args::<InstallArgs>(["--lockfile-only"]).unwrap();
+        expect_unsupported(
+            resolve(&yarn("2.4.2"), args.clone()),
+            &["yarn < 3 does not support --lockfile-only."],
+        );
+        let command = expect_run(resolve(&yarn("3.0.0"), args).outcome);
+        assert_eq!(command.args, vec!["install", "--mode", "update-lockfile"]);
     }
 
     #[test]
