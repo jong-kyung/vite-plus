@@ -5,7 +5,7 @@ use crate::{
     Error, PackageManager,
     resolution::{
         AddArgs, Bun, CommandBuilder, CommandResolution, DiagnosticKind, Diagnostics, Npm, Pnpm,
-        Resolution, Resolve, SaveDependencyArgs, Yarn, resolve_for_manager_with_diagnostics,
+        Resolution, Resolve, SaveDependencyArgs, Yarn, resolve_for_manager,
     },
 };
 
@@ -146,13 +146,10 @@ impl Resolve<InstallArgs> for Pnpm {
 }
 
 impl InstallArgs {
-    pub(crate) fn resolve_for_manager(
-        mut self,
-        manager: &PackageManager,
-    ) -> Result<Resolution, Error> {
+    pub(crate) fn resolve_for_manager(self, manager: &PackageManager) -> Result<Resolution, Error> {
         let adding_packages = !self.packages.is_empty();
-        // Diagnose the selected mode before conversion discards fields, and before
-        // manager-specific support rules can produce misleading or duplicate errors.
+        // Reject invalid install modes before conversion discards fields or
+        // manager-specific support checks report unrelated errors.
         let (mode, unsupported): (&str, &[(&str, bool)]) = if adding_packages {
             (
                 "with package names",
@@ -165,10 +162,10 @@ impl InstallArgs {
             (
                 "without package names",
                 &[
-                    ("--save-exact", std::mem::take(&mut self.save_exact)),
-                    ("--save-peer", std::mem::take(&mut self.save_peer)),
-                    ("--save-optional", std::mem::take(&mut self.save_optional)),
-                    ("--save-catalog", std::mem::take(&mut self.save_catalog)),
+                    ("--save-exact", self.save_exact),
+                    ("--save-peer", self.save_peer),
+                    ("--save-optional", self.save_optional),
+                    ("--save-catalog", self.save_catalog),
                 ],
             )
         };
@@ -181,10 +178,16 @@ impl InstallArgs {
                 );
             }
         }
+        if let Some(message) = diagnostics.unsupported_options_error() {
+            return Ok(Resolution {
+                outcome: CommandResolution::InvalidArgument(message),
+                diagnostics: Diagnostics::default(),
+            });
+        }
         if adding_packages {
-            resolve_for_manager_with_diagnostics(manager, self.into_add_args(), diagnostics)
+            resolve_for_manager(manager, self.into_add_args())
         } else {
-            resolve_for_manager_with_diagnostics(manager, self, diagnostics)
+            resolve_for_manager(manager, self)
         }
     }
 
@@ -412,7 +415,7 @@ mod tests {
     }
 
     #[test]
-    fn install_aggregates_mode_and_manager_restrictions() {
+    fn install_checks_mode_before_manager_restrictions() {
         let manager = crate::PackageManager::from_bin_prefix(
             crate::PackageManagerType::Bun,
             "1.4.0",
@@ -424,7 +427,6 @@ mod tests {
                 vec![
                     "install with package names does not support --fix-lockfile.",
                     "install with package names does not support --resolution-only.",
-                    "bun does not support --offline.",
                 ],
             ),
             (
@@ -432,9 +434,10 @@ mod tests {
                 vec![
                     "install without package names does not support --save-exact.",
                     "install without package names does not support --save-catalog.",
-                    "bun does not support --offline.",
                 ],
             ),
+            (vec!["react", "--offline"], vec!["bun does not support --offline."]),
+            (vec!["--offline"], vec!["bun does not support --offline."]),
         ] {
             let args = parse_args::<InstallArgs>(argv).unwrap();
             expect_unsupported(args.resolve_for_manager(&manager).unwrap(), &messages);
