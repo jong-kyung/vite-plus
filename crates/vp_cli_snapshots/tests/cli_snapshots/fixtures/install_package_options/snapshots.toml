@@ -107,7 +107,7 @@ steps = [
   ["vp", "install", "./dep"],
   { argv = ["vpt", "json-edit", "package.json", "dependencies.install-option-dep", "file:./dep-v2"], snapshot = false },
   { argv = ["vp", "install", "--frozen-lockfile"], comment = "package-free installs map frozen-lockfile to immutable", continue-on-failure = true },
-  { argv = ["vpt", "print-file", "yarn.lock"], continue-on-failure = true },
+  { argv = ["vpt", "grep-file", "yarn.lock", "install-option-dep@file:./dep::"], comment = "the immutable failure leaves the original lockfile entry in place", continue-on-failure = true },
   { argv = ["vp", "install", "--no-frozen-lockfile"], comment = "package-free installs map no-frozen-lockfile to no-immutable" },
   ["node", "-p", "require('./node_modules/install-option-dep/package.json').version"],
   { argv = ["vp", "add", "./dep", "--no-frozen-lockfile"], comment = "direct add also rejects the unsupported immutable override", continue-on-failure = true },
