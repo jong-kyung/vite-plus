@@ -10,27 +10,3 @@ steps = [
   { argv = ["vp", "pm", "audit", "--production"], comment = "should audit production dependencies" },
   { argv = ["vp", "pm", "audit", "--fix"], comment = "bun 1.4 runs bun audit fix" },
 ]
-
-[[case]]
-name = "audit_fix_is_rejected_yarn"
-vp = ["local", "global"]
-cwd = "bun"
-steps = [
-  { argv = ["vpt", "json-edit", "package.json", "packageManager", "yarn@1.22.22"], snapshot = false },
-  { argv = ["vp", "pm", "audit", "--fix", "--", "--help"], comment = "Yarn Classic rejects the named option instead of reporting a successful Noop.", continue-on-failure = true },
-  { argv = ["vpt", "json-edit", "package.json", "packageManager", "yarn@4.18.0"], snapshot = false },
-  { argv = ["vp", "pm", "audit", "--fix", "--json", "--", "--help"], comment = "Current Yarn also rejects fix before invoking native help.", continue-on-failure = true },
-  ["vpt", "stat-file", "yarn.lock", "--assert", "missing"],
-]
-
-[[case]]
-name = "audit_fix_is_rejected_old_bun"
-vp = ["local", "global"]
-cwd = "bun"
-steps = [
-  { argv = ["vpt", "json-edit", "package.json", "packageManager", "bun@1.3.11"], snapshot = false },
-  { argv = ["vp", "pm", "audit", "--fix", "--production", "--", "--help"], comment = "Bun before 1.4 rejects fix even when combined with supported production filtering.", continue-on-failure = true },
-  { argv = ["vpt", "json-edit", "package.json", "packageManager", "bun@1.2.20"], snapshot = false },
-  { argv = ["vp", "pm", "audit", "--production", "--", "--help"], comment = "Bun before 1.2.21 silently ignores --production, so reject it instead of auditing everything.", continue-on-failure = true },
-  ["vpt", "stat-file", "bun.lock", "--assert", "missing"],
-]

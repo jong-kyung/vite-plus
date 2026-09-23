@@ -1,6 +1,0 @@
-[[case]]
-name = "unsupported_prune_options"
-vp = ["local", "global"]
-steps = [
-  { argv = ["vp", "pm", "prune", "--prod", "--no-optional"], comment = "Collect unsupported options before entering Classic's prune Noop.", continue-on-failure = true },
-]

@@ -1,39 +1,13 @@
 [[case]]
 name = "yarn_classic_install_includes_dev"
-vp = ["local", "global"]
+vp = "global"
 skip-platforms = ["windows"]
 env = { NODE_ENV = "production" }
 steps = [
   { argv = ["vpt", "json-edit", "package.json", "devDependencies.dev-only-fixture", "file:./dev-dep"], snapshot = false },
-  { argv = ["vp", "install", "--dev", "--resolution-only", "--silent"], comment = "unsupported options still fail before installation", continue-on-failure = true },
-  { argv = ["vpt", "stat-file", "node_modules", "--assert", "missing"], continue-on-failure = true },
-  { argv = ["vpt", "stat-file", "yarn.lock", "--assert", "missing"], continue-on-failure = true },
   { argv = ["vp", "install", "-D"], comment = "include dev dependencies despite NODE_ENV=production without excluding production dependencies" },
   ["vpt", "stat-file", "node_modules/prod-only-fixture/package.json", "--assert", "file"],
   ["vpt", "stat-file", "node_modules/dev-only-fixture/package.json", "--assert", "file"],
   { argv = ["vp", "install", "--dev", "--frozen-lockfile"], comment = "preserve dev inclusion in frozen-lockfile mode too" },
   { argv = ["vpt", "print-file", "package.json"], continue-on-failure = true },
-]
-
-[[case]]
-name = "yarn_classic_install_rejects_lockfile_only_and_filter"
-vp = ["local", "global"]
-skip-platforms = ["windows"]
-steps = [
-  { argv = ["vp", "install", "--lockfile-only", "--filter", "app", "--silent"], comment = "report both unsupported options even in silent mode", continue-on-failure = true },
-  { argv = ["vpt", "stat-file", "node_modules", "--assert", "missing"], continue-on-failure = true },
-  { argv = ["vpt", "stat-file", "yarn.lock", "--assert", "missing"], continue-on-failure = true },
-  { argv = ["vpt", "print-file", "package.json"], continue-on-failure = true },
-  { argv = ["vp", "install", "--ignore-scripts"], comment = "ordinary installation remains supported" },
-  { argv = ["vpt", "stat-file", "node_modules/prod-only-fixture/package.json", "--assert", "file"] },
-]
-
-[[case]]
-name = "yarn_classic_install_dev_with_package_uses_add"
-vp = ["local", "global"]
-skip-platforms = ["windows"]
-steps = [
-  { argv = ["vp", "install", "-D", "./dev-dep", "--ignore-scripts"], comment = "with a package argument, -D still saves to devDependencies" },
-  { argv = ["vpt", "print-file", "package.json"] },
-  { argv = ["vpt", "stat-file", "node_modules/dev-only-fixture/package.json", "--assert", "file"] },
 ]

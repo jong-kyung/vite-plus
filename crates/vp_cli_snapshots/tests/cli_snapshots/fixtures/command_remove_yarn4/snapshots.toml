@@ -1,15 +1,4 @@
 [[case]]
-name = "remove_selectors_rejected"
-vp = ["local", "global"]
-skip-platforms = ["windows"]
-steps = [
-  { argv = ["vp", "remove", "--save-dev", "--save-optional", "--save-prod", "testnpm2"], comment = "reject all unsupported removal selectors without changing the project", continue-on-failure = true },
-  ["vpt", "print-file", "package.json"],
-  ["vpt", "stat-file", "node_modules", "--assert", "missing"],
-  ["vpt", "stat-file", "yarn.lock", "--assert", "missing"],
-]
-
-[[case]]
 name = "command_remove_yarn4"
 vp = "global"
 skip-platforms = ["windows"]

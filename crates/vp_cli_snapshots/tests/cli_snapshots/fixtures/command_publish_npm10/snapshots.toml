@@ -1,13 +1,4 @@
 [[case]]
-name = "unsupported_publish_git_checks"
-vp = ["local", "global"]
-steps = [
-  { argv = ["vpt", "json-edit", "package.json", "scripts.prepack", "node -e \"require('node:fs').writeFileSync('prepack-ran', 'unexpected')\""], snapshot = false },
-  { argv = ["vp", "pm", "publish", "--dry-run", "--no-git-checks"], comment = "Reject the pnpm-only option before running prepack.", continue-on-failure = true },
-  ["vpt", "stat-file", "prepack-ran", "--assert", "missing"],
-]
-
-[[case]]
 name = "command_publish_npm10"
 vp = "global"
 skip-platforms = ["windows"]

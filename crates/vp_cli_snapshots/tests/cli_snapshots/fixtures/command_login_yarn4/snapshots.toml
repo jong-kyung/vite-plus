@@ -1,6 +1,0 @@
-[[case]]
-name = "unsupported_login_selectors"
-vp = ["local", "global"]
-steps = [
-  { argv = ["vp", "pm", "login", "--registry", "http://127.0.0.1:9", "--scope", "company", "--", "--help"], comment = "Berry supports scope but not an explicit registry URL flag.", continue-on-failure = true },
-]

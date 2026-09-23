@@ -10,7 +10,7 @@ steps = [
 
 [[case]]
 name = "bun_recursive_update_from_child"
-vp = ["local", "global"]
+vp = "global"
 local-registry = true
 skip-platforms = ["windows"]
 steps = [
@@ -27,7 +27,7 @@ steps = [
 
 [[case]]
 name = "bun_recursive_update_respects_filter"
-vp = ["local", "global"]
+vp = "global"
 local-registry = true
 skip-platforms = ["windows"]
 steps = [

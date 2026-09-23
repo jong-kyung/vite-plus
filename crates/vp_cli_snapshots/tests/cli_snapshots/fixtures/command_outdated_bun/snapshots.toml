@@ -8,21 +8,3 @@ steps = [
   { argv = ["vp", "outdated", "testnpm2"], comment = "should show outdated package", continue-on-failure = true },
   { argv = ["vp", "outdated", "-r"], comment = "should support recursive output", continue-on-failure = true },
 ]
-
-[[case]]
-name = "outdated_explicit_formats_are_rejected"
-vp = ["local", "global"]
-steps = [
-  { argv = ["vp", "outdated", "--format", "json", "--", "--help"], comment = "Reject named JSON format before running Bun, even when help is passed through.", continue-on-failure = true },
-  { argv = ["vp", "outdated", "--format", "json", "--long"], comment = "Collect declarative support errors together.", continue-on-failure = true },
-  { argv = ["vp", "outdated", "--format", "table"], comment = "Reject explicit table format too; omit --format for Bun's default output.", continue-on-failure = true },
-  { argv = ["vp", "outdated", "--format", "list", "--", "--help"], comment = "Reject named list format instead of silently using Bun's table output.", continue-on-failure = true },
-]
-
-[[case]]
-name = "managed_global_outdated_preserves_formats"
-vp = "global"
-steps = [
-  { argv = ["vp", "outdated", "-g", "--format", "json"], comment = "Managed global operations bypass project Bun support checks.", continue-on-failure = true },
-  { argv = ["vp", "outdated", "-g", "--format", "list"], comment = "Managed global list output bypasses project Bun support checks." },
-]

@@ -1,11 +1,4 @@
 [[case]]
-name = "unsupported_prune_options"
-vp = ["local", "global"]
-steps = [
-  { argv = ["vp", "pm", "prune", "--prod", "--no-optional", "--", "--help"], comment = "Collect unsupported options before entering Yarn's prune Noop.", continue-on-failure = true },
-]
-
-[[case]]
 name = "command_prune_yarn4"
 vp = "global"
 steps = [

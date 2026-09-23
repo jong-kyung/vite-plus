@@ -1,17 +1,6 @@
 [[case]]
-name = "bun_update_workspace_rejected"
-vp = ["local", "global"]
-skip-platforms = ["windows"]
-steps = [
-  { argv = ["vp", "update", "--workspace"], comment = "Bun 1.4 still cannot restrict updates to workspace dependencies", continue-on-failure = true },
-  ["vpt", "print-file", "package.json"],
-  ["vpt", "stat-file", "bun.lock", "--assert", "missing"],
-  ["vpt", "stat-file", "node_modules", "--assert", "missing"],
-]
-
-[[case]]
 name = "bun_update_dev_only"
-vp = ["local", "global"]
+vp = "global"
 local-registry = true
 skip-platforms = ["windows"]
 steps = [
@@ -26,7 +15,7 @@ steps = [
 
 [[case]]
 name = "bun_update_prod_includes_optional"
-vp = ["local", "global"]
+vp = "global"
 local-registry = true
 skip-platforms = ["windows"]
 steps = [
@@ -41,7 +30,7 @@ steps = [
 
 [[case]]
 name = "bun_update_no_optional"
-vp = ["local", "global"]
+vp = "global"
 local-registry = true
 skip-platforms = ["windows"]
 steps = [

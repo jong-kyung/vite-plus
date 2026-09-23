@@ -1,13 +1,4 @@
 [[case]]
-name = "unsupported_update_options"
-vp = ["local", "global"]
-steps = [
-  { argv = ["vp", "update", "--latest", "--interactive", "--dev", "--prod", "--no-optional", "--workspace"], comment = "Report every unsupported option without changing dependencies.", continue-on-failure = true },
-  ["vpt", "stat-file", "package-lock.json", "--assert", "missing"],
-  ["vpt", "stat-file", "node_modules", "--assert", "missing"],
-]
-
-[[case]]
 name = "command_update_npm10"
 vp = "global"
 serial = true

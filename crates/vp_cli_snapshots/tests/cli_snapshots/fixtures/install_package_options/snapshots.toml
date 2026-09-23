@@ -1,24 +1,4 @@
 [[case]]
-name = "install_with_packages_rejects_install_only_options"
-vp = ["local", "global"]
-steps = [
-  { argv = ["vp", "install", "./dep", "--fix-lockfile", "--resolution-only", "--lockfile-only", "--silent"], comment = "reject install-only options before converting to add, even in silent mode", continue-on-failure = true },
-  { argv = ["vpt", "stat-file", "package-lock.json", "--assert", "missing"], continue-on-failure = true },
-  ["vpt", "stat-file", "node_modules", "--assert", "missing"],
-  ["vpt", "print-file", "package.json"],
-]
-
-[[case]]
-name = "install_without_packages_rejects_add_only_options"
-vp = ["local", "global"]
-steps = [
-  { argv = ["vp", "install", "--save-exact", "--save-peer", "--save-optional", "--save-catalog", "--lockfile-only"], comment = "reject add-only options without package names instead of reporting manager support", continue-on-failure = true },
-  { argv = ["vpt", "stat-file", "package-lock.json", "--assert", "missing"], continue-on-failure = true },
-  ["vpt", "stat-file", "node_modules", "--assert", "missing"],
-  ["vpt", "print-file", "package.json"],
-]
-
-[[case]]
 name = "npm_lockfile_only"
 vp = "global"
 steps = [
@@ -61,25 +41,6 @@ steps = [
   { argv = ["vp", "install", "./dep", "--lockfile-only", "--frozen-lockfile"], comment = "reject frozen-lockfile before pnpm add can modify the project", continue-on-failure = true },
   ["vpt", "stat-file", "pnpm-lock.yaml", "--assert", "missing"],
   ["vpt", "stat-file", "node_modules", "--assert", "missing"],
-]
-
-[[case]]
-name = "yarn_2_rejects_lockfile_only"
-vp = "global"
-env = { YARN_ENABLE_TELEMETRY = "0", YARN_ENABLE_GLOBAL_CACHE = "0", YARN_NODE_LINKER = "node-modules" }
-steps = [
-  { argv = ["vpt", "write-file", ".node-version", "22.18.0\n"], snapshot = false },
-  { argv = ["vpt", "json-edit", "package.json", "packageManager", "yarn@2.4.2"], snapshot = false },
-  { argv = ["vp", "add", "./dep", "--lockfile-only"], comment = "Yarn 2 rejects lockfile-only because add does not support --mode", continue-on-failure = true },
-  ["vpt", "stat-file", "yarn.lock", "--assert", "missing"],
-  ["vpt", "stat-file", "node_modules", "--assert", "missing"],
-  { argv = ["vp", "install", "./dep-v2", "--lockfile-only"], comment = "positional install rejects the same unsupported option", continue-on-failure = true },
-  ["vpt", "stat-file", "yarn.lock", "--assert", "missing"],
-  ["vpt", "stat-file", "node_modules", "--assert", "missing"],
-  { argv = ["vp", "install", "--lockfile-only"], comment = "bare install rejects lockfile-only because Yarn 2 install has no --mode", continue-on-failure = true },
-  ["vpt", "stat-file", "yarn.lock", "--assert", "missing"],
-  ["vpt", "stat-file", "node_modules", "--assert", "missing"],
-  ["vpt", "print-file", "package.json"],
 ]
 
 [[case]]

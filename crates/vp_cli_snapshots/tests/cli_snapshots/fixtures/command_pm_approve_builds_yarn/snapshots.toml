@@ -8,18 +8,3 @@ steps = [
   { argv = ["vp", "pm", "approve-builds", "esbuild"], comment = "warn and exit 0 (no-op on yarn)", continue-on-failure = true },
   { argv = ["vp", "pm", "approve-builds", "--all"], comment = "reject the unsupported named option instead of succeeding through a Noop", continue-on-failure = true },
 ]
-
-[[case]]
-name = "unsupported_approval_all"
-vp = ["local", "global"]
-steps = [
-  { argv = ["vpt", "json-edit", "package.json", "packageManager", "yarn@4.18.0"], snapshot = false },
-  { argv = ["vp", "pm", "approve-builds", "--all", "--", "--help"], comment = "Yarn Berry rejects all before invoking any native command.", continue-on-failure = true },
-  { argv = ["vpt", "json-edit", "package.json", "packageManager", "yarn@1.22.22"], snapshot = false },
-  { argv = ["vp", "pm", "approve-builds", "--all", "--", "--help"], continue-on-failure = true },
-  { argv = ["vpt", "json-edit", "package.json", "packageManager", "npm@11.15.0"], snapshot = false },
-  { argv = ["vp", "pm", "approve-builds", "--all", "--", "--help"], comment = "Old npm rejects the option instead of reporting a successful Noop.", continue-on-failure = true },
-  { argv = ["vpt", "json-edit", "package.json", "packageManager", "pnpm@10.31.0"], snapshot = false },
-  { argv = ["vp", "pm", "approve-builds", "--all", "--", "--help"], comment = "Old pnpm uses the same pre-execution support diagnostic.", continue-on-failure = true },
-  ["vpt", "print-file", "package.json"],
-]

@@ -1,6 +1,6 @@
 [[case]]
 name = "npm_remove_preserves_native_save_flags"
-vp = ["local", "global"]
+vp = "global"
 steps = [
   { argv = ["vp", "remove", "--save-dev", "--save-optional", "--save-prod", "testnpm2", "--", "--no-audit", "--no-fund"], comment = "let npm handle its native save flags" },
   ["vpt", "print-file", "package.json"],

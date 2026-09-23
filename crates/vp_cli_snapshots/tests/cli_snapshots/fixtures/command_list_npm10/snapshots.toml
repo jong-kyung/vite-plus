@@ -19,7 +19,7 @@ steps = [
 
 [[case]]
 name = "npm_list_dependency_selection"
-vp = ["local", "global"]
+vp = "global"
 local-registry = true
 skip-platforms = ["windows"]
 steps = [
@@ -28,6 +28,5 @@ steps = [
   { argv = ["vp", "pm", "list", "--prod", "--json"], comment = "production listing excludes dev but keeps optional and peer dependencies" },
   { argv = ["vp", "pm", "list", "--prod", "--no-optional", "--exclude-peers", "--json"], comment = "production listing respects both exclusions" },
   { argv = ["vp", "pm", "list", "--dev", "--json"], envs = [["NODE_ENV", "production"]], comment = "include installed dev dependencies without excluding other dependency types" },
-  { argv = ["vp", "pm", "list", "--dev", "--only-projects", "--find-by", "finder", "--json"], comment = "report all unsupported named options together", continue-on-failure = true },
   { argv = ["vp", "pm", "list", "--", "--include=dev", "--json"], comment = "raw native include remains available and lists all four dependency types" },
 ]

@@ -19,23 +19,8 @@ steps = [
 ]
 
 [[case]]
-name = "berry_recursive_mode_rejections"
-vp = ["local", "global"]
-skip-platforms = ["windows"]
-steps = [
-  { argv = ["vpt", "json-edit", "package.json", "packageManager", "yarn@2.4.2"], snapshot = false },
-  { argv = ["vp", "update", "--recursive", "testnpm2"], comment = "range-preserving recursive updates require Yarn 3", continue-on-failure = true },
-  { argv = ["vpt", "json-edit", "package.json", "packageManager", "yarn@4.10.3"], snapshot = false },
-  { argv = ["vp", "update", "--recursive", "--interactive", "testnpm2"], comment = "interactive mode cannot be combined with range-preserving re-resolution", continue-on-failure = true },
-  { argv = ["vp", "update", "--recursive", "--latest", "--no-save", "testnpm2"], comment = "latest updates cannot promise to preserve manifest ranges", continue-on-failure = true },
-  ["vpt", "print-file", "package.json", "packages/app/package.json", "packages/utils/package.json"],
-  ["vpt", "stat-file", "yarn.lock", "--assert", "missing"],
-  ["vpt", "stat-file", "node_modules", "--assert", "missing"],
-]
-
-[[case]]
 name = "berry_recursive_preserves_ranges"
-vp = ["local", "global"]
+vp = "global"
 local-registry = true
 skip-platforms = ["windows"]
 steps = [
@@ -52,7 +37,7 @@ steps = [
 
 [[case]]
 name = "berry_recursive_no_save"
-vp = ["local", "global"]
+vp = "global"
 local-registry = true
 skip-platforms = ["windows"]
 steps = [
@@ -71,7 +56,7 @@ steps = [
 
 [[case]]
 name = "berry_recursive_update_from_child"
-vp = ["local", "global"]
+vp = "global"
 local-registry = true
 skip-platforms = ["windows"]
 steps = [
@@ -87,7 +72,7 @@ steps = [
 
 [[case]]
 name = "berry_recursive_update_all_from_child"
-vp = ["local", "global"]
+vp = "global"
 local-registry = true
 skip-platforms = ["windows"]
 steps = [

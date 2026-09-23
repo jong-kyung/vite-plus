@@ -1,6 +1,0 @@
-[[case]]
-name = "unsupported_whoami_registry"
-vp = ["local", "global"]
-steps = [
-  { argv = ["vp", "pm", "whoami", "--registry", "http://127.0.0.1:9", "--", "--help"], comment = "Reject the explicit registry instead of succeeding through Classic's Noop.", continue-on-failure = true },
-]

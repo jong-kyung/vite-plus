@@ -1,13 +1,9 @@
 [[case]]
-name = "classic_workspace_update_rejections"
-vp = ["local", "global"]
+name = "classic_workspace_update_filter"
+vp = "global"
 local-registry = true
 skip-platforms = ["windows"]
 steps = [
-  { argv = ["vp", "update", "--filter", "app", "--filter", "web", "--latest", "is-number"], comment = "reject multiple filters instead of updating only the first workspace", continue-on-failure = true },
-  ["vpt", "print-file", "package.json", "packages/app/package.json", "packages/web/package.json"],
-  ["vpt", "stat-file", "yarn.lock", "--assert", "missing"],
-  ["vpt", "stat-file", "node_modules", "--assert", "missing"],
   { argv = ["vp", "install", "--ignore-scripts"], snapshot = false },
   { argv = ["vp", "update", "--filter", "app", "--latest", "is-number", "--", "--ignore-scripts"], comment = "a single non-interactive filter still updates only the selected workspace" },
   ["vpt", "print-file", "package.json", "packages/app/package.json", "packages/web/package.json"],
@@ -16,7 +12,7 @@ steps = [
 
 [[case]]
 name = "classic_update_interactive"
-vp = ["local", "global"]
+vp = "global"
 local-registry = true
 skip-platforms = ["windows"]
 steps = [

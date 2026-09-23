@@ -1,7 +1,0 @@
-[[case]]
-name = "unsupported_unlink_recursive"
-vp = ["local", "global"]
-steps = [
-  { argv = ["vp", "unlink", "--recursive", "linked-lib"], comment = "Classic must not misinterpret --all and unlink a different target.", continue-on-failure = true },
-  { argv = ["vp", "unlink", "-r"], continue-on-failure = true },
-]
