@@ -7,7 +7,7 @@ unsupported options still fail before installation
 **Exit code:** 1
 
 ```
-bun does not support --prefer-offline.
+bun < 1.4.1 does not support --prefer-offline.
 ```
 
 ## `vpt stat-file node_modules --assert missing`

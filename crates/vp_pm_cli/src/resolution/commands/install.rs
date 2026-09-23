@@ -37,11 +37,11 @@ pub struct InstallArgs {
     pub(crate) lockfile_only: bool,
 
     /// Use cached packages when available
-    #[arg(long, not_supported(yarn >= "2", bun))]
+    #[arg(long, not_supported(yarn >= "2", bun < "1.4.1"))]
     pub(crate) prefer_offline: bool,
 
     /// Only use packages already in cache
-    #[arg(long, not_supported(yarn >= "2", bun))]
+    #[arg(long, not_supported(yarn >= "2", bun < "1.4.1"))]
     pub(crate) offline: bool,
 
     /// Force reinstall all dependencies
@@ -347,6 +347,8 @@ impl Resolve<InstallArgs> for Bun {
         }
         cmd.arg_if("--ignore-scripts", args.ignore_scripts)
             .arg_if("--lockfile-only", args.lockfile_only)
+            .arg_if("--prefer-offline", args.prefer_offline)
+            .arg_if("--offline", args.offline)
             .repeated("--filter", args.filter.iter())
             .extend(args.pass_through_args.iter());
         cmd.into()
@@ -438,8 +440,8 @@ mod tests {
                     "install without package names does not support --save-catalog.",
                 ],
             ),
-            (vec!["react", "--offline"], vec!["bun does not support --offline."]),
-            (vec!["--offline"], vec!["bun does not support --offline."]),
+            (vec!["react", "--offline"], vec!["bun < 1.4.1 does not support --offline."]),
+            (vec!["--offline"], vec!["bun < 1.4.1 does not support --offline."]),
         ] {
             let args = parse_args::<InstallArgs>(argv).unwrap();
             expect_unsupported(args.resolve_for_manager(&manager).unwrap(), &messages);
@@ -1150,6 +1152,18 @@ mod tests {
     }
 
     #[test]
+    fn bun_1_4_1_forwards_offline_options() {
+        // https://bun.sh/blog/bun-v1.4.1
+        let args = parse_args::<InstallArgs>(["--prefer-offline", "--offline"]).unwrap();
+        let resolution = resolve(&bun("1.4.1"), args);
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(
+            expect_run(resolution.outcome).args,
+            vec!["install", "--prefer-offline", "--offline"]
+        );
+    }
+
+    #[test]
     fn bun_rejects_all_unsupported_install_options() {
         let resolution = resolve(
             &bun("1.3.11"),
@@ -1167,8 +1181,8 @@ mod tests {
         expect_unsupported(
             resolution,
             &[
-                "bun does not support --prefer-offline.",
-                "bun does not support --offline.",
+                "bun < 1.4.1 does not support --prefer-offline.",
+                "bun < 1.4.1 does not support --offline.",
                 "bun does not support --no-lockfile.",
                 "bun does not support --fix-lockfile.",
                 "bun does not support --resolution-only.",

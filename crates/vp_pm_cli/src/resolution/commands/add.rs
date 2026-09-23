@@ -58,11 +58,11 @@ pub struct AddArgs {
     pub(crate) lockfile_only: bool,
 
     /// Use cached packages when available
-    #[arg(long, conflicts_with = "global", not_supported(yarn >= "2", bun))]
+    #[arg(long, conflicts_with = "global", not_supported(yarn >= "2", bun < "1.4.1"))]
     pub(crate) prefer_offline: bool,
 
     /// Only use packages already in cache
-    #[arg(long, conflicts_with = "global", not_supported(yarn >= "2", bun))]
+    #[arg(long, conflicts_with = "global", not_supported(yarn >= "2", bun < "1.4.1"))]
     pub(crate) offline: bool,
 
     /// Force reinstall all dependencies
@@ -339,6 +339,8 @@ impl Resolve<AddArgs> for Bun {
             .arg_if("--catalog", args.save_catalog)
             .arg_if("--ignore-scripts", args.ignore_scripts)
             .arg_if("--lockfile-only", args.lockfile_only)
+            .arg_if("--prefer-offline", args.prefer_offline)
+            .arg_if("--offline", args.offline)
             .arg_if("--force", args.force)
             .arg_if("--silent", args.silent);
         if args.no_optional {
@@ -745,16 +747,34 @@ mod tests {
         options.workspace = true;
         options.save_catalog = true;
         options.allow_build = Some("react".to_string());
+        options.prefer_offline = true;
+        options.offline = true;
         let resolution = resolve(&bun("1.3.11"), options);
         expect_unsupported(
             resolution,
             &[
                 "bun < 1.4 does not support --save-catalog.",
                 "bun does not support --allow-build.",
+                "bun < 1.4.1 does not support --prefer-offline.",
+                "bun < 1.4.1 does not support --offline.",
                 "bun < 1.4 does not support --filter.",
                 "bun does not support --workspace-root.",
                 "bun does not support --workspace.",
             ],
+        );
+    }
+
+    #[test]
+    fn bun_1_4_1_forwards_offline_options() {
+        // https://bun.sh/blog/bun-v1.4.1
+        let mut options = add_args(&["react"]);
+        options.prefer_offline = true;
+        options.offline = true;
+        let resolution = resolve(&bun("1.4.1"), options);
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(
+            expect_run(resolution.outcome).args,
+            vec!["add", "--prefer-offline", "--offline", "react"]
         );
     }
 
