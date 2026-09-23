@@ -6,7 +6,6 @@ skip-platforms = ["windows"]
 steps = [
   { argv = ["vp", "update", "--filter", "app", "--filter", "web", "--latest", "is-number"], comment = "reject multiple filters instead of updating only the first workspace", continue-on-failure = true },
   { argv = ["vp", "update", "--recursive", "--workspace", "--dev", "--filter", "app", "--filter", "web"], comment = "aggregate workspace and dependency selection errors", continue-on-failure = true },
-  { argv = ["vp", "update", "--interactive", "--filter", "app", "--latest", "is-number"], comment = "Classic interactive mode cannot restrict its choices to one workspace", continue-on-failure = true },
   ["vpt", "print-file", "package.json", "packages/app/package.json", "packages/web/package.json"],
   ["vpt", "stat-file", "yarn.lock", "--assert", "missing"],
   ["vpt", "stat-file", "node_modules", "--assert", "missing"],

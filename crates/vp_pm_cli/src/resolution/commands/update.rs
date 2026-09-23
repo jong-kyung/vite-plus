@@ -127,18 +127,11 @@ impl Resolve<UpdateArgs> for Yarn {
         if args.no_save && !(recursive_resolutions && self.supports_v3_commands()) {
             diag.warn(DiagnosticKind::UnsupportedOption, "yarn does not support --no-save.");
         }
-        if !self.is_berry() {
-            if args.interactive && !args.filter.is_empty() {
-                diag.warn(
-                    DiagnosticKind::UnsupportedOption,
-                    "yarn < 2 does not support --filter with --interactive.",
-                );
-            } else if args.filter.len() > 1 {
-                diag.warn(
-                    DiagnosticKind::UnsupportedOption,
-                    "yarn < 2 does not support multiple --filter options.",
-                );
-            }
+        if !self.is_berry() && args.filter.len() > 1 {
+            diag.warn(
+                DiagnosticKind::UnsupportedOption,
+                "yarn < 2 does not support multiple --filter options.",
+            );
         }
     }
 
@@ -433,15 +426,6 @@ mod tests {
         assert_eq!(
             expect_run(resolution.outcome).args,
             vec!["upgrade-interactive", "--latest", "react"]
-        );
-    }
-
-    #[test]
-    fn test_yarn_classic_interactive_rejects_filter() {
-        let args = parse_args::<UpdateArgs>(["--interactive", "--filter", "app", "react"]).unwrap();
-        expect_unsupported(
-            resolve(&yarn("1.22.22"), args),
-            &["yarn < 2 does not support --filter with --interactive."],
         );
     }
 

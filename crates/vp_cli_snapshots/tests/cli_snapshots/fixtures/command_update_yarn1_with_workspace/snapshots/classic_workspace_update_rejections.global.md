@@ -23,16 +23,6 @@ yarn does not support --workspace.
 yarn < 2 does not support multiple --filter options.
 ```
 
-## `vp update --interactive --filter app --latest is-number`
-
-Classic interactive mode cannot restrict its choices to one workspace
-
-**Exit code:** 1
-
-```
-yarn < 2 does not support --filter with --interactive.
-```
-
 ## `vpt print-file package.json packages/app/package.json packages/web/package.json`
 
 ```
