@@ -90,23 +90,6 @@ impl Resolve<ConfigCommand> for Npm {
 }
 
 impl Resolve<ConfigCommand> for Yarn {
-    fn diagnose(&self, args: &ConfigCommand, diag: &mut Diagnostics) {
-        let Some(location) = args.effective_location() else {
-            return;
-        };
-        // Classic's set/delete use saveHomeConfig, so user scope needs no flag.
-        // https://github.com/yarnpkg/yarn/blob/v1.22.22/src/cli/commands/config.js#L50-L80
-        let supported =
-            matches!(location, "user" | "global") || (self.is_berry() && location == "project");
-        if !supported {
-            let manager = if self.is_berry() { "yarn >= 2" } else { "Yarn Classic" };
-            diag.warn(
-                DiagnosticKind::UnsupportedOption,
-                vt_str::format!("{manager} does not support --location {location}."),
-            );
-        }
-    }
-
     fn resolve(&self, args: &ConfigCommand, _diag: &mut Diagnostics) -> CommandResolution {
         resolve_yarn_config(args, self.is_berry())
     }
@@ -134,6 +117,18 @@ fn resolve_npm_like_config(program: &str, args: &ConfigCommand) -> CommandResolu
 }
 
 fn resolve_yarn_config(args: &ConfigCommand, is_berry: bool) -> CommandResolution {
+    if let Some(location) = args.effective_location() {
+        // Classic's set/delete use saveHomeConfig, so user scope needs no flag.
+        // https://github.com/yarnpkg/yarn/blob/v1.22.22/src/cli/commands/config.js#L50-L80
+        let supported =
+            matches!(location, "user" | "global") || (is_berry && location == "project");
+        if !supported {
+            let manager = if is_berry { "yarn >= 2" } else { "Yarn Classic" };
+            return CommandResolution::InvalidArgument(
+                vt_str::format!("{manager} does not support --location {location}.").to_string(),
+            );
+        }
+    }
     let mut cmd = CommandBuilder::new("yarn");
     cmd.arg("config");
     match (args, is_berry) {

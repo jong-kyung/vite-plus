@@ -10,19 +10,6 @@ reject multiple filters instead of updating only the first workspace
 yarn < 2 does not support multiple --filter options.
 ```
 
-## `vp update --recursive --workspace --dev --filter app --filter web`
-
-aggregate workspace and dependency selection errors
-
-**Exit code:** 1
-
-```
-yarn < 2 does not support --recursive.
-yarn does not support --dev.
-yarn does not support --workspace.
-yarn < 2 does not support multiple --filter options.
-```
-
 ## `vpt print-file package.json packages/app/package.json packages/web/package.json`
 
 ```

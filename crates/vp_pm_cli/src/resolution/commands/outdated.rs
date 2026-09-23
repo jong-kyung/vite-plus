@@ -164,15 +164,6 @@ impl Resolve<OutdatedArgs> for Npm {
 }
 
 impl Resolve<OutdatedArgs> for Yarn {
-    fn diagnose(&self, args: &OutdatedArgs, diag: &mut Diagnostics) {
-        if !self.is_berry() && args.format == Some(OutdatedFormat::List) {
-            diag.warn(
-                DiagnosticKind::UnsupportedOption,
-                "Yarn Classic does not support --format list.",
-            );
-        }
-    }
-
     fn resolve(&self, args: &OutdatedArgs, diag: &mut Diagnostics) -> CommandResolution {
         if args.global {
             return Npm::resolve_outdated(args);
@@ -194,7 +185,12 @@ impl Resolve<OutdatedArgs> for Yarn {
             Some(OutdatedFormat::Json) => {
                 cmd.arg("--json");
             }
-            Some(OutdatedFormat::List | OutdatedFormat::Table) | None => {}
+            Some(OutdatedFormat::List) => {
+                return CommandResolution::InvalidArgument(
+                    "Yarn Classic does not support --format list.".into(),
+                );
+            }
+            Some(OutdatedFormat::Table) | None => {}
         }
         cmd.extend(args.pass_through_args.iter());
         cmd.into()
@@ -422,7 +418,6 @@ mod tests {
                 "yarn does not support --recursive.",
                 "yarn does not support --filter.",
                 "yarn does not support --workspace-root.",
-                "Yarn Classic does not support --format list.",
             ],
         );
 
@@ -545,15 +540,6 @@ mod tests {
                 &["Yarn Classic does not support --format list."],
             );
         }
-    }
-
-    #[test]
-    fn yarn_classic_reports_list_with_other_unsupported_options() {
-        let args = parse_args::<OutdatedArgs>(["--format", "list", "--long"]).unwrap();
-        expect_unsupported(
-            resolve(&yarn("1.22.22"), args),
-            &["yarn does not support --long.", "Yarn Classic does not support --format list."],
-        );
     }
 
     #[test]

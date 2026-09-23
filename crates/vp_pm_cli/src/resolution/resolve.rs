@@ -15,9 +15,6 @@ pub(crate) struct Resolution {
 }
 
 pub(crate) trait Resolve<A>: PackageManagerDialect {
-    /// Report value- or command-dependent support restrictions before lowering.
-    fn diagnose(&self, _args: &A, _diag: &mut Diagnostics) {}
-
     fn resolve(&self, args: &A, diag: &mut Diagnostics) -> CommandResolution;
 }
 
@@ -28,7 +25,6 @@ where
 {
     let mut diagnostics = Diagnostics::default();
     let args = args.diagnose(dialect, &mut diagnostics);
-    dialect.diagnose(&args, &mut diagnostics);
     if let Some(message) = diagnostics.unsupported_options_error() {
         return Resolution {
             outcome: CommandResolution::InvalidArgument(message),
@@ -126,15 +122,6 @@ mod tests {
         }
 
         impl Resolve<UnsupportedArgs> for Npm {
-            fn diagnose(&self, args: &UnsupportedArgs, diag: &mut Diagnostics) {
-                if args.second.as_deref() == Some("value") {
-                    diag.warn(
-                        crate::resolution::DiagnosticKind::UnsupportedOption,
-                        "npm does not support --second value.",
-                    );
-                }
-            }
-
             fn resolve(&self, _: &UnsupportedArgs, _: &mut Diagnostics) -> CommandResolution {
                 panic!("unsupported options must be rejected before lowering");
             }
@@ -147,10 +134,7 @@ mod tests {
         let CommandResolution::InvalidArgument(message) = result.outcome else {
             panic!("expected an unsupported-option error");
         };
-        assert_eq!(
-            message,
-            "npm does not support --first.\nnpm does not support --second.\nnpm does not support --second value."
-        );
+        assert_eq!(message, "npm does not support --first.\nnpm does not support --second.");
         assert!(result.diagnostics.is_empty(), "errors must not also be rendered as warnings");
     }
 

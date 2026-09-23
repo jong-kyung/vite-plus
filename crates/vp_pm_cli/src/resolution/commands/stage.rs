@@ -195,27 +195,6 @@ impl Resolve<StageCommand> for Npm {
 }
 
 impl Resolve<StageCommand> for Yarn {
-    fn diagnose(&self, args: &StageCommand, diag: &mut Diagnostics) {
-        if !self.supports_v4_16_commands() {
-            return;
-        }
-        let StageCommand::Publish { target: None, recursive, filter, .. } = args else {
-            return;
-        };
-        if *recursive {
-            diag.warn(
-                DiagnosticKind::UnsupportedOption,
-                "yarn does not support --recursive for native staged publishing.",
-            );
-        }
-        if filter.as_ref().is_some_and(|filters| !filters.is_empty()) {
-            diag.warn(
-                DiagnosticKind::UnsupportedOption,
-                "yarn does not support --filter for native staged publishing.",
-            );
-        }
-    }
-
     fn resolve(&self, args: &StageCommand, diag: &mut Diagnostics) -> CommandResolution {
         if !self.supports_v4_16_commands() {
             diag.warn(
@@ -233,7 +212,12 @@ impl Resolve<StageCommand> for Yarn {
             );
                 return Npm::resolve_stage(args);
             }
-            StageCommand::Publish { .. } => {
+            StageCommand::Publish { recursive, filter, .. } => {
+                if *recursive || filter.as_ref().is_some_and(|filters| !filters.is_empty()) {
+                    return CommandResolution::InvalidArgument(
+                        "yarn does not support --recursive or --filter for native staged publishing.".into(),
+                    );
+                }
                 let mut cmd = CommandBuilder::new("yarn");
                 append_yarn_publish_staged(&mut cmd, args);
                 cmd
@@ -799,7 +783,7 @@ mod tests {
     }
 
     #[test]
-    fn test_yarn_native_stage_collects_unsupported_options() {
+    fn test_yarn_native_stage_rejects_workspace_selection() {
         for version in ["4.16.0", "4.18.0"] {
             let args = parse_subcommand::<StageCommand>([
                 "publish",
@@ -814,10 +798,7 @@ mod tests {
             .unwrap();
             expect_unsupported(
                 resolve(&yarn(version), args),
-                &[
-                    "yarn does not support --recursive for native staged publishing.",
-                    "yarn does not support --filter for native staged publishing.",
-                ],
+                &["yarn does not support --recursive or --filter for native staged publishing."],
             );
         }
     }

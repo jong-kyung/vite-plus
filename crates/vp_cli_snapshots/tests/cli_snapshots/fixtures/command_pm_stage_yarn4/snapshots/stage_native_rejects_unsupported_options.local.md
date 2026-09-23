@@ -7,8 +7,7 @@ Reject workspace selection that cannot be translated to native staged publishing
 **Exit code:** 1
 
 ```
-yarn does not support --recursive for native staged publishing.
-yarn does not support --filter for native staged publishing.
+yarn does not support --recursive or --filter for native staged publishing.
 ```
 
 ## `vp pm stage list --registry http://127.0.0.1:9 -- --help`

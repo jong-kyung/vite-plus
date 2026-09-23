@@ -2,7 +2,7 @@ use vp_pm_cli_macros::pm_args;
 
 use super::parse_positive_usize;
 use crate::resolution::{
-    Bun, CommandBuilder, CommandResolution, DiagnosticKind, Diagnostics, Npm, Pnpm, Resolve, Yarn,
+    Bun, CommandBuilder, CommandResolution, Diagnostics, Npm, Pnpm, Resolve, Yarn,
 };
 
 #[pm_args]
@@ -108,20 +108,11 @@ impl Resolve<UpdateArgs> for Npm {
 }
 
 impl Resolve<UpdateArgs> for Yarn {
-    fn diagnose(&self, args: &UpdateArgs, diag: &mut Diagnostics) {
+    fn resolve(&self, args: &UpdateArgs, _diag: &mut Diagnostics) -> CommandResolution {
         let recursive_resolutions = self.is_berry() && args.recursive && !args.latest;
         if args.no_save && !recursive_resolutions {
-            diag.warn(DiagnosticKind::UnsupportedOption, "yarn does not support --no-save.");
+            return CommandResolution::InvalidArgument("yarn does not support --no-save.".into());
         }
-        if !self.is_berry() && args.filter.len() > 1 {
-            diag.warn(
-                DiagnosticKind::UnsupportedOption,
-                "yarn < 2 does not support multiple --filter options.",
-            );
-        }
-    }
-
-    fn resolve(&self, args: &UpdateArgs, _diag: &mut Diagnostics) -> CommandResolution {
         if self.is_berry() {
             Yarn::resolve_berry_update(args)
         } else {
@@ -147,6 +138,11 @@ impl Yarn {
     }
 
     fn resolve_v1_update(args: &UpdateArgs) -> CommandResolution {
+        if args.filter.len() > 1 {
+            return CommandResolution::InvalidArgument(
+                "yarn < 2 does not support multiple --filter options.".into(),
+            );
+        }
         let mut cmd = CommandBuilder::new("yarn");
         if let Some(filter) = args.filter.first() {
             cmd.arg("workspace").arg(filter);
@@ -378,29 +374,6 @@ mod tests {
         expect_unsupported(
             resolve(&yarn("1.22.22"), args),
             &["yarn < 2 does not support multiple --filter options."],
-        );
-    }
-
-    #[test]
-    fn test_yarn_classic_rejects_recursive_and_workspace_options_together() {
-        let args = parse_args::<UpdateArgs>([
-            "--recursive",
-            "--workspace",
-            "--dev",
-            "--filter",
-            "app",
-            "--filter",
-            "web",
-        ])
-        .unwrap();
-        expect_unsupported(
-            resolve(&yarn("1.22.22"), args),
-            &[
-                "yarn < 2 does not support --recursive.",
-                "yarn does not support --dev.",
-                "yarn does not support --workspace.",
-                "yarn < 2 does not support multiple --filter options.",
-            ],
         );
     }
 

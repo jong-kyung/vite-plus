@@ -3,7 +3,6 @@ name = "outdated_list_format_is_rejected"
 vp = ["local", "global"]
 steps = [
   { argv = ["vp", "outdated", "--format", "list", "--", "--help"], comment = "Reject list before running Yarn, even when help is passed through.", continue-on-failure = true },
-  { argv = ["vp", "outdated", "--format", "list", "--long"], comment = "Collect value-specific and declarative support errors together.", continue-on-failure = true },
   { argv = ["vp", "outdated", "--format", "table"], comment = "An explicit table remains supported.", continue-on-failure = true },
   { argv = ["vp", "outdated", "--format", "json"], comment = "JSON remains supported, with no output for an empty dependency list.", continue-on-failure = true },
   { argv = ["vp", "outdated"], comment = "Omitting the format still runs Yarn outdated.", continue-on-failure = true },
