@@ -444,12 +444,38 @@ mod tests {
         assert_eq!(project.outcome, resolve(&yarn("4.18.0"), set_config(None)).outcome);
         assert!(project.diagnostics.is_empty());
 
-        let user = resolve(&yarn("4.18.0"), set_config(Some("user")));
+        let user_set = resolve(&yarn("4.18.0"), set_config(Some("user")));
         assert_eq!(
-            expect_run(user.outcome).args,
+            expect_run(user_set.outcome).args,
             vec!["config", "set", "registry", "https://registry.npmjs.org", "--home"]
         );
-        assert!(user.diagnostics.is_empty());
+        assert!(user_set.diagnostics.is_empty());
+
+        let user_get = resolve(
+            &yarn("4.18.0"),
+            ConfigCommand::Get {
+                key: "registry".to_string(),
+                json: false,
+                global: false,
+                location: Some("user".to_string()),
+            },
+        );
+        assert_eq!(expect_run(user_get.outcome).args, vec!["config", "get", "registry"]);
+        assert!(user_get.diagnostics.is_empty());
+
+        let user_delete = resolve(
+            &yarn("4.18.0"),
+            ConfigCommand::Delete {
+                key: "registry".to_string(),
+                global: false,
+                location: Some("user".to_string()),
+            },
+        );
+        assert_eq!(
+            expect_run(user_delete.outcome).args,
+            vec!["config", "unset", "registry", "--home"]
+        );
+        assert!(user_delete.diagnostics.is_empty());
     }
 
     #[test]
