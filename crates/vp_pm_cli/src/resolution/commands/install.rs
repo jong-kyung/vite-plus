@@ -33,7 +33,7 @@ pub struct InstallArgs {
     pub(crate) no_frozen_lockfile: bool,
 
     /// Only update lockfile, don't install
-    #[arg(long)]
+    #[arg(long, not_supported(yarn < "2"))]
     pub(crate) lockfile_only: bool,
 
     /// Use cached packages when available
@@ -73,7 +73,7 @@ pub struct InstallArgs {
     pub(crate) silent: bool,
 
     /// Filter packages in monorepo (can be used multiple times)
-    #[arg(long, value_name = "PATTERN")]
+    #[arg(long, value_name = "PATTERN", not_supported(yarn < "2"))]
     pub(crate) filter: Vec<String>,
 
     /// Install in workspace root only
@@ -633,6 +633,35 @@ mod tests {
                 &["yarn does not support --dev.", "yarn does not support --resolution-only."],
             );
         }
+    }
+
+    #[test]
+    fn yarn_classic_rejects_lockfile_only_and_filter() {
+        for (argv, messages) in [
+            (vec!["--lockfile-only"], vec!["yarn < 2 does not support --lockfile-only."]),
+            (vec!["--filter", "app"], vec!["yarn < 2 does not support --filter."]),
+            (
+                vec!["--lockfile-only", "--filter", "app", "--silent"],
+                vec![
+                    "yarn < 2 does not support --lockfile-only.",
+                    "yarn < 2 does not support --filter.",
+                ],
+            ),
+        ] {
+            let args = parse_args::<InstallArgs>(argv).unwrap();
+            expect_unsupported(resolve(&yarn("1.22.22"), args), &messages);
+        }
+    }
+
+    #[test]
+    fn yarn_classic_install_preserves_raw_scope_flags() {
+        let args = parse_args::<InstallArgs>(["--", "--lockfile-only", "--filter", "app"]).unwrap();
+        let resolution = resolve(&yarn("1.22.22"), args);
+        assert!(resolution.diagnostics.is_empty());
+        assert_eq!(
+            expect_run(resolution.outcome).args,
+            vec!["install", "--lockfile-only", "--filter", "app"],
+        );
     }
 
     #[test]
