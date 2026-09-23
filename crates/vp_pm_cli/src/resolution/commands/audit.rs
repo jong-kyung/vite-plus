@@ -20,8 +20,8 @@ pub struct AuditArgs {
     pub(crate) level: Option<String>,
 
     /// Only audit production dependencies
-    /// Bun ignores the flag before 1.2.21, when `bun audit --prod` landed.
-    /// https://bun.sh/blog/bun-v1.2.21
+    // Bun ignores the flag before 1.2.21, when `bun audit --prod` landed.
+    // https://bun.sh/blog/bun-v1.2.21
     #[arg(long, not_supported(bun < "1.2.21"))]
     pub(crate) production: bool,
 

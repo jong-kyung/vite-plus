@@ -33,8 +33,8 @@ pub struct InstallArgs {
     pub(crate) no_frozen_lockfile: bool,
 
     /// Only update lockfile, don't install
-    /// `yarn install --mode update-lockfile` landed in Yarn 3.0.0.
-    /// https://github.com/yarnpkg/berry/blob/master/CHANGELOG.md#300
+    // `yarn install --mode update-lockfile` landed in Yarn 3.0.0.
+    // https://github.com/yarnpkg/berry/blob/master/CHANGELOG.md#300
     #[arg(long, not_supported(yarn < "3"))]
     pub(crate) lockfile_only: bool,
 
