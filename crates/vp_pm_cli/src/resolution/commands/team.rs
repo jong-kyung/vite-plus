@@ -154,10 +154,10 @@ impl Resolve<TeamCommand> for Yarn {
     fn resolve(&self, args: &TeamCommand, diag: &mut Diagnostics) -> CommandResolution {
         if self.is_berry() {
             diag.warn(
-                DiagnosticKind::FallbackCommand,
-                "yarn@2+ does not support team, falling back to npm team.",
+                DiagnosticKind::UnsupportedCommandNoop,
+                "yarn@2+ does not have a 'team' command.",
             );
-            return resolve_team("npm", args);
+            return CommandResolution::Noop;
         }
         resolve_team("yarn", args)
     }
@@ -277,14 +277,6 @@ mod tests {
                 resolve(&pnpm("11.13.0-beta.1"), args.clone()),
                 "pnpm team requires pnpm >= 11.13.0, falling back to npm team.",
             ),
-            (
-                resolve(&yarn("2.0.0"), args.clone()),
-                "yarn@2+ does not support team, falling back to npm team.",
-            ),
-            (
-                resolve(&yarn("4.18.0"), args.clone()),
-                "yarn@2+ does not support team, falling back to npm team.",
-            ),
             (resolve(&bun("1.4.0"), args), "bun does not support team, falling back to npm team."),
         ] {
             let command = expect_run(result.outcome);
@@ -293,6 +285,42 @@ mod tests {
             assert_eq!(result.diagnostics.len(), 1);
             assert_eq!(result.diagnostics[0].kind, DiagnosticKind::FallbackCommand);
             assert_eq!(result.diagnostics[0].message, message);
+        }
+    }
+
+    #[test]
+    fn yarn_modern_warns_and_skips_all_team_commands() {
+        for version in ["2.0.0", "4.18.0"] {
+            for (subcommand, user) in [
+                ("create", None),
+                ("destroy", None),
+                ("add", Some("alice")),
+                ("rm", Some("alice")),
+                ("remove", Some("alice")),
+                ("ls", None),
+                ("list", None),
+            ] {
+                let mut argv = vec![subcommand, "@org:team"];
+                argv.extend(user);
+                argv.extend([
+                    "--json",
+                    "--registry",
+                    "https://registry.example",
+                    "--otp",
+                    "123456",
+                    "--",
+                    "--help",
+                ]);
+                let args = parse_subcommand::<TeamCommand>(argv).unwrap();
+                let result = resolve(&yarn(version), args);
+                assert_eq!(result.outcome, CommandResolution::Noop);
+                assert_eq!(result.diagnostics.len(), 1);
+                assert_eq!(result.diagnostics[0].kind, DiagnosticKind::UnsupportedCommandNoop);
+                assert_eq!(
+                    result.diagnostics[0].message,
+                    "yarn@2+ does not have a 'team' command."
+                );
+            }
         }
     }
 

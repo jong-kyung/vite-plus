@@ -497,7 +497,6 @@ mod tests {
             (PackageManagerType::Pnpm, "11.13.0", "pnpm", "ls", "@org:team", false),
             (PackageManagerType::Pnpm, "11.12.0", "npm", "ls", "@org:team", true),
             (PackageManagerType::Yarn, "1.22.22", "yarn", "list", "@org:team", false),
-            (PackageManagerType::Yarn, "4.18.0", "npm", "ls", "@org:team", true),
             (PackageManagerType::Bun, "1.4.0", "npm", "ls", "@org:team", true),
         ] {
             for alias in ["ls", "list"] {
@@ -511,6 +510,20 @@ mod tests {
                 assert_eq!(resolved.program, program);
                 assert_eq!(resolved.args, vec!["team", subcommand, scope, "--json"]);
             }
+        }
+    }
+
+    #[test]
+    fn team_list_warns_and_noops_for_yarn_modern() {
+        for alias in ["ls", "list"] {
+            let command = parse(&["pm", "team", alias, "@org:team", "--json"]).unwrap();
+            assert!(command.is_quiet_or_machine_readable());
+            assert!(command.should_render_diagnostics());
+            let result = command
+                .resolve_for_manager(&package_manager(PackageManagerType::Yarn, "4.18.0"))
+                .unwrap();
+            assert_eq!(result.outcome, crate::resolution::CommandResolution::Noop);
+            assert_eq!(result.diagnostics.len(), 1);
         }
     }
 
