@@ -43,6 +43,16 @@ should reject dry-run before Yarn Classic can publish
 yarn < 4.9.3 does not support --dry-run.
 ```
 
+## `vp pm publish --provenance`
+
+should reject provenance before Yarn Classic publishes without an attestation
+
+**Exit code:** 1
+
+```
+yarn < 4.9.0 does not support --provenance.
+```
+
 ## `vp pm publish --recursive`
 
 should reject workspace publishing rather than use npm

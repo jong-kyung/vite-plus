@@ -40,7 +40,7 @@ pub struct PublishArgs {
     pub(crate) report_summary: bool,
 
     /// Publish with provenance
-    #[arg(long, not_supported(bun))]
+    #[arg(long, not_supported(yarn < "4.9.0", bun))]
     pub(crate) provenance: bool,
 
     /// Force publish
@@ -422,7 +422,6 @@ mod tests {
             tag: Some("beta".into()),
             access: Some("public".into()),
             otp: Some("123456".into()),
-            provenance: true,
             force: true,
             json: true,
             pass_through_args: vec!["--help".into()],
@@ -438,16 +437,8 @@ mod tests {
                 [
                     prefix,
                     vec![
-                        "--tag",
-                        "beta",
-                        "--access",
-                        "public",
-                        "--otp",
-                        "123456",
-                        "--provenance",
-                        "--force",
-                        "--json",
-                        "--help"
+                        "--tag", "beta", "--access", "public", "--otp", "123456", "--force",
+                        "--json", "--help"
                     ]
                 ]
                 .concat()
@@ -456,13 +447,21 @@ mod tests {
     }
 
     #[test]
-    fn test_yarn_publish_provenance() {
-        let command = expect_run(
-            resolve(&yarn("4.0.0"), PublishArgs { provenance: true, ..Default::default() }).outcome,
-        );
-
-        assert_eq!(command.program, "yarn");
-        assert_eq!(command.args, vec!["npm", "publish", "--provenance"]);
+    fn test_yarn_publish_provenance_version_boundary() {
+        let args = parse_args::<PublishArgs>(["--provenance"]).unwrap();
+        for version in ["1.22.22", "2.4.3", "3.6.0", "4.8.1", "4.9.0-rc.1"] {
+            expect_unsupported(
+                resolve(&yarn(version), args.clone()),
+                &["yarn < 4.9.0 does not support --provenance."],
+            );
+        }
+        for version in ["4.9.0", "4.9.3", "4.18.0"] {
+            let resolution = resolve(&yarn(version), args.clone());
+            assert!(resolution.diagnostics.is_empty());
+            let command = expect_run(resolution.outcome);
+            assert_eq!(command.program, "yarn");
+            assert_eq!(command.args, vec!["npm", "publish", "--provenance"]);
+        }
     }
 
     #[test]
