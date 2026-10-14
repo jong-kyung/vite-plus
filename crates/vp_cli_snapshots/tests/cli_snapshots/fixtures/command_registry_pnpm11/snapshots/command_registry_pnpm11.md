@@ -32,11 +32,20 @@ should preserve the native empty-message error without undeprecating
 
 ## `vp pm search react --long`
 
-should let pnpm reject unsupported options
+should reject long before invoking native pnpm search
 
 **Exit code:** 1
 
 ```
-[ERROR] Unknown option: 'long'
-For help, run: pnpm help search
+pnpm >= 11 does not support --long.
+```
+
+## `vp pm logout --scope @company -- --help`
+
+should reject scope before invoking native pnpm logout
+
+**Exit code:** 1
+
+```
+pnpm >= 11 does not support --scope.
 ```

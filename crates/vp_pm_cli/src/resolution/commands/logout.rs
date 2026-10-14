@@ -12,7 +12,7 @@ pub struct LogoutArgs {
     pub(crate) registry: Option<String>,
 
     /// Scope for the logout
-    #[arg(long, value_name = "SCOPE", not_supported(yarn < "2"))]
+    #[arg(long, value_name = "SCOPE", not_supported(pnpm >= "11", yarn < "2"))]
     pub(crate) scope: Option<String>,
 
     /// Additional arguments
@@ -84,8 +84,6 @@ mod tests {
         let args = parse_args::<LogoutArgs>([
             "--registry",
             "https://registry.example.com",
-            "--scope",
-            "@company",
             "--",
             "--help",
         ])
@@ -99,15 +97,28 @@ mod tests {
             assert_eq!(command.program, program, "{version}");
             assert_eq!(
                 command.args,
-                vec![
-                    "logout",
-                    "--registry",
-                    "https://registry.example.com",
-                    "--scope",
-                    "@company",
-                    "--help"
-                ]
+                vec!["logout", "--registry", "https://registry.example.com", "--help"]
             );
+        }
+    }
+
+    #[test]
+    fn test_pnpm_scope_support_boundary() {
+        let args = parse_args::<LogoutArgs>(["--scope", "@company"]).unwrap();
+        for version in ["10.99.0", "11.0.0-rc.1"] {
+            let command = expect_run(resolve(&pnpm(version), args.clone()).outcome);
+            assert_eq!(command.program, "npm");
+            assert_eq!(command.args, vec!["logout", "--scope", "@company"]);
+        }
+        for version in ["11.0.0", "12.13.0"] {
+            expect_unsupported(
+                resolve(&pnpm(version), args.clone()),
+                &["pnpm >= 11 does not support --scope."],
+            );
+            let raw = parse_args::<LogoutArgs>(["--", "--scope", "@company"]).unwrap();
+            let command = expect_run(resolve(&pnpm(version), raw).outcome);
+            assert_eq!(command.program, "pnpm");
+            assert_eq!(command.args, vec!["logout", "--scope", "@company"]);
         }
     }
 

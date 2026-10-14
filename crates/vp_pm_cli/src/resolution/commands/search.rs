@@ -16,7 +16,7 @@ pub struct SearchArgs {
     pub(crate) json: bool,
 
     /// Show extended information
-    #[arg(long)]
+    #[arg(long, not_supported(pnpm >= "11"))]
     pub(crate) long: bool,
 
     /// Registry URL
@@ -78,7 +78,7 @@ mod tests {
     use super::*;
     use crate::resolution::{
         resolve,
-        test_utils::{bun, expect_run, npm, parse_args, pnpm, yarn},
+        test_utils::{bun, expect_run, expect_unsupported, npm, parse_args, pnpm, yarn},
     };
 
     #[test]
@@ -87,7 +87,6 @@ mod tests {
             "react",
             "hooks",
             "--json",
-            "--long",
             "--registry",
             "https://registry.example.com",
             "--",
@@ -108,12 +107,31 @@ mod tests {
                     "react",
                     "hooks",
                     "--json",
-                    "--long",
                     "--registry",
                     "https://registry.example.com",
                     "--help"
                 ]
             );
+        }
+    }
+
+    #[test]
+    fn test_pnpm_long_support_boundary() {
+        let args = parse_args::<SearchArgs>(["react", "--long"]).unwrap();
+        for version in ["10.99.0", "11.0.0-rc.1"] {
+            let command = expect_run(resolve(&pnpm(version), args.clone()).outcome);
+            assert_eq!(command.program, "npm");
+            assert_eq!(command.args, vec!["search", "react", "--long"]);
+        }
+        for version in ["11.0.0", "12.13.0"] {
+            expect_unsupported(
+                resolve(&pnpm(version), args.clone()),
+                &["pnpm >= 11 does not support --long."],
+            );
+            let raw = parse_args::<SearchArgs>(["react", "--", "--long"]).unwrap();
+            let command = expect_run(resolve(&pnpm(version), raw).outcome);
+            assert_eq!(command.program, "pnpm");
+            assert_eq!(command.args, vec!["search", "react", "--long"]);
         }
     }
 
