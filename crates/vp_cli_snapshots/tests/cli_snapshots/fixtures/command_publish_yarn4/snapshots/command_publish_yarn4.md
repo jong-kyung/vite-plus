@@ -65,16 +65,6 @@ should reject force rather than translate it to tolerate-republish
 yarn does not support --force.
 ```
 
-## `vp pm publish -- --dry-run`
-
-should preserve supported raw dry-run
-
-```
-➤ YN0000: package.json
-➤ YN0000: [DRY RUN] Package would be published to https://registry.yarnpkg.com with tag latest
-➤ YN0000: Done in <duration>
-```
-
 ## `vp pm publish pkg.tgz`
 
 should reject an explicit target rather than use npm

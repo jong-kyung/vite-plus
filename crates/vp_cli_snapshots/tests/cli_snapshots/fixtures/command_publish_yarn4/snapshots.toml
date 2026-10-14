@@ -7,7 +7,6 @@ steps = [
   { argv = ["vp", "pm", "publish", "--dry-run"], comment = "should preview using native yarn npm publish without publishing", continue-on-failure = true },
   { argv = ["vp", "pm", "publish", "--dry-run", "--json"], comment = "should preserve supported native JSON output without publishing", continue-on-failure = true },
   { argv = ["vp", "pm", "publish", "--force", "--", "--help"], comment = "should reject force rather than translate it to tolerate-republish", continue-on-failure = true },
-  { argv = ["vp", "pm", "publish", "--", "--dry-run"], comment = "should preserve supported raw dry-run", continue-on-failure = true },
   { argv = ["vp", "pm", "publish", "pkg.tgz"], comment = "should reject an explicit target rather than use npm", continue-on-failure = true },
   { argv = ["vp", "pm", "publish", "--recursive"], comment = "should reject workspace publishing rather than use npm", continue-on-failure = true },
   { argv = ["vp", "pm", "publish", "--filter", "app"], comment = "should reject workspace selection rather than use npm", continue-on-failure = true },

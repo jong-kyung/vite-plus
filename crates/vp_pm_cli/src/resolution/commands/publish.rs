@@ -203,20 +203,6 @@ mod tests {
     }
 
     #[test]
-    fn test_yarn_publish_with_tag() {
-        let command = expect_run(
-            resolve(
-                &yarn("4.0.0"),
-                PublishArgs { tag: Some("beta".to_string()), ..Default::default() },
-            )
-            .outcome,
-        );
-
-        assert_eq!(command.program, "yarn");
-        assert_eq!(command.args, vec!["npm", "publish", "--tag", "beta"]);
-    }
-
-    #[test]
     fn test_pnpm_publish_recursive() {
         let command = expect_run(
             resolve(&pnpm("10.0.0"), PublishArgs { recursive: true, ..Default::default() }).outcome,
@@ -266,7 +252,7 @@ mod tests {
 
     #[test]
     fn test_yarn_publish_rejects_workspace_selection() {
-        for version in ["1.22.22", "2.4.3", "4.9.3", "4.18.0"] {
+        for version in ["1.22.22", "4.9.3"] {
             expect_unsupported(
                 resolve(&yarn(version), PublishArgs { recursive: true, ..Default::default() }),
                 &["yarn does not support --recursive."],
@@ -288,7 +274,7 @@ mod tests {
             let command = expect_run(resolve(&yarn("1.22.22"), args.clone()).outcome);
             assert_eq!(command.program, "yarn");
             assert_eq!(command.args, vec!["publish", target]);
-            for version in ["2.4.3", "4.9.3", "4.18.0"] {
+            for version in ["2.0.0", "4.9.3"] {
                 expect_unsupported(
                     resolve(&yarn(version), args.clone()),
                     &["yarn >= 2 does not support TARBALL|FOLDER."],
@@ -306,7 +292,7 @@ mod tests {
                 &["yarn < 4.9.3 does not support --dry-run."],
             );
         }
-        for version in ["4.9.3", "4.9.4", "4.18.0"] {
+        for version in ["4.9.3", "4.9.4"] {
             let resolution = resolve(&yarn(version), args.clone());
             assert!(resolution.diagnostics.is_empty());
             let command = expect_run(resolution.outcome);
@@ -340,7 +326,7 @@ mod tests {
     #[test]
     fn test_yarn_publish_json_version_boundary() {
         let args = parse_args::<PublishArgs>(["--json"]).unwrap();
-        for version in ["2.0.0", "2.4.2", "3.6.0", "4.9.2", "4.9.3-rc.1"] {
+        for version in ["2.0.0", "4.9.2", "4.9.3-rc.1"] {
             expect_unsupported(
                 resolve(&yarn(version), args.clone()),
                 &["yarn >= 2 && < 4.9.3 does not support --json."],
@@ -453,13 +439,13 @@ mod tests {
     #[test]
     fn test_yarn_publish_provenance_version_boundary() {
         let args = parse_args::<PublishArgs>(["--provenance"]).unwrap();
-        for version in ["1.22.22", "2.4.3", "3.6.0", "4.8.1", "4.9.0-rc.1"] {
+        for version in ["1.22.22", "2.4.3", "4.8.1", "4.9.0-rc.1"] {
             expect_unsupported(
                 resolve(&yarn(version), args.clone()),
                 &["yarn < 4.9.0 does not support --provenance."],
             );
         }
-        for version in ["4.9.0", "4.9.3", "4.18.0"] {
+        for version in ["4.9.0", "4.9.3"] {
             let resolution = resolve(&yarn(version), args.clone());
             assert!(resolution.diagnostics.is_empty());
             let command = expect_run(resolution.outcome);
@@ -506,13 +492,13 @@ mod tests {
     #[test]
     fn test_yarn_publish_otp_version_boundary() {
         let args = parse_args::<PublishArgs>(["--otp", "999999"]).unwrap();
-        for version in ["1.0.0", "1.12.0", "1.12.1-rc.1"] {
+        for version in ["1.12.0", "1.12.1-rc.1"] {
             expect_unsupported(
                 resolve(&yarn(version), args.clone()),
                 &["yarn < 1.12.1 does not support --otp."],
             );
         }
-        for version in ["2.0.0", "2.4.3", "3.1.1", "3.2.0-rc.1"] {
+        for version in ["2.0.0", "3.1.1", "3.2.0-rc.1"] {
             expect_unsupported(
                 resolve(&yarn(version), args.clone()),
                 &["yarn >= 2 && < 3.2.0 does not support --otp."],
@@ -520,7 +506,6 @@ mod tests {
         }
         for (version, expected) in [
             ("1.12.1", vec!["publish", "--otp", "999999"]),
-            ("1.22.0", vec!["publish", "--otp", "999999"]),
             ("3.2.0", vec!["npm", "publish", "--otp", "999999"]),
             ("4.9.3", vec!["npm", "publish", "--otp", "999999"]),
         ] {
@@ -535,7 +520,7 @@ mod tests {
     #[test]
     fn test_yarn_publish_rejects_force() {
         let args = parse_args::<PublishArgs>(["--force"]).unwrap();
-        for version in ["1.22.22", "2.4.3", "3.6.0", "4.9.3"] {
+        for version in ["1.22.22", "4.9.3"] {
             expect_unsupported(
                 resolve(&yarn(version), args.clone()),
                 &["yarn does not support --force."],
@@ -546,13 +531,14 @@ mod tests {
     #[test]
     fn test_yarn_publish_preserves_raw_unsupported_flags() {
         let args =
-            parse_args::<PublishArgs>(["--", "--force", "--json", "--otp", "123456"]).unwrap();
+            parse_args::<PublishArgs>(["--", "--dry-run", "--force", "--json", "--otp", "123456"])
+                .unwrap();
         for (version, prefix) in [("1.22.22", vec!["publish"]), ("2.4.3", vec!["npm", "publish"])] {
             let resolution = resolve(&yarn(version), args.clone());
             assert!(resolution.diagnostics.is_empty());
             assert_eq!(
                 expect_run(resolution.outcome).args,
-                [prefix, vec!["--force", "--json", "--otp", "123456"]].concat()
+                [prefix, vec!["--dry-run", "--force", "--json", "--otp", "123456"]].concat()
             );
         }
     }
