@@ -15,7 +15,7 @@ pub enum OwnerCommand {
         package: String,
 
         /// One-time password for authentication
-        #[arg(long, value_name = "OTP")]
+        #[arg(long, value_name = "OTP", not_supported(yarn < "1.12.1"))]
         otp: Option<String>,
     },
 
@@ -28,7 +28,7 @@ pub enum OwnerCommand {
         package: String,
 
         /// One-time password for authentication
-        #[arg(long, value_name = "OTP")]
+        #[arg(long, value_name = "OTP", not_supported(yarn < "1.12.1"))]
         otp: Option<String>,
     },
 
@@ -41,7 +41,7 @@ pub enum OwnerCommand {
         package: String,
 
         /// One-time password for authentication
-        #[arg(long, value_name = "OTP")]
+        #[arg(long, value_name = "OTP", not_supported(yarn < "1.12.1"))]
         otp: Option<String>,
     },
 }
@@ -114,7 +114,7 @@ mod tests {
     use super::*;
     use crate::resolution::{
         Resolution, resolve,
-        test_utils::{bun, expect_run, npm, parse_subcommand, pnpm, yarn},
+        test_utils::{bun, expect_run, expect_unsupported, npm, parse_subcommand, pnpm, yarn},
     };
 
     #[test]
@@ -211,15 +211,26 @@ mod tests {
     }
 
     #[test]
-    fn test_yarn_classic_owner_is_native_and_berry_keeps_npm() {
+    fn test_yarn_owner_otp_version_boundary_and_native_routing() {
         for subcommand in ["list", "add", "rm"] {
             let mut argv = vec![subcommand];
             if subcommand != "list" {
                 argv.push("alice");
             }
-            argv.extend(["@scope/pkg", "--otp", "123456"]);
+            argv.push("@scope/pkg");
+            let without_otp = parse_subcommand::<OwnerCommand>(argv.clone()).unwrap();
+            argv.extend(["--otp", "123456"]);
             let args = parse_subcommand::<OwnerCommand>(argv.clone()).unwrap();
-            for (version, program) in [("1.22.22", "yarn"), ("2.4.3", "npm"), ("4.18.0", "npm")] {
+            for version in ["1.12.0", "1.12.1-rc.1"] {
+                expect_unsupported(
+                    resolve(&yarn(version), args.clone()),
+                    &["yarn < 1.12.1 does not support --otp."],
+                );
+                let resolution = resolve(&yarn(version), without_otp.clone());
+                assert!(resolution.diagnostics.is_empty());
+                assert_eq!(expect_run(resolution.outcome).program, "yarn");
+            }
+            for (version, program) in [("1.12.1", "yarn"), ("1.22.22", "yarn"), ("2.4.3", "npm")] {
                 let resolution = resolve(&yarn(version), args.clone());
                 assert!(resolution.diagnostics.is_empty());
                 let command = expect_run(resolution.outcome);
