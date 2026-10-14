@@ -79,9 +79,19 @@ impl PackageManagerDialect for Npm {
 }
 
 impl Pnpm {
-    /// `approve-builds !<pkg>` deny syntax landed in pnpm 11.
+    /// Registry commands and `approve-builds !<pkg>` deny syntax landed in pnpm 11.
     pub(crate) fn supports_v11_commands(&self) -> bool {
         self.version >= Version::new(11, 0, 0)
+    }
+
+    /// `owner` landed in pnpm 11.1.0.
+    pub(crate) fn supports_v11_1_commands(&self) -> bool {
+        self.version >= Version::new(11, 1, 0)
+    }
+
+    /// `token` landed in pnpm 12.13.0.
+    pub(crate) fn supports_v12_13_commands(&self) -> bool {
+        self.version >= Version::new(12, 13, 0)
     }
 }
 

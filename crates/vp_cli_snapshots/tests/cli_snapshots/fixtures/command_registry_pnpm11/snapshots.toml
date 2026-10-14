@@ -1,0 +1,8 @@
+[[case]]
+name = "command_registry_pnpm11"
+vp = "global"
+steps = [
+  { argv = ["vp", "pm", "dist-tag", "list"], comment = "should preserve the native missing-package error", continue-on-failure = true },
+  { argv = ["vp", "pm", "deprecate", "command-registry-pnpm11@1.0.0", ""], comment = "should preserve the native empty-message error without undeprecating", continue-on-failure = true },
+  { argv = ["vp", "pm", "search", "react", "--long"], comment = "should let pnpm reject unsupported options", continue-on-failure = true },
+]

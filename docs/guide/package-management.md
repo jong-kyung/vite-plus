@@ -225,6 +225,14 @@ vp pm cache clean -- --force
 vp pm audit --json
 ```
 
+#### Registry commands
+
+pnpm 11 and later runs `login`, `logout`, `whoami`, `dist-tag`, `deprecate`, `ping`, and `search` natively. Native `owner` requires pnpm 11.1 or later, and native `token` requires pnpm 12.13 or later. Earlier versions use npm for these commands. A failed native command is not retried through npm.
+
+Native commands use pnpm's registry and authentication settings and preserve its output and errors. Credentials are not copied to npm, so commands that still use npm may require a separate npm login. Options are forwarded to pnpm, which decides whether its version supports them.
+
+`vp pm owner add` and `vp pm owner rm` keep the `<user> <package>` argument order and reorder these arguments for pnpm. `vp pm token create --readonly` becomes pnpm's `--read-only`; repeated `--cidr` values are preserved. `vp` does not fill in a missing package for `dist-tag list`, resolve version ranges for `dist-tag add`, bypass restrictions on removing `latest`, or turn an empty deprecation message into an `undeprecate` command.
+
 #### Staged publishing
 
 `vp pm stage` exposes [npm's staged publishing](https://docs.npmjs.com/staged-publishing) workflow: a build is uploaded to a staging area (no 2FA, CI-friendly), then a maintainer approves or rejects it from a trusted device (2FA). It adapts to the detected package manager.

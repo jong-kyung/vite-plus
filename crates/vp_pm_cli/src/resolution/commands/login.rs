@@ -22,7 +22,11 @@ pub struct LoginArgs {
 
 impl Resolve<LoginArgs> for Pnpm {
     fn resolve(&self, args: &LoginArgs, _diag: &mut Diagnostics) -> CommandResolution {
-        Npm::resolve_login(args)
+        if self.supports_v11_commands() {
+            resolve_login("pnpm", &["login"], args)
+        } else {
+            Npm::resolve_login(args)
+        }
     }
 }
 
@@ -74,6 +78,40 @@ mod tests {
         resolve,
         test_utils::{bun, expect_run, expect_unsupported, npm, parse_args, pnpm, yarn},
     };
+
+    #[test]
+    fn test_pnpm_native_version_boundary() {
+        let args = parse_args::<LoginArgs>([
+            "--registry",
+            "https://registry.example.com",
+            "--scope",
+            "@company",
+            "--",
+            "--auth-type",
+            "web",
+        ])
+        .unwrap();
+        for (version, program) in
+            [("10.99.0", "npm"), ("11.0.0-rc.1", "npm"), ("11.0.0", "pnpm"), ("12.13.0", "pnpm")]
+        {
+            let resolution = resolve(&pnpm(version), args.clone());
+            assert!(resolution.diagnostics.is_empty());
+            let command = expect_run(resolution.outcome);
+            assert_eq!(command.program, program, "{version}");
+            assert_eq!(
+                command.args,
+                vec![
+                    "login",
+                    "--registry",
+                    "https://registry.example.com",
+                    "--scope",
+                    "@company",
+                    "--auth-type",
+                    "web"
+                ]
+            );
+        }
+    }
 
     #[test]
     fn test_parser_accepts_registry_scope_and_pass_through_args() {
