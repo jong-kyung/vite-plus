@@ -1,5 +1,15 @@
 # command_registry_pnpm11
 
+## `vp pm login --scope @company -- --help`
+
+should reject scope on pnpm before native support was added
+
+**Exit code:** 1
+
+```
+pnpm >= 11 && < 11.2 does not support --scope.
+```
+
 ## `vp pm dist-tag list`
 
 should preserve the native missing-package error

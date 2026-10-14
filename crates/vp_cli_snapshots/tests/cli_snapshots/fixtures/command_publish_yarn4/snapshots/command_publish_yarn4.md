@@ -46,6 +46,25 @@ should preview using native yarn npm publish without publishing
 ➤ YN0000: Done in <duration>
 ```
 
+## `vp pm publish --dry-run --json`
+
+should preserve supported native JSON output without publishing
+
+```
+{"file":"package.json"}
+{"name":"command-publish-yarn4","version":"1.0.0","registry":"https://registry.yarnpkg.com","tag":"latest","files":["package.json"],"access":null,"dryRun":true,"published":false,"message":"[DRY RUN] Package would be published to https://registry.yarnpkg.com with tag latest","provenance":false}
+```
+
+## `vp pm publish --force -- --help`
+
+should reject force rather than translate it to tolerate-republish
+
+**Exit code:** 1
+
+```
+yarn does not support --force.
+```
+
 ## `vp pm publish -- --dry-run`
 
 should preserve supported raw dry-run

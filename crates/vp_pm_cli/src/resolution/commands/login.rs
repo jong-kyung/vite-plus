@@ -12,7 +12,7 @@ pub struct LoginArgs {
     pub(crate) registry: Option<String>,
 
     /// Scope for the login
-    #[arg(long, value_name = "SCOPE", not_supported(yarn < "2"))]
+    #[arg(long, value_name = "SCOPE", not_supported(pnpm >= "11" && < "11.2", yarn < "2"))]
     pub(crate) scope: Option<String>,
 
     /// Additional arguments
@@ -84,8 +84,6 @@ mod tests {
         let args = parse_args::<LoginArgs>([
             "--registry",
             "https://registry.example.com",
-            "--scope",
-            "@company",
             "--",
             "--auth-type",
             "web",
@@ -100,17 +98,39 @@ mod tests {
             assert_eq!(command.program, program, "{version}");
             assert_eq!(
                 command.args,
-                vec![
-                    "login",
-                    "--registry",
-                    "https://registry.example.com",
-                    "--scope",
-                    "@company",
-                    "--auth-type",
-                    "web"
-                ]
+                vec!["login", "--registry", "https://registry.example.com", "--auth-type", "web"]
             );
         }
+    }
+
+    #[test]
+    fn test_pnpm_login_scope_version_boundary() {
+        let args = parse_args::<LoginArgs>(["--scope", "@company"]).unwrap();
+        for version in ["11.0.0", "11.1.9", "11.2.0-rc.1"] {
+            expect_unsupported(
+                resolve(&pnpm(version), args.clone()),
+                &["pnpm >= 11 && < 11.2 does not support --scope."],
+            );
+        }
+        for (version, program) in
+            [("10.99.0", "npm"), ("11.0.0-rc.1", "npm"), ("11.2.0", "pnpm"), ("12.13.0", "pnpm")]
+        {
+            let resolution = resolve(&pnpm(version), args.clone());
+            assert!(resolution.diagnostics.is_empty());
+            let command = expect_run(resolution.outcome);
+            assert_eq!(command.program, program);
+            assert_eq!(command.args, vec!["login", "--scope", "@company"]);
+        }
+    }
+
+    #[test]
+    fn test_pnpm_login_preserves_raw_scope() {
+        let args = parse_args::<LoginArgs>(["--", "--scope", "@company"]).unwrap();
+        let resolution = resolve(&pnpm("11.0.0"), args);
+        assert!(resolution.diagnostics.is_empty());
+        let command = expect_run(resolution.outcome);
+        assert_eq!(command.program, "pnpm");
+        assert_eq!(command.args, vec!["login", "--scope", "@company"]);
     }
 
     #[test]

@@ -53,6 +53,16 @@ should reject provenance before Yarn Classic publishes without an attestation
 yarn < 4.9.0 does not support --provenance.
 ```
 
+## `vp pm publish --force -- --help`
+
+should reject force rather than silently ignore it
+
+**Exit code:** 1
+
+```
+yarn does not support --force.
+```
+
 ## `vp pm publish --recursive`
 
 should reject workspace publishing rather than use npm

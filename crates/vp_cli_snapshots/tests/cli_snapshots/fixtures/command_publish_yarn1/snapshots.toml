@@ -5,6 +5,7 @@ steps = [
   { argv = ["vp", "pm", "publish", "--help"], comment = "should show help", continue-on-failure = true },
   { argv = ["vp", "pm", "publish", "--dry-run"], comment = "should reject dry-run before Yarn Classic can publish", continue-on-failure = true },
   { argv = ["vp", "pm", "publish", "--provenance"], comment = "should reject provenance before Yarn Classic publishes without an attestation", continue-on-failure = true },
+  { argv = ["vp", "pm", "publish", "--force", "--", "--help"], comment = "should reject force rather than silently ignore it", continue-on-failure = true },
   { argv = ["vp", "pm", "publish", "--recursive"], comment = "should reject workspace publishing rather than use npm", continue-on-failure = true },
   { argv = ["vp", "pm", "publish", "--filter", "app"], comment = "should reject workspace selection rather than publish the current package", continue-on-failure = true },
   { argv = ["vp", "pm", "publish", "--", "--help"], comment = "should route to native Yarn Classic publish without publishing", continue-on-failure = true },
