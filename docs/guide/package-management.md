@@ -212,7 +212,7 @@ Use these when you need lower-level package-manager behavior.
   - **Patching**: `patch`, `patch-commit`
   - **Packaging and publishing**: `pack`, `version`, `publish`, `stage`, `dist-tag`, `deprecate`
   - **Inspection**: `view`, `search`, `audit`, `fund`, `ping`
-  - **Authentication and access**: `login`, `logout`, `whoami`, `token`, `owner`
+  - **Authentication and access**: `login`, `logout`, `whoami`, `token`, `owner`, `team`
   - **Configuration**: `config`, `cache`
 
   Command support depends on the package manager and its version. Run `vp pm --help` to list commands or `vp pm <command> --help` for available options.

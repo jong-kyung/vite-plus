@@ -48,7 +48,7 @@ pub use commands::{
     DeprecateArgs, DistTagCommand, DlxArgs, FundArgs, InstallArgs, LinkArgs, ListArgs, LoginArgs,
     LogoutArgs, OutdatedArgs, OutdatedFormat, OwnerCommand, PackArgs, PatchArgs, PatchCommitArgs,
     PingArgs, PruneArgs, PublishArgs, RebuildArgs, RemoveArgs, SearchArgs, StageCommand,
-    TokenCommand, UnlinkArgs, UpdateArgs, VersionArgs, ViewArgs, WhoamiArgs, WhyArgs,
+    TeamCommand, TokenCommand, UnlinkArgs, UpdateArgs, VersionArgs, ViewArgs, WhoamiArgs, WhyArgs,
 };
 use diagnostics::DiagnosticKind;
 /// Diagnostics emitted while unsupported arguments and fallbacks are resolved.

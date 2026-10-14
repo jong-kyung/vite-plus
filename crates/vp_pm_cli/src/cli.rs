@@ -14,8 +14,8 @@ use crate::{
         DeprecateArgs, DistTagCommand, DlxArgs, FundArgs, InstallArgs, LinkArgs, ListArgs,
         LoginArgs, LogoutArgs, OutdatedArgs, OutdatedFormat, OwnerCommand, PackArgs, PatchArgs,
         PatchCommitArgs, PingArgs, PruneArgs, PublishArgs, RebuildArgs, RemoveArgs, Resolution,
-        SearchArgs, StageCommand, TokenCommand, UnlinkArgs, UpdateArgs, VersionArgs, ViewArgs,
-        WhoamiArgs, WhyArgs, resolve_for_manager as resolve_args_for_manager,
+        SearchArgs, StageCommand, TeamCommand, TokenCommand, UnlinkArgs, UpdateArgs, VersionArgs,
+        ViewArgs, WhoamiArgs, WhyArgs, resolve_for_manager as resolve_args_for_manager,
     },
 };
 
@@ -113,6 +113,10 @@ pub enum PmCommand {
     /// Manage package owners
     #[command(subcommand, visible_alias = "author")]
     Owner(OwnerCommand),
+
+    /// Manage organization teams and memberships
+    #[command(subcommand)]
+    Team(TeamCommand),
 
     /// Manage package cache
     Cache(CacheArgs),
@@ -350,6 +354,7 @@ impl PmCommand {
             Self::Publish(args) => resolve_args_for_manager(manager, args),
             Self::Stage(args) => resolve_args_for_manager(manager, args),
             Self::Owner(args) => resolve_args_for_manager(manager, args),
+            Self::Team(args) => resolve_args_for_manager(manager, args),
             Self::Cache(args) => resolve_args_for_manager(manager, args),
             Self::Config(args) => resolve_args_for_manager(manager, args),
             Self::Login(args) => resolve_args_for_manager(manager, args),
@@ -381,6 +386,13 @@ impl PmCommand {
                 | ConfigCommand::Get { json, .. }
                 | ConfigCommand::Set { json, .. } => *json,
                 ConfigCommand::Delete { .. } => false,
+            },
+            Self::Team(args) => match args {
+                TeamCommand::Create { json, .. }
+                | TeamCommand::Destroy { json, .. }
+                | TeamCommand::Add { json, .. }
+                | TeamCommand::Rm { json, .. }
+                | TeamCommand::List { json, .. } => *json,
             },
             Self::Token(args) => match args {
                 TokenCommand::List { json, .. } | TokenCommand::Create { json, .. } => *json,
@@ -476,6 +488,30 @@ mod tests {
             parse(&["pm", "stage", "ls"]).unwrap(),
             PackageManagerCommand::Pm(PmCommand::Stage(StageCommand::List { .. }))
         ));
+    }
+
+    #[test]
+    fn team_list_routes_native_commands_and_npm_fallbacks() {
+        for (client, version, program, subcommand, scope, fallback) in [
+            (PackageManagerType::Npm, "11.12.0", "npm", "ls", "@org:team", false),
+            (PackageManagerType::Pnpm, "11.13.0", "pnpm", "ls", "@org:team", false),
+            (PackageManagerType::Pnpm, "11.12.0", "npm", "ls", "@org:team", true),
+            (PackageManagerType::Yarn, "1.22.22", "npm", "ls", "@org:team", true),
+            (PackageManagerType::Yarn, "4.18.0", "npm", "ls", "@org:team", true),
+            (PackageManagerType::Bun, "1.4.0", "npm", "ls", "@org:team", true),
+        ] {
+            for alias in ["ls", "list"] {
+                let command = parse(&["pm", "team", alias, "@org:team", "--json"]).unwrap();
+                assert!(command.is_quiet_or_machine_readable());
+                assert!(command.should_render_diagnostics());
+                let result =
+                    command.resolve_for_manager(&package_manager(client, version)).unwrap();
+                assert_eq!(!result.diagnostics.is_empty(), fallback);
+                let resolved = expect_run(result.outcome);
+                assert_eq!(resolved.program, program);
+                assert_eq!(resolved.args, vec!["team", subcommand, scope, "--json"]);
+            }
+        }
     }
 
     #[test]
