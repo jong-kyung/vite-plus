@@ -233,6 +233,8 @@ Native commands use pnpm's registry and authentication settings and preserve its
 
 `vp pm owner add` and `vp pm owner rm` keep the `<user> <package>` argument order and reorder these arguments for pnpm. `vp pm token create --readonly` becomes pnpm's `--read-only`; repeated `--cidr` values are preserved. `vp` does not fill in a missing package for `dist-tag list`, resolve version ranges for `dist-tag add`, bypass restrictions on removing `latest`, or turn an empty deprecation message into an `undeprecate` command.
 
+Yarn Classic uses native `owner` commands, with `vp pm owner rm` mapped to `yarn owner remove`. Yarn Modern continues to use npm for `owner`. Yarn Classic 1.22.22 can fail when removing an owner because of an upstream bug; Vite+ preserves that failure without retrying through npm.
+
 #### Staged publishing
 
 `vp pm stage` exposes [npm's staged publishing](https://docs.npmjs.com/staged-publishing) workflow: a build is uploaded to a staging area (no 2FA, CI-friendly), then a maintainer approves or rejects it from a trusted device (2FA). It adapts to the detected package manager.

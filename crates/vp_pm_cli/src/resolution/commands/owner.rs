@@ -69,7 +69,7 @@ fn resolve_owner(program: &str, args: &OwnerCommand) -> CommandResolution {
             cmd.option("--otp", otp.as_ref());
         }
         OwnerCommand::Rm { user, package, otp } => {
-            cmd.arg("rm");
+            cmd.arg(if program == "yarn" { "remove" } else { "rm" });
             if program == "pnpm" {
                 cmd.arg(package).arg(user);
             } else {
@@ -93,7 +93,7 @@ impl Resolve<OwnerCommand> for Pnpm {
 
 impl Resolve<OwnerCommand> for Yarn {
     fn resolve(&self, args: &OwnerCommand, _diag: &mut Diagnostics) -> CommandResolution {
-        Npm::resolve_owner(args)
+        if self.is_berry() { Npm::resolve_owner(args) } else { resolve_owner("yarn", args) }
     }
 }
 
@@ -211,17 +211,26 @@ mod tests {
     }
 
     #[test]
-    fn test_yarn_classic_owner_uses_npm() {
-        let command = expect_run(
-            resolve(
-                &yarn("1.22.0"),
-                OwnerCommand::List { package: "my-package".to_string(), otp: None },
-            )
-            .outcome,
-        );
-
-        assert_eq!(command.program, "npm");
-        assert_eq!(command.args, vec!["owner", "list", "my-package"]);
+    fn test_yarn_classic_owner_is_native_and_berry_keeps_npm() {
+        for subcommand in ["list", "add", "rm"] {
+            let mut argv = vec![subcommand];
+            if subcommand != "list" {
+                argv.push("alice");
+            }
+            argv.extend(["@scope/pkg", "--otp", "123456"]);
+            let args = parse_subcommand::<OwnerCommand>(argv.clone()).unwrap();
+            for (version, program) in [("1.22.22", "yarn"), ("2.4.3", "npm"), ("4.18.0", "npm")] {
+                let resolution = resolve(&yarn(version), args.clone());
+                assert!(resolution.diagnostics.is_empty());
+                let command = expect_run(resolution.outcome);
+                let mut expected = argv.clone();
+                if program == "yarn" && subcommand == "rm" {
+                    expected[0] = "remove";
+                }
+                assert_eq!(command.program, program);
+                assert_eq!(command.args, [vec!["owner"], expected].concat());
+            }
+        }
     }
 
     #[test]
