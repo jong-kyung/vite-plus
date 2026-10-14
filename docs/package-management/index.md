@@ -38,3 +38,50 @@ vp install -- --registry=https://registry.npmjs.org
 These arguments go directly to the native command without translation or Vite+'s unsupported-option checks. Their behavior depends on the package manager and version.
 
 For `vp dlx`, arguments after the command belong to the executed program. See [Running Binaries](/guide/vpx).
+
+## Command Reference
+
+- **Dependency management**
+  - [install](./install)
+  - [add](./add)
+  - [remove](./remove)
+  - [update](./update)
+  - [dedupe](./dedupe)
+  - [ci](./ci)
+  - [prune](./prune)
+- **Inspection and diagnostics**
+  - [list](./list)
+  - [why](./why)
+  - [info](./info)
+  - [outdated](./outdated)
+  - [licenses](./licenses)
+  - [search](./search)
+  - [audit](./audit)
+  - [fund](./fund)
+  - [ping](./ping)
+- **Local development**
+  - [link](./link)
+  - [unlink](./unlink)
+  - [rebuild](./rebuild)
+  - [approve-builds](./approve-builds)
+  - [patch](./patch)
+  - [patch-commit](./patch-commit)
+  - [dlx](./dlx)
+- **Publishing**
+  - [pack](./pack)
+  - [version](./version)
+  - [publish](./publish)
+  - [stage](./stage)
+  - [dist-tag](./dist-tag)
+  - [deprecate](./deprecate)
+- **Registry and accounts**
+  - [login](./login)
+  - [logout](./logout)
+  - [whoami](./whoami)
+  - [token](./token)
+  - [owner](./owner)
+  - [team](./team)
+- **Configuration and maintenance**
+  - [config](./config)
+  - [pkg](./pkg)
+  - [cache](./cache)
