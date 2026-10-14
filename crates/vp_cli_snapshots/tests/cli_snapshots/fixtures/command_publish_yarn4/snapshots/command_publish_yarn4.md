@@ -33,10 +33,55 @@ Options:
 Documentation: https://viteplus.dev/guide/package-management
 ```
 
-## `vp pm publish --dry-run -- --loglevel error`
+## `vp install`
 
-should preview publish without actually publishing (uses npm publish --dry-run)
+
+## `vp pm publish --dry-run`
+
+should preview using native yarn npm publish without publishing
 
 ```
- command-publish-yarn4@1.0.0
+➤ YN0000: package.json
+➤ YN0000: [DRY RUN] Package would be published to https://registry.yarnpkg.com with tag latest
+➤ YN0000: Done in <duration>
+```
+
+## `vp pm publish -- --dry-run`
+
+should preserve supported raw dry-run
+
+```
+➤ YN0000: package.json
+➤ YN0000: [DRY RUN] Package would be published to https://registry.yarnpkg.com with tag latest
+➤ YN0000: Done in <duration>
+```
+
+## `vp pm publish pkg.tgz`
+
+should reject an explicit target rather than use npm
+
+**Exit code:** 1
+
+```
+yarn >= 2 does not support TARBALL|FOLDER.
+```
+
+## `vp pm publish --recursive`
+
+should reject workspace publishing rather than use npm
+
+**Exit code:** 1
+
+```
+yarn does not support --recursive.
+```
+
+## `vp pm publish --filter app`
+
+should reject workspace selection rather than use npm
+
+**Exit code:** 1
+
+```
+yarn does not support --filter.
 ```
