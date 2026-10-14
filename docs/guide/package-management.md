@@ -225,22 +225,6 @@ vp pm cache clean -- --force
 vp pm audit --json
 ```
 
-#### Registry commands
-
-pnpm 11 and later runs `login`, `logout`, `whoami`, `dist-tag`, `deprecate`, `ping`, and `search` natively. Native `owner` requires pnpm 11.1 or later, and native `token` requires pnpm 12.13 or later. Earlier versions use npm for these commands. A failed native command is not retried through npm.
-
-Native commands use pnpm's registry and authentication settings and preserve its output and errors. Credentials are not copied to npm, so commands that still use npm may require a separate npm login. Options are forwarded to pnpm, which decides whether its version supports them.
-
-`vp pm owner add` and `vp pm owner rm` keep the `<user> <package>` argument order and reorder these arguments for pnpm. `vp pm token create --readonly` becomes pnpm's `--read-only`; repeated `--cidr` values are preserved. `vp` does not fill in a missing package for `dist-tag list`, resolve version ranges for `dist-tag add`, bypass restrictions on removing `latest`, or turn an empty deprecation message into an `undeprecate` command.
-
-Yarn Classic uses native `owner` commands, with `vp pm owner rm` mapped to `yarn owner remove`. Yarn Modern continues to use npm for `owner`. Yarn Classic 1.22.22 can fail when removing an owner because of an upstream bug; Vite+ preserves that failure without retrying through npm.
-
-#### Publishing with Yarn
-
-`vp pm publish` uses `yarn publish` on Yarn Classic and `yarn npm publish` on Yarn Modern, with Yarn's registry and authentication settings. It does not fall back to npm. Classic accepts a tarball or folder target. Modern publishes the active workspace, so `vp` rejects explicit targets. `--recursive` and `--filter` are rejected on both Yarn variants rather than risking publication of the wrong package.
-
-`--dry-run` requires Yarn 4.9.3 or later. Earlier versions are rejected before execution because Yarn Classic ignores this option and can publish for real. Arguments after `--` are passed directly to Yarn without Vite+ option checks. Other publish flags are forwarded unchanged for Yarn to handle; in particular, `--force` is not translated to `--tolerate-republish`.
-
 #### Staged publishing
 
 `vp pm stage` exposes [npm's staged publishing](https://docs.npmjs.com/staged-publishing) workflow: a build is uploaded to a staging area (no 2FA, CI-friendly), then a maintainer approves or rejects it from a trusted device (2FA). It adapts to the detected package manager.

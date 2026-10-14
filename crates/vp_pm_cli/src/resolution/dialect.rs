@@ -79,7 +79,8 @@ impl PackageManagerDialect for Npm {
 }
 
 impl Pnpm {
-    /// Registry commands and `approve-builds !<pkg>` deny syntax landed in pnpm 11.
+    /// Native `login`, `logout`, `whoami`, `dist-tag`, `deprecate`, `ping`, and `search`
+    /// landed in pnpm 11, along with the `approve-builds !<pkg>` deny syntax.
     pub(crate) fn supports_v11_commands(&self) -> bool {
         self.version >= Version::new(11, 0, 0)
     }
