@@ -23,7 +23,7 @@ vp = ["local", "global"]
 steps = [
   { argv = ["vpt", "json-edit", "package.json", "packageManager", "yarn@1.22.22"], snapshot = false },
   { argv = ["vp", "pm", "team", "ls", "@org", "--", "--version"], snapshot = false },
-  { argv = ["node", "registry.mjs"], comment = "Yarn Classic uses npm so add and remove send the requested username instead of an empty string", timeout = 120000 },
+  { argv = ["node", "registry.mjs"], comment = "Yarn Classic uses its native team command without correcting scope or username values", timeout = 120000 },
 ]
 
 [[case]]

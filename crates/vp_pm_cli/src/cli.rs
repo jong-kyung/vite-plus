@@ -496,7 +496,7 @@ mod tests {
             (PackageManagerType::Npm, "11.12.0", "npm", "ls", "@org:team", false),
             (PackageManagerType::Pnpm, "11.13.0", "pnpm", "ls", "@org:team", false),
             (PackageManagerType::Pnpm, "11.12.0", "npm", "ls", "@org:team", true),
-            (PackageManagerType::Yarn, "1.22.22", "npm", "ls", "@org:team", true),
+            (PackageManagerType::Yarn, "1.22.22", "yarn", "list", "@org:team", false),
             (PackageManagerType::Yarn, "4.18.0", "npm", "ls", "@org:team", true),
             (PackageManagerType::Bun, "1.4.0", "npm", "ls", "@org:team", true),
         ] {

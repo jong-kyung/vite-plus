@@ -5,7 +5,8 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 
 const { packageManager } = JSON.parse(readFileSync('package.json', 'utf8'));
-const fallback = !['npm@11.12.0', 'pnpm@11.13.0'].includes(packageManager);
+const yarnClassic = packageManager === 'yarn@1.22.22';
+const fallback = !yarnClassic && !['npm@11.12.0', 'pnpm@11.13.0'].includes(packageManager);
 const requests = [];
 let deny = false;
 const server = createServer(async (request, response) => {
@@ -54,7 +55,7 @@ async function run(args, method, path, body = null, failure = false) {
   assert.equal(requests[0].path, path);
   assert.deepEqual(requests[0].body, body);
   assert.equal(requests[0].auth, 'Bearer fixture-token');
-  if (method !== 'GET') assert.equal(requests[0].otp, '123456');
+  if (method !== 'GET' && !yarnClassic) assert.equal(requests[0].otp, '123456');
   assert.equal(stderr.includes('falling back to npm team'), fallback, stderr);
   if (failure) {
     assert.notEqual(code, 0);
@@ -65,20 +66,26 @@ async function run(args, method, path, body = null, failure = false) {
     process.stdout.write(stdout);
     if (fallback) console.log(stderr.trim());
   }
-  console.log(`Verified ${method} ${path} with authentication${method === 'GET' ? '' : ' and OTP'}.`);
+  console.log(`Verified ${method} ${path} with authentication${method === 'GET' || yarnClassic ? '' : ' and OTP'}.`);
+  if (yarnClassic && body?.user === '') {
+    console.log('Yarn Classic sent an empty username. Its upstream behavior is preserved.');
+  }
 }
 
 try {
-  const teams = '/-/org/org/team';
-  const team = '/-/team/org/developers';
-  await run(['create', '@org:developers'], 'PUT', teams, { name: 'developers' });
-  await run(['add', '@org:developers', 'alice'], 'PUT', `${team}/user`, { user: 'alice' });
+  const teams = yarnClassic ? '/org/@org/team' : '/-/org/org/team';
+  const team = yarnClassic ? '/team/@org/developers' : '/-/team/org/developers';
+  const createPath = yarnClassic ? '/team/@org' : teams;
+  const createBody = yarnClassic ? { team: 'developers' } : { name: 'developers' };
+  const userBody = { user: yarnClassic ? '' : 'alice' };
+  await run(['create', '@org:developers'], 'PUT', createPath, createBody);
+  await run(['add', '@org:developers', 'alice'], 'PUT', `${team}/user`, userBody);
   await run(['ls', '@org'], 'GET', teams);
   await run(['list', '@org:developers'], 'GET', `${team}/user`);
-  await run(['remove', '@org:developers', 'alice'], 'DELETE', `${team}/user`, { user: 'alice' });
+  await run(['remove', '@org:developers', 'alice'], 'DELETE', `${team}/user`, userBody);
   await run(['destroy', '@org:developers'], 'DELETE', team);
   deny = true;
-  await run(['create', '@org:developers'], 'PUT', teams, { name: 'developers' }, true);
+  await run(['create', '@org:developers'], 'PUT', createPath, createBody, true);
 } finally {
   server.close();
   server.closeAllConnections();

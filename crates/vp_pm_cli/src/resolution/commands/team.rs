@@ -152,14 +152,14 @@ impl Resolve<TeamCommand> for Pnpm {
 
 impl Resolve<TeamCommand> for Yarn {
     fn resolve(&self, args: &TeamCommand, diag: &mut Diagnostics) -> CommandResolution {
-        // Yarn Classic overwrites the requested username: https://github.com/yarnpkg/yarn/blob/v1.22.22/src/cli/commands/team.js#L123-L128
-        let message = if self.is_berry() {
-            "yarn@2+ does not support team, falling back to npm team."
-        } else {
-            "yarn classic team has a membership bug, falling back to npm team."
-        };
-        diag.warn(DiagnosticKind::FallbackCommand, message);
-        resolve_team("npm", args)
+        if self.is_berry() {
+            diag.warn(
+                DiagnosticKind::FallbackCommand,
+                "yarn@2+ does not support team, falling back to npm team.",
+            );
+            return resolve_team("npm", args);
+        }
+        resolve_team("yarn", args)
     }
 }
 
@@ -178,8 +178,12 @@ fn resolve_team(program: &str, args: &TeamCommand) -> CommandResolution {
         TeamCommand::Create { team, .. } => ("create", team, None),
         TeamCommand::Destroy { team, .. } => ("destroy", team, None),
         TeamCommand::Add { team, user, .. } => ("add", team, Some(user)),
-        TeamCommand::Rm { team, user, .. } => ("rm", team, Some(user)),
-        TeamCommand::List { scope, .. } => ("ls", scope, None),
+        TeamCommand::Rm { team, user, .. } => {
+            (if program == "yarn" { "remove" } else { "rm" }, team, Some(user))
+        }
+        TeamCommand::List { scope, .. } => {
+            (if program == "yarn" { "list" } else { "ls" }, scope, None)
+        }
     };
     let mut cmd = CommandBuilder::new(program);
     cmd.arg("team").arg(subcommand).arg(scope);
@@ -232,13 +236,18 @@ mod tests {
                 "--help",
             ]);
             let args = parse_subcommand::<TeamCommand>(argv).unwrap();
-            for (result, program, fallback) in [
-                (resolve(&npm("11.12.0"), args.clone()), "npm", false),
-                (resolve(&pnpm("11.13.0"), args.clone()), "pnpm", false),
-                (resolve(&yarn("1.22.22"), args), "npm", true),
+            for (result, program) in [
+                (resolve(&npm("11.12.0"), args.clone()), "npm"),
+                (resolve(&pnpm("11.13.0"), args.clone()), "pnpm"),
+                (resolve(&yarn("1.22.22"), args), "yarn"),
             ] {
-                assert_eq!(!result.diagnostics.is_empty(), fallback);
+                assert!(result.diagnostics.is_empty());
                 let resolved = expect_run(result.outcome);
+                let native = match (program, native) {
+                    ("yarn", "rm") => "remove",
+                    ("yarn", "ls") => "list",
+                    _ => native,
+                };
                 let mut expected = vec!["team", native, "@org:team"];
                 expected.extend(user);
                 expected.extend([
@@ -269,10 +278,6 @@ mod tests {
                 "pnpm team requires pnpm >= 11.13.0, falling back to npm team.",
             ),
             (
-                resolve(&yarn("1.22.22"), args.clone()),
-                "yarn classic team has a membership bug, falling back to npm team.",
-            ),
-            (
                 resolve(&yarn("2.0.0"), args.clone()),
                 "yarn@2+ does not support team, falling back to npm team.",
             ),
@@ -296,8 +301,8 @@ mod tests {
         for scope in ["@org", "org", "@org:team", "org:team"] {
             let args = parse_subcommand::<TeamCommand>(["list", scope]).unwrap();
             let command = expect_run(resolve(&yarn("1.22.22"), args.clone()).outcome);
-            assert_eq!(command.program, "npm");
-            assert_eq!(command.args, vec!["team", "ls", scope]);
+            assert_eq!(command.program, "yarn");
+            assert_eq!(command.args, vec!["team", "list", scope]);
             let command = expect_run(resolve(&Npm::unknown_version(), args).outcome);
             assert_eq!(command.args, vec!["team", "ls", scope]);
         }
