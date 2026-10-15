@@ -4,3 +4,6 @@
 /guide/install.md /package-management/install.md 301
 /guide/installer-env-vars /guide/global-cli 301
 /guide/installer-env-vars.html /guide/global-cli 301
+/guide/package-management /package-management/ 301
+/guide/package-management.html /package-management/ 301
+/guide/package-management.md /package-management.md 301
