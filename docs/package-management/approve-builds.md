@@ -43,6 +43,6 @@ In npm 11.16 through 11.x, this policy is advisory. Scripts still run and npm wa
 
 ## Native Options
 
-Keep package names before `--`. Unsupported no-op paths do not forward native arguments. See [Native Arguments](./#native-arguments).
+For native options, see [npm approve-scripts](https://docs.npmjs.com/cli/v11/commands/npm-approve-scripts), [npm deny-scripts](https://docs.npmjs.com/cli/v11/commands/npm-deny-scripts), [pnpm approve-builds](https://pnpm.io/cli/approve-builds), [Bun pm trust](https://bun.com/docs/pm/cli/pm), and [Bun pm untrusted](https://bun.com/docs/pm/cli/pm). To pass these options through Vite+, see [Native Arguments](./#native-arguments).
 
-References: [pnpm approve-builds](https://pnpm.io/cli/approve-builds), [npm package.json](https://docs.npmjs.com/cli/v11/configuring-npm/package-json), [Yarn enableScripts](https://yarnpkg.com/configuration/yarnrc#enableScripts), and [Bun lifecycle scripts](https://bun.com/docs/pm/lifecycle).
+For script policy configuration, see [npm package.json](https://docs.npmjs.com/cli/v11/configuring-npm/package-json), [Yarn enableScripts](https://yarnpkg.com/configuration/yarnrc#enableScripts), and [Bun lifecycle scripts](https://bun.com/docs/pm/lifecycle).

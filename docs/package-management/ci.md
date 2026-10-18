@@ -25,4 +25,4 @@ The native manager determines installation cleanup and lockfile validation. This
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments) and the [CI guide](/guide/ci). References: [npm ci](https://docs.npmjs.com/cli/v11/commands/npm-ci), [pnpm install](https://pnpm.io/cli/install), [Yarn install](https://yarnpkg.com/cli/install), [Yarn Classic install](https://classic.yarnpkg.com/en/docs/cli/install), and [Bun install](https://bun.com/docs/pm/cli/install).
+For native options, see [npm ci](https://docs.npmjs.com/cli/v11/commands/npm-ci), [pnpm install](https://pnpm.io/cli/install), [Yarn install](https://yarnpkg.com/cli/install), [Yarn Classic install](https://classic.yarnpkg.com/en/docs/cli/install), and [Bun install](https://bun.com/docs/pm/cli/install). To pass these options through Vite+, see [Native Arguments](./#native-arguments). For CI setup, see the [CI guide](/guide/ci).

@@ -37,4 +37,4 @@ For installed project binaries, use `vp exec` or `vpx` instead. See [Running Bin
 
 ## Native Options
 
-See [npm exec](https://docs.npmjs.com/cli/v11/commands/npm-exec), [pnpm dlx](https://pnpm.io/cli/dlx), [Yarn dlx](https://yarnpkg.com/cli/dlx), and [Bun bunx](https://bun.com/docs/pm/bunx).
+For native options, see [npm exec](https://docs.npmjs.com/cli/v11/commands/npm-exec), [pnpm dlx](https://pnpm.io/cli/dlx), [Yarn dlx](https://yarnpkg.com/cli/dlx), and [Bun x](https://bun.com/docs/pm/bunx). For the Yarn Classic fallback, see [npx](https://docs.npmjs.com/cli/v11/commands/npx). For argument handling, see [Native Arguments](./#native-arguments).

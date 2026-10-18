@@ -81,4 +81,4 @@ The commands below describe project operations. Global mode is described under [
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm install](https://docs.npmjs.com/cli/v11/commands/npm-install), [pnpm add](https://pnpm.io/cli/add), [Yarn add](https://yarnpkg.com/cli/add), [Yarn Classic add](https://classic.yarnpkg.com/en/docs/cli/add), and [Bun add](https://bun.com/docs/pm/cli/add).
+For native options, see [npm install](https://docs.npmjs.com/cli/v11/commands/npm-install), [pnpm add](https://pnpm.io/cli/add), [Yarn add](https://yarnpkg.com/cli/add), [Yarn Classic add](https://classic.yarnpkg.com/en/docs/cli/add), and [Bun add](https://bun.com/docs/pm/cli/add). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

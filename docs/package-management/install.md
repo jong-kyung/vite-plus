@@ -86,4 +86,4 @@ For dependency build-script approval, see [approve-builds](./approve-builds).
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). Native references: [npm install](https://docs.npmjs.com/cli/v11/commands/npm-install), [pnpm install](https://pnpm.io/cli/install), [Yarn install](https://yarnpkg.com/cli/install), [Yarn Classic install](https://classic.yarnpkg.com/en/docs/cli/install), and [Bun install](https://bun.com/docs/pm/cli/install).
+For native options, see [npm install](https://docs.npmjs.com/cli/v11/commands/npm-install), [pnpm install](https://pnpm.io/cli/install), [Yarn install](https://yarnpkg.com/cli/install), [Yarn Classic install](https://classic.yarnpkg.com/en/docs/cli/install), and [Bun install](https://bun.com/docs/pm/cli/install). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

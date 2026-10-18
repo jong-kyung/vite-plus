@@ -35,4 +35,4 @@ Registry settings and output follow the command that runs.
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments) and [npm search](https://docs.npmjs.com/cli/v11/commands/npm-search).
+For native options, see [npm search](https://docs.npmjs.com/cli/v11/commands/npm-search) and [pnpm search](https://pnpm.io/cli/search). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

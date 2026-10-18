@@ -27,4 +27,4 @@ vp pm whoami --registry https://registry.npmjs.org
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm whoami](https://docs.npmjs.com/cli/v11/commands/npm-whoami), [Yarn npm whoami](https://yarnpkg.com/cli/npm/whoami), and [Bun pm](https://bun.com/docs/pm/cli/pm).
+For native options, see [npm whoami](https://docs.npmjs.com/cli/v11/commands/npm-whoami), [pnpm whoami](https://pnpm.io/cli/whoami), [Yarn npm whoami](https://yarnpkg.com/cli/npm/whoami), and [Bun pm whoami](https://bun.com/docs/pm/cli/pm). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

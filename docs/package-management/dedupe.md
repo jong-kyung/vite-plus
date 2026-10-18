@@ -29,4 +29,4 @@ A fallback install is not a read-only check. Unsupported `--check` requests fail
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm dedupe](https://docs.npmjs.com/cli/v11/commands/npm-dedupe), [pnpm dedupe](https://pnpm.io/cli/dedupe), [Yarn dedupe](https://yarnpkg.com/cli/dedupe), and [Bun dedupe](https://bun.com/docs/pm/cli/dedupe).
+For native options, see [npm dedupe](https://docs.npmjs.com/cli/v11/commands/npm-dedupe), [pnpm dedupe](https://pnpm.io/cli/dedupe), [Yarn dedupe](https://yarnpkg.com/cli/dedupe), [Yarn Classic install](https://classic.yarnpkg.com/en/docs/cli/install), and [Bun dedupe](https://bun.com/docs/pm/cli/dedupe). For the Bun fallback, see [Bun install](https://bun.com/docs/pm/cli/install). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

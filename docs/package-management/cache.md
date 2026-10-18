@@ -50,4 +50,4 @@ That example is npm-specific. Vite+ does not expose a separate `vp pm store` com
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm cache](https://docs.npmjs.com/cli/v11/commands/npm-cache), [pnpm store](https://pnpm.io/cli/store), [Yarn cache clean](https://yarnpkg.com/cli/cache/clean), [Yarn Classic cache](https://classic.yarnpkg.com/en/docs/cli/cache), and [Bun pm](https://bun.com/docs/pm/cli/pm).
+For native options, see [npm config](https://docs.npmjs.com/cli/v11/commands/npm-config), [npm cache](https://docs.npmjs.com/cli/v11/commands/npm-cache), [pnpm store](https://pnpm.io/cli/store), [Yarn config get](https://yarnpkg.com/cli/config/get), [Yarn cache clean](https://yarnpkg.com/cli/cache/clean), [Yarn Classic cache](https://classic.yarnpkg.com/en/docs/cli/cache), and [Bun pm cache](https://bun.com/docs/pm/cli/pm). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

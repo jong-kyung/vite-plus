@@ -31,4 +31,4 @@ Credential removal and token invalidation follow the native manager and registry
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm logout](https://docs.npmjs.com/cli/v11/commands/npm-logout), [Yarn npm logout](https://yarnpkg.com/cli/npm/logout), and [Yarn Classic logout](https://classic.yarnpkg.com/en/docs/cli/logout).
+For native options, see [npm logout](https://docs.npmjs.com/cli/v11/commands/npm-logout), [pnpm logout](https://pnpm.io/cli/logout), [Yarn npm logout](https://yarnpkg.com/cli/npm/logout), and [Yarn Classic logout](https://classic.yarnpkg.com/en/docs/cli/logout). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

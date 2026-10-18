@@ -39,4 +39,4 @@ For example, a pnpm project can use:
 vp pm licenses list -- --prod --long
 ```
 
-See [Native Arguments](./#native-arguments). References: [pnpm licenses](https://pnpm.io/cli/licenses), [Yarn Classic licenses](https://classic.yarnpkg.com/en/docs/cli/licenses), and [Bun pm](https://bun.com/docs/pm/cli/pm).
+For native options, see [pnpm licenses](https://pnpm.io/cli/licenses), [Yarn Classic licenses](https://classic.yarnpkg.com/en/docs/cli/licenses), and [Bun pm licenses](https://bun.com/docs/pm/cli/pm). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

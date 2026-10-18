@@ -29,4 +29,4 @@ Registry configuration, output, and exit codes follow the command that runs. Use
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments) and [npm ping](https://docs.npmjs.com/cli/v11/commands/npm-ping).
+For native options, see [npm ping](https://docs.npmjs.com/cli/v11/commands/npm-ping) and [pnpm ping](https://pnpm.io/cli/ping). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

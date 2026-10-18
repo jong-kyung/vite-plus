@@ -26,4 +26,4 @@ The edit location and patch storage format are native-manager details. Vite+ doe
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm commands](https://docs.npmjs.com/cli/v12/commands), [pnpm patch](https://pnpm.io/cli/patch), [Yarn patch](https://yarnpkg.com/cli/patch), and [Bun patch](https://bun.com/docs/pm/cli/patch).
+For native options, see [npm patch add](https://docs.npmjs.com/cli/v12/commands/npm-patch), [pnpm patch](https://pnpm.io/cli/patch), [Yarn patch](https://yarnpkg.com/cli/patch), and [Bun patch](https://bun.com/docs/pm/cli/patch). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

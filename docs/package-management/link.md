@@ -26,4 +26,4 @@ These links do not use Vite+'s [global package store](./global-packages) and do 
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm link](https://docs.npmjs.com/cli/v11/commands/npm-link), [pnpm link](https://pnpm.io/cli/link), [Yarn link](https://yarnpkg.com/cli/link), [Yarn Classic link](https://classic.yarnpkg.com/en/docs/cli/link), and [Bun link](https://bun.com/docs/pm/cli/link).
+For native options, see [npm link](https://docs.npmjs.com/cli/v11/commands/npm-link), [pnpm link](https://pnpm.io/cli/link), [Yarn link](https://yarnpkg.com/cli/link), [Yarn Classic link](https://classic.yarnpkg.com/en/docs/cli/link), and [Bun link](https://bun.com/docs/pm/cli/link). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

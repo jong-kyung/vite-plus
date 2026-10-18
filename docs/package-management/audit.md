@@ -36,4 +36,4 @@ Vulnerability output and failure thresholds retain the native manager's semantic
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm audit](https://docs.npmjs.com/cli/v11/commands/npm-audit), [pnpm audit](https://pnpm.io/cli/audit), [Yarn npm audit](https://yarnpkg.com/cli/npm/audit), [Yarn Classic audit](https://classic.yarnpkg.com/en/docs/cli/audit), and [Bun audit](https://bun.com/docs/pm/cli/audit).
+For native options, see [npm audit](https://docs.npmjs.com/cli/v11/commands/npm-audit), [pnpm audit](https://pnpm.io/cli/audit), [Yarn npm audit](https://yarnpkg.com/cli/npm/audit), [Yarn Classic audit](https://classic.yarnpkg.com/en/docs/cli/audit), and [Bun audit](https://bun.com/docs/pm/cli/audit). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

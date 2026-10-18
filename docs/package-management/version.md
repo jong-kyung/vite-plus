@@ -33,4 +33,4 @@ Version commands can modify manifests and lockfiles and may create Git commits o
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm version](https://docs.npmjs.com/cli/v11/commands/npm-version), [pnpm version](https://pnpm.io/cli/version), [Yarn version](https://yarnpkg.com/cli/version), [Yarn Classic version](https://classic.yarnpkg.com/en/docs/cli/version), and [Bun pm](https://bun.com/docs/pm/cli/pm).
+For native options, see [npm version](https://docs.npmjs.com/cli/v11/commands/npm-version), [pnpm version](https://pnpm.io/cli/version), [Yarn version](https://yarnpkg.com/cli/version), [Yarn Classic version](https://classic.yarnpkg.com/en/docs/cli/version), and [Bun pm version](https://bun.com/docs/pm/cli/pm). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

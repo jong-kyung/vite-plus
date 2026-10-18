@@ -31,4 +31,4 @@ npm translates selection flags to `--omit=dev` and `--omit=optional`. Bun transl
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm prune](https://docs.npmjs.com/cli/v11/commands/npm-prune), [pnpm prune](https://pnpm.io/cli/prune), and [Bun prune](https://bun.com/docs/pm/cli/prune).
+For native options, see [npm prune](https://docs.npmjs.com/cli/v11/commands/npm-prune), [pnpm prune](https://pnpm.io/cli/prune), and [Bun prune](https://bun.com/docs/pm/cli/prune). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

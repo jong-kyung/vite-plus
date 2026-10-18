@@ -84,4 +84,4 @@ Treat tokens as secrets. Prefer a token ID for revocation rather than placing a 
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments) and [npm token](https://docs.npmjs.com/cli/v11/commands/npm-token).
+For native options, see [npm token](https://docs.npmjs.com/cli/v11/commands/npm-token) and [pnpm token](https://pnpm.io/cli/token). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

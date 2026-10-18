@@ -59,4 +59,4 @@ To change a dependency's declared range on npm, use [add](./add) with a new vers
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm update](https://docs.npmjs.com/cli/v11/commands/npm-update), [pnpm update](https://pnpm.io/cli/update), [Yarn up](https://yarnpkg.com/cli/up), [Yarn Classic upgrade](https://classic.yarnpkg.com/en/docs/cli/upgrade), and [Bun update](https://bun.com/docs/pm/cli/update).
+For native options, see [npm update](https://docs.npmjs.com/cli/v11/commands/npm-update), [pnpm update](https://pnpm.io/cli/update), [Yarn up](https://yarnpkg.com/cli/up), [Yarn Classic upgrade](https://classic.yarnpkg.com/en/docs/cli/upgrade), [Yarn Classic upgrade-interactive](https://classic.yarnpkg.com/en/docs/cli/upgrade-interactive), and [Bun update](https://bun.com/docs/pm/cli/update). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

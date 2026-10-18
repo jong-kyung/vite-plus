@@ -57,4 +57,4 @@ These results describe installed packages, not Vite+'s bundled tools. Use `vp to
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm ls](https://docs.npmjs.com/cli/v11/commands/npm-ls), [pnpm list](https://pnpm.io/cli/list), [Yarn Classic list](https://classic.yarnpkg.com/en/docs/cli/list), and [Bun pm](https://bun.com/docs/pm/cli/pm).
+For native options, see [npm ls](https://docs.npmjs.com/cli/v11/commands/npm-ls), [pnpm list](https://pnpm.io/cli/list), [Yarn Classic list](https://classic.yarnpkg.com/en/docs/cli/list), and [Bun pm ls](https://bun.com/docs/pm/cli/pm). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

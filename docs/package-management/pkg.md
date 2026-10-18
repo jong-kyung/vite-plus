@@ -85,4 +85,4 @@ Versions below the stated requirements warn and exit successfully without runnin
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm pkg](https://docs.npmjs.com/cli/v11/commands/npm-pkg), [pnpm pkg](https://pnpm.io/cli/pkg), and [Bun pm](https://bun.com/docs/pm/cli/pm).
+For native options, see [npm pkg](https://docs.npmjs.com/cli/v11/commands/npm-pkg), [pnpm pkg](https://pnpm.io/cli/pkg), and [Bun pm pkg](https://bun.com/docs/pm/cli/pm). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

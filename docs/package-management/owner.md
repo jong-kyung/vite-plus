@@ -76,4 +76,4 @@ Registry credentials and authorization follow the command that runs.
 
 ## Native Options
 
-See [npm owner](https://docs.npmjs.com/cli/v11/commands/npm-owner) and [Yarn Classic owner](https://classic.yarnpkg.com/en/docs/cli/owner) for registry requirements and native options. Options not exposed above must be used with the native command directly.
+For registry requirements and native options, see [npm owner](https://docs.npmjs.com/cli/v11/commands/npm-owner), [pnpm owner](https://pnpm.io/cli/owner), and [Yarn Classic owner](https://classic.yarnpkg.com/en/docs/cli/owner). Options not exposed above must be used with the native command directly.

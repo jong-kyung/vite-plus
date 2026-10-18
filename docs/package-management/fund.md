@@ -29,4 +29,4 @@ Bun emits a fallback warning. Results follow npm's view of the installed depende
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments) and [npm fund](https://docs.npmjs.com/cli/v11/commands/npm-fund).
+For native options, see [npm fund](https://docs.npmjs.com/cli/v11/commands/npm-fund), which Vite+ uses for all package managers. To pass these options through Vite+, see [Native Arguments](./#native-arguments).

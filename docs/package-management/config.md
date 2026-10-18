@@ -114,4 +114,6 @@ Yarn Classic user writes use native defaults.
 
 ## Native Options
 
-See [npm config](https://docs.npmjs.com/cli/v11/commands/npm-config), [pnpm config](https://pnpm.io/cli/config), [Yarn config](https://yarnpkg.com/cli/config), [Yarn Classic config](https://classic.yarnpkg.com/en/docs/cli/config), and [Bun configuration](https://bun.com/docs/runtime/bunfig). Native options outside this interface require the native command.
+For native options, see [npm config](https://docs.npmjs.com/cli/v11/commands/npm-config), [pnpm config](https://pnpm.io/cli/config), [Yarn config](https://yarnpkg.com/cli/config), [Yarn config get](https://yarnpkg.com/cli/config/get), [Yarn config set](https://yarnpkg.com/cli/config/set), [Yarn config unset](https://yarnpkg.com/cli/config/unset), and [Yarn Classic config](https://classic.yarnpkg.com/en/docs/cli/config). Native options outside this interface require the native command.
+
+For `bunfig.toml` settings, see [Bun configuration](https://bun.com/docs/runtime/bunfig).

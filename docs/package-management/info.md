@@ -32,4 +32,4 @@ This command queries registry metadata, not the local dependency tree. Use [list
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm view](https://docs.npmjs.com/cli/v11/commands/npm-view), [pnpm](https://pnpm.io/cli/view), [Yarn npm info](https://yarnpkg.com/cli/npm/info), [Yarn Classic info](https://classic.yarnpkg.com/en/docs/cli/info), and [Bun info](https://bun.com/docs/pm/cli/info).
+For native options, see [npm view](https://docs.npmjs.com/cli/v11/commands/npm-view), [pnpm view](https://pnpm.io/cli/view), [Yarn npm info](https://yarnpkg.com/cli/npm/info), [Yarn Classic info](https://classic.yarnpkg.com/en/docs/cli/info), and [Bun info](https://bun.com/docs/pm/cli/info). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

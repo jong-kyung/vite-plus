@@ -58,4 +58,4 @@ For a workflow that separates CI uploads from maintainer approval, use [stage](.
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm publish](https://docs.npmjs.com/cli/v11/commands/npm-publish), [pnpm publish](https://pnpm.io/cli/publish), [Yarn Classic publish](https://classic.yarnpkg.com/en/docs/cli/publish), [Yarn npm publish](https://yarnpkg.com/cli/npm/publish), and [Bun publish](https://bun.com/docs/pm/cli/publish).
+For native options, see [npm publish](https://docs.npmjs.com/cli/v11/commands/npm-publish), [pnpm publish](https://pnpm.io/cli/publish), [Yarn Classic publish](https://classic.yarnpkg.com/en/docs/cli/publish), [Yarn npm publish](https://yarnpkg.com/cli/npm/publish), and [Bun publish](https://bun.com/docs/pm/cli/publish). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

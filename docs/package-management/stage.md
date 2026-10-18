@@ -170,4 +170,6 @@ This command is unrelated to Yarn's version-control staging command or Vite+'s s
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm staged publishing](https://docs.npmjs.com/staged-publishing), [pnpm stage](https://pnpm.io/cli/stage), and [Yarn npm publish](https://yarnpkg.com/cli/npm/publish).
+For native options, see [npm stage](https://docs.npmjs.com/cli/v11/commands/npm-stage), [pnpm stage](https://pnpm.io/cli/stage), [Yarn npm publish](https://yarnpkg.com/cli/npm/publish), [Yarn npm stage list](https://yarnpkg.com/cli/npm/stage/list), [Yarn npm stage approve](https://yarnpkg.com/cli/npm/stage/approve), and [Yarn npm stage reject](https://yarnpkg.com/cli/npm/stage/reject). To pass these options through Vite+, see [Native Arguments](./#native-arguments).
+
+For the registry workflow, see [npm staged publishing](https://docs.npmjs.com/staged-publishing).

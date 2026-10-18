@@ -137,4 +137,4 @@ Fallbacks to npm emit warnings.
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm team](https://docs.npmjs.com/cli/v11/commands/npm-team), [pnpm team](https://pnpm.io/cli/team), and [Yarn Classic team](https://classic.yarnpkg.com/en/docs/cli/team).
+For native options, see [npm team](https://docs.npmjs.com/cli/v11/commands/npm-team), [pnpm team](https://pnpm.io/cli/team), and [Yarn Classic team](https://classic.yarnpkg.com/en/docs/cli/team). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

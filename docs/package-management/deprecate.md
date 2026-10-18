@@ -36,4 +36,4 @@ An empty message is forwarded unchanged. Native pnpm rejects it; Vite+ does not 
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments) and [npm deprecate](https://docs.npmjs.com/cli/v11/commands/npm-deprecate).
+For native options, see [npm deprecate](https://docs.npmjs.com/cli/v11/commands/npm-deprecate) and [pnpm deprecate](https://pnpm.io/cli/deprecate). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

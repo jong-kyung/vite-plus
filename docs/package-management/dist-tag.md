@@ -58,4 +58,4 @@ On the native pnpm path, Vite+ does not fill in a missing package for `list`, re
 
 ## Native Options
 
-The upstream commands may expose additional options not accepted by this Vite+ interface. See [npm dist-tag](https://docs.npmjs.com/cli/v11/commands/npm-dist-tag), [Yarn npm tag](https://yarnpkg.com/cli/npm/tag/add), and [Yarn Classic tag](https://classic.yarnpkg.com/en/docs/cli/tag).
+For native options, see [npm dist-tag](https://docs.npmjs.com/cli/v11/commands/npm-dist-tag), [pnpm dist-tag](https://pnpm.io/cli/dist-tag), [Yarn npm tag list](https://yarnpkg.com/cli/npm/tag/list), [Yarn npm tag add](https://yarnpkg.com/cli/npm/tag/add), [Yarn npm tag remove](https://yarnpkg.com/cli/npm/tag/remove), and [Yarn Classic tag](https://classic.yarnpkg.com/en/docs/cli/tag). The upstream commands may expose additional options not accepted by this Vite+ interface.

@@ -24,4 +24,4 @@ Review and commit the patch and any manifest or lockfile changes produced by the
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm commands](https://docs.npmjs.com/cli/v12/commands), [pnpm patch-commit](https://pnpm.io/cli/patch-commit), [Yarn patch-commit](https://yarnpkg.com/cli/patch-commit), and [Bun patch](https://bun.com/docs/pm/cli/patch).
+For native options, see [npm patch commit](https://docs.npmjs.com/cli/v12/commands/npm-patch), [pnpm patch-commit](https://pnpm.io/cli/patch-commit), [Yarn patch-commit](https://yarnpkg.com/cli/patch-commit), and [Bun patch --commit](https://bun.com/docs/pm/cli/patch). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

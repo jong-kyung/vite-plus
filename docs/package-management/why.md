@@ -52,4 +52,4 @@ The dependency graph does not include tools Vite+ bundles or compiles. For reada
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm explain](https://docs.npmjs.com/cli/v11/commands/npm-explain), [pnpm why](https://pnpm.io/cli/why), [Yarn why](https://yarnpkg.com/cli/why), [Yarn Classic why](https://classic.yarnpkg.com/en/docs/cli/why), and [Bun why](https://bun.com/docs/pm/cli/why).
+For native options, see [npm explain](https://docs.npmjs.com/cli/v11/commands/npm-explain), [pnpm why](https://pnpm.io/cli/why), [Yarn why](https://yarnpkg.com/cli/why), [Yarn Classic why](https://classic.yarnpkg.com/en/docs/cli/why), and [Bun why](https://bun.com/docs/pm/cli/why). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

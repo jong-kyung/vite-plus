@@ -31,4 +31,4 @@ Authentication prompts and credential storage belong to the native command. pnpm
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm login](https://docs.npmjs.com/cli/v11/commands/npm-login), [Yarn npm login](https://yarnpkg.com/cli/npm/login), and [Yarn Classic login](https://classic.yarnpkg.com/en/docs/cli/login).
+For native options, see [npm login](https://docs.npmjs.com/cli/v11/commands/npm-login), [pnpm login](https://pnpm.io/cli/login), [Yarn npm login](https://yarnpkg.com/cli/npm/login), and [Yarn Classic login](https://classic.yarnpkg.com/en/docs/cli/login). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

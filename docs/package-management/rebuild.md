@@ -28,4 +28,4 @@ On npm 12, [approving a dependency's scripts](./approve-builds) records policy b
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm rebuild](https://docs.npmjs.com/cli/v11/commands/npm-rebuild), [pnpm rebuild](https://pnpm.io/cli/rebuild), and [Yarn rebuild](https://yarnpkg.com/cli/rebuild).
+For native options, see [npm rebuild](https://docs.npmjs.com/cli/v11/commands/npm-rebuild), [pnpm rebuild](https://pnpm.io/cli/rebuild), and [Yarn rebuild](https://yarnpkg.com/cli/rebuild). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

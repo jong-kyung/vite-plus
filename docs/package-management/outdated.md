@@ -57,4 +57,4 @@ Native output and exit codes differ. A nonzero exit can indicate outdated depend
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm outdated](https://docs.npmjs.com/cli/v11/commands/npm-outdated), [pnpm outdated](https://pnpm.io/cli/outdated), [Yarn upgrade-interactive](https://yarnpkg.com/cli/upgrade-interactive), [Yarn Classic outdated](https://classic.yarnpkg.com/en/docs/cli/outdated), and [Bun outdated](https://bun.com/docs/pm/cli/outdated).
+For native options, see [npm outdated](https://docs.npmjs.com/cli/v11/commands/npm-outdated), [pnpm outdated](https://pnpm.io/cli/outdated), [Yarn upgrade-interactive](https://yarnpkg.com/cli/upgrade-interactive), [Yarn Classic outdated](https://classic.yarnpkg.com/en/docs/cli/outdated), and [Bun outdated](https://bun.com/docs/pm/cli/outdated). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

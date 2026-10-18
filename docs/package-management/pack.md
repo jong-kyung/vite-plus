@@ -37,4 +37,4 @@ vp pm pack --pack-destination ./artifacts
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm pack](https://docs.npmjs.com/cli/v11/commands/npm-pack), [pnpm pack](https://pnpm.io/cli/pack), [Yarn pack](https://yarnpkg.com/cli/pack), [Yarn Classic pack](https://classic.yarnpkg.com/en/docs/cli/pack), and [Bun pm](https://bun.com/docs/pm/cli/pm).
+For native options, see [npm pack](https://docs.npmjs.com/cli/v11/commands/npm-pack), [pnpm pack](https://pnpm.io/cli/pack), [Yarn pack](https://yarnpkg.com/cli/pack), [Yarn Classic pack](https://classic.yarnpkg.com/en/docs/cli/pack), and [Bun pm pack](https://bun.com/docs/pm/cli/pm). To pass these options through Vite+, see [Native Arguments](./#native-arguments).

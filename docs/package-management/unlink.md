@@ -30,4 +30,4 @@ Vite+ forwards a basic unlink request to the selected manager, so unsupported na
 
 ## Native Options
 
-See [Native Arguments](./#native-arguments). References: [npm unlink](https://docs.npmjs.com/cli/v11/commands/npm-uninstall), [pnpm unlink](https://pnpm.io/cli/unlink), [Yarn unlink](https://yarnpkg.com/cli/unlink), [Yarn Classic unlink](https://classic.yarnpkg.com/en/docs/cli/unlink), and [Bun link and unlink](https://bun.com/docs/pm/cli/link).
+For native options, see [npm unlink](https://docs.npmjs.com/cli/v11/commands/npm-uninstall), [pnpm unlink](https://pnpm.io/cli/unlink), [Yarn unlink](https://yarnpkg.com/cli/unlink), [Yarn Classic unlink](https://classic.yarnpkg.com/en/docs/cli/unlink), and [Bun unlink](https://bun.com/docs/pm/cli/link). To pass these options through Vite+, see [Native Arguments](./#native-arguments).
