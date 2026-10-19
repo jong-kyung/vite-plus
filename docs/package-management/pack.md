@@ -28,10 +28,10 @@ vp pm pack --pack-destination ./artifacts
 
 | Option                                  | npm | pnpm | Yarn Classic | Yarn Modern | Bun | Notes                                |
 | --------------------------------------- | --- | ---- | ------------ | ----------- | --- | ------------------------------------ |
-| `-r, --recursive`                       | Yes | Yes  | No           | Yes         | No  |                                      |
-| `--filter <pattern>`                    | Yes | Yes  | No           | Yes         | No  |                                      |
+| `-r, --recursive`                       | 7.9.0 or later | 10.11.0 or later | No           | Yes         | No  |                                      |
+| `--filter <pattern>`                    | 7.9.0 or later | 10.11.0 or later | No           | Yes         | No  |                                      |
 | `--out <out>`                           | No  | Yes  | Yes          | Yes         | Yes |                                      |
-| `--pack-destination <pack-destination>` | Yes | Yes  | No           | No          | Yes | Vite+ creates the directory for npm. |
+| `--pack-destination <pack-destination>` | 7.18.0 or later | Yes  | No           | No          | Yes | Vite+ creates the directory for npm. |
 | `--pack-gzip-level <pack-gzip-level>`   | No  | Yes  | No           | No          | Yes |                                      |
 | `--json`                                | Yes | Yes  | Yes          | Yes         | No  |                                      |
 

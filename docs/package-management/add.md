@@ -58,10 +58,10 @@ The commands below describe project operations. Global mode is described under [
 | `--save-peer`                | Yes | Yes  | Yes          | Yes         | Yes            |                                                    |
 | `-O, --save-optional`        | Yes | Yes  | Yes          | Yes         | Yes            |                                                    |
 | `-E, --save-exact`           | Yes | Yes  | Yes          | Yes         | Yes            |                                                    |
-| `--save-catalog-name <name>` | No  | Yes  | No           | No          | 1.4 or later   |                                                    |
-| `--save-catalog`             | No  | Yes  | No           | No          | 1.4 or later   |                                                    |
-| `--allow-build <names>`      | No  | Yes  | No           | No          | No             |                                                    |
-| `--ignore-scripts`           | Yes | Yes  | Yes          | Yes         | Yes            | On Yarn Modern, lockfile-only mode takes priority. |
+| `--save-catalog-name <name>` | No  | 10.12.0 or later | No           | No          | 1.4 or later   |                                                    |
+| `--save-catalog`             | No  | 10.12.0 or later | No           | No          | 1.4 or later   |                                                    |
+| `--allow-build <names>`      | No  | 10.4.0 or later | No           | No          | No             |                                                    |
+| `--ignore-scripts`           | Yes | Yes  | Yes          | 3 or later  | Yes            | On Yarn Modern, lockfile-only mode takes priority. |
 | `--no-optional`              | Yes | Yes  | Yes          | No          | Yes            |                                                    |
 | `--frozen-lockfile`          | No  | No   | Yes          | No          | Yes            |                                                    |
 | `--no-frozen-lockfile`       | No  | No   | No           | No          | Yes            |                                                    |
@@ -72,8 +72,8 @@ The commands below describe project operations. Global mode is described under [
 | `--no-lockfile`              | Yes | Yes  | Yes          | No          | No             |                                                    |
 | `--shamefully-hoist`         | No  | Yes  | No           | No          | No             |                                                    |
 | `--silent`                   | Yes | Yes  | Yes          | No          | Yes            |                                                    |
-| `--filter <pattern>`         | Yes | Yes  | No           | Yes         | 1.4 or later   |                                                    |
-| `-w, --workspace-root`       | Yes | Yes  | Yes          | No          | No             |                                                    |
+| `--filter <pattern>`         | 7.14.0 or later | Yes  | No           | Yes         | 1.4 or later   |                                                    |
+| `-w, --workspace-root`       | 8.1.0 or later | Yes  | Yes          | No          | No             |                                                    |
 | `--workspace`                | No  | Yes  | No           | No          | No             |                                                    |
 | `-g, --global`               | Yes | Yes  | Yes          | Yes         | Yes            |                                                    |
 | `--node <version>`           | Yes | Yes  | Yes          | Yes         | Yes            |                                                    |

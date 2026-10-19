@@ -38,15 +38,15 @@ vp why react --filter web
 | `--json`                  | Yes | Yes  | Yes          | Yes         | No  |                                        |
 | `--long`                  | No  | Yes  | No           | No          | No  |                                        |
 | `--parseable`             | No  | Yes  | No           | No          | No  |                                        |
-| `-r, --recursive`         | Yes | Yes  | No           | Yes         | No  |                                        |
-| `--filter <pattern>`      | Yes | Yes  | No           | No          | No  |                                        |
+| `-r, --recursive`         | 7.14.0 or later | Yes  | No           | Yes         | No  |                                        |
+| `--filter <pattern>`      | 7.14.0 or later | Yes  | No           | No          | No  |                                        |
 | `-w, --workspace-root`    | No  | Yes  | No           | No          | No  |                                        |
 | `-P, --prod`              | No  | Yes  | No           | No          | No  |                                        |
 | `-D, --dev`               | No  | Yes  | No           | No          | No  |                                        |
 | `--depth <depth>`         | No  | Yes  | No           | No          | Yes |                                        |
 | `--no-optional`           | No  | Yes  | No           | No          | No  |                                        |
 | `--exclude-peers`         | No  | Yes  | No           | Yes         | No  | Yarn Modern includes peers by default. |
-| `--find-by <finder_name>` | No  | Yes  | No           | No          | No  |                                        |
+| `--find-by <finder_name>` | No  | 10.16.0 or later | No           | No          | No  |                                        |
 
 The dependency graph does not include tools Vite+ bundles or compiles. For readable output, Vite+ shows a hint when it also provides the requested package. Use `vp toolchain [tool]` to inspect bundled tools.
 

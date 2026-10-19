@@ -48,9 +48,9 @@ The commands below describe project operations. Global mode is described under [
 | `--no-optional`           | Yes | Yes  | No           | No          | No  |       |
 | `--exclude-peers`         | Yes | Yes  | No           | No          | No  |       |
 | `--only-projects`         | No  | Yes  | No           | No          | No  |       |
-| `--find-by <finder_name>` | No  | Yes  | No           | No          | No  |       |
-| `-r, --recursive`         | Yes | Yes  | No           | No          | No  |       |
-| `--filter <pattern>`      | Yes | Yes  | No           | No          | No  |       |
+| `--find-by <finder_name>` | No  | 10.16.0 or later | No           | No          | No  |       |
+| `-r, --recursive`         | 7.14.0 or later | Yes  | No           | No          | No  |       |
+| `--filter <pattern>`      | 7.14.0 or later | Yes  | No           | No          | No  |       |
 | `-g, --global`            | Yes | Yes  | Yes          | Yes         | Yes |       |
 
 These results describe installed packages, not Vite+'s bundled tools. Use `vp toolchain [tool]` to inspect bundled Vite, Rolldown, Oxc, and other tool versions.

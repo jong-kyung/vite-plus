@@ -45,13 +45,13 @@ The commands below describe project operations. Global mode is described under [
 | `--concurrency <number>`    | Yes              | Yes  | Yes          | Yes                          | Yes          |       |
 | `--reinstall-node-mismatch` | Yes              | Yes  | Yes          | Yes                          | Yes          |       |
 | `--ignore-node-mismatch`    | Yes              | Yes  | Yes          | Yes                          | Yes          |       |
-| `-r, --recursive`           | Yes              | Yes  | No           | Yes                          | Yes          |       |
-| `--filter <pattern>`        | Yes              | Yes  | One filter   | No                           | 1.4 or later |       |
-| `-w, --workspace-root`      | Yes              | Yes  | No           | No                           | No           |       |
+| `-r, --recursive`           | 8.1.0 or later   | Yes  | No           | Yes                          | 1.4 or later |       |
+| `--filter <pattern>`        | 7.14.0 or later  | Yes  | One filter   | No                           | 1.4 or later |       |
+| `-w, --workspace-root`      | 8.1.0 or later   | Yes  | No           | No                           | No           |       |
 | `-D, --dev`                 | Yes              | Yes  | No           | No                           | 1.4 or later |       |
-| `-P, --prod`                | Yes              | Yes  | Yes          | No                           | Yes          |       |
+| `-P, --prod`                | Yes              | Yes  | Yes          | No                           | 1.4 or later |       |
 | `-i, --interactive`         | No               | Yes  | Yes          | Yes                          | Yes          |       |
-| `--no-optional`             | Yes              | Yes  | Yes          | No                           | Yes          |       |
+| `--no-optional`             | Yes              | Yes  | Yes          | No                           | 1.4 or later |       |
 | `--no-save`                 | Yes              | Yes  | No           | --recursive without --latest | Yes          |       |
 | `--workspace`               | No               | Yes  | No           | No                           | No           |       |
 

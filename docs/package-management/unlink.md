@@ -24,7 +24,7 @@ An optional package name or directory is forwarded to the manager. `-r, --recurs
 
 | Option            | npm | pnpm | Yarn Classic | Yarn Modern | Bun | Notes                            |
 | ----------------- | --- | ---- | ------------ | ----------- | --- | -------------------------------- |
-| `-r, --recursive` | Yes | Yes  | No           | 3 or later  | No  | npm includes the workspace root. |
+| `-r, --recursive` | 8.1.0 or later | Yes  | No           | 3 or later  | No  | npm includes the workspace root. |
 
 Vite+ forwards a basic unlink request to the selected manager, so unsupported native versions can fail. Operand and manifest-update behavior follow the native manager. This does not remove packages from Vite+'s [global store](./global-packages).
 

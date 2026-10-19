@@ -36,9 +36,9 @@ The commands below describe project operations. Global mode is described under [
 | `-D, --save-dev`       | Yes | Yes  | No           | No          | No           |                                  |
 | `-O, --save-optional`  | Yes | Yes  | No           | No          | No           |                                  |
 | `-P, --save-prod`      | Yes | Yes  | No           | No          | No           |                                  |
-| `--filter <pattern>`   | Yes | Yes  | One filter   | Yes         | 1.4 or later |                                  |
-| `-w, --workspace-root` | Yes | Yes  | No           | No          | No           |                                  |
-| `-r, --recursive`      | Yes | Yes  | No           | Yes         | No           | npm includes the workspace root. |
+| `--filter <pattern>`   | 7.14.0 or later | Yes  | One filter   | Yes         | 1.4 or later |                                  |
+| `-w, --workspace-root` | 8.1.0 or later | Yes  | No           | No          | No           |                                  |
+| `-r, --recursive`      | 8.1.0 or later | Yes  | No           | Yes         | No           | npm includes the workspace root. |
 | `-g, --global`         | Yes | Yes  | Yes          | Yes         | Yes          |                                  |
 | `--dry-run`            | Yes | Yes  | Yes          | Yes         | Yes          |                                  |
 
