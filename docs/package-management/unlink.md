@@ -22,8 +22,8 @@ An optional package name or directory is forwarded to the manager. `-r, --recurs
 - **Yarn Modern:** 3 or later: `yarn unlink`. Yarn 2 fails natively.
 - **Bun:** `bun unlink`.
 
-| Option            | npm | pnpm | Yarn Classic | Yarn Modern | Bun | Notes                            |
-| ----------------- | --- | ---- | ------------ | ----------- | --- | -------------------------------- |
+| Option            | npm            | pnpm | Yarn Classic | Yarn Modern | Bun | Notes                            |
+| ----------------- | -------------- | ---- | ------------ | ----------- | --- | -------------------------------- |
 | `-r, --recursive` | 8.1.0 or later | Yes  | No           | 3 or later  | No  | npm includes the workspace root. |
 
 Vite+ forwards a basic unlink request to the selected manager, so unsupported native versions can fail. Operand and manifest-update behavior follow the native manager. This does not remove packages from Vite+'s [global store](./global-packages).

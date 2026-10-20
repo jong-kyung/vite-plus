@@ -41,8 +41,8 @@ The commands below describe project operations. Global mode is described under [
 | `--long`                       | Yes               | Yes               | No           | No          | No  |       |
 | `--format <table\|list\|json>` | table, list, json | table, list, json | table, json  | No          | No  |       |
 | `-r, --recursive`              | Yes               | Yes               | No           | No          | Yes |       |
-| `--filter <pattern>`           | 7.14.0 or later    | Yes               | No           | No          | Yes |       |
-| `-w, --workspace-root`         | 8.1.0 or later     | Yes               | No           | No          | No  |       |
+| `--filter <pattern>`           | 7.14.0 or later   | Yes               | No           | No          | Yes |       |
+| `-w, --workspace-root`         | 8.1.0 or later    | Yes               | No           | No          | No  |       |
 | `-P, --prod`                   | Yes               | Yes               | No           | No          | Yes |       |
 | `-D, --dev`                    | Yes               | Yes               | No           | No          | No  |       |
 | `--no-optional`                | Yes               | Yes               | No           | No          | Yes |       |

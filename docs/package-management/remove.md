@@ -31,16 +31,16 @@ The commands below describe project operations. Global mode is described under [
 - **Yarn Modern:** `yarn remove`.
 - **Bun:** `bun remove`.
 
-| Option                 | npm | pnpm | Yarn Classic | Yarn Modern | Bun          | Notes                            |
-| ---------------------- | --- | ---- | ------------ | ----------- | ------------ | -------------------------------- |
-| `-D, --save-dev`       | Yes | Yes  | No           | No          | No           |                                  |
-| `-O, --save-optional`  | Yes | Yes  | No           | No          | No           |                                  |
-| `-P, --save-prod`      | Yes | Yes  | No           | No          | No           |                                  |
+| Option                 | npm             | pnpm | Yarn Classic | Yarn Modern | Bun          | Notes                            |
+| ---------------------- | --------------- | ---- | ------------ | ----------- | ------------ | -------------------------------- |
+| `-D, --save-dev`       | Yes             | Yes  | No           | No          | No           |                                  |
+| `-O, --save-optional`  | Yes             | Yes  | No           | No          | No           |                                  |
+| `-P, --save-prod`      | Yes             | Yes  | No           | No          | No           |                                  |
 | `--filter <pattern>`   | 7.14.0 or later | Yes  | One filter   | Yes         | 1.4 or later |                                  |
-| `-w, --workspace-root` | 8.1.0 or later | Yes  | No           | No          | No           |                                  |
-| `-r, --recursive`      | 8.1.0 or later | Yes  | No           | Yes         | No           | npm includes the workspace root. |
-| `-g, --global`         | Yes | Yes  | Yes          | Yes         | Yes          |                                  |
-| `--dry-run`            | Yes | Yes  | Yes          | Yes         | Yes          |                                  |
+| `-w, --workspace-root` | 8.1.0 or later  | Yes  | No           | No          | No           |                                  |
+| `-r, --recursive`      | 8.1.0 or later  | Yes  | No           | Yes         | No           | npm includes the workspace root. |
+| `-g, --global`         | Yes             | Yes  | Yes          | Yes         | Yes          |                                  |
+| `--dry-run`            | Yes             | Yes  | Yes          | Yes         | Yes          |                                  |
 
 ## Native Options
 

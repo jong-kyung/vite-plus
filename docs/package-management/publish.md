@@ -33,20 +33,20 @@ vp pm publish ./package.tgz
 - **Yarn Modern:** `yarn npm publish` for the active workspace. Explicit tarball or folder targets are rejected.
 - **Bun:** `bun publish`.
 
-| Option                          | npm | pnpm | Yarn Classic    | Yarn Modern    | Bun | Notes |
-| ------------------------------- | --- | ---- | --------------- | -------------- | --- | ----- |
-| `--dry-run`                     | 5.10.0 or later | Yes  | No              | 4.9.3 or later | Yes |       |
-| `--tag <tag>`                   | Yes | Yes  | Yes             | Yes            | Yes |       |
-| `--access <public\|restricted>` | Yes | Yes  | Yes             | Yes            | Yes |       |
-| `--otp <otp>`                   | Yes | Yes  | 1.12.1 or later | 3.2.0 or later | Yes |       |
-| `--no-git-checks`               | No  | Yes  | No              | No             | No  |       |
-| `--publish-branch <branch>`     | No  | Yes  | No              | No             | No  |       |
-| `--report-summary`              | No  | Yes  | No              | No             | No  |       |
-| `--provenance`                  | 9.5.0 or later | Yes  | No              | 4.9.0 or later | No  |       |
-| `--force`                       | Yes | Yes  | No              | No             | No  |       |
-| `--json`                        | Yes | Before 11.0.0 or 11.0.7 and later | Yes             | 4.9.3 or later | No  |       |
-| `-r, --recursive`               | 7.13.0 or later | Yes  | No              | No             | No  |       |
-| `--filter <pattern>`            | 7.13.0 or later | Yes  | No              | No             | No  |       |
+| Option                          | npm             | pnpm                              | Yarn Classic    | Yarn Modern    | Bun | Notes |
+| ------------------------------- | --------------- | --------------------------------- | --------------- | -------------- | --- | ----- |
+| `--dry-run`                     | 5.10.0 or later | Yes                               | No              | 4.9.3 or later | Yes |       |
+| `--tag <tag>`                   | Yes             | Yes                               | Yes             | Yes            | Yes |       |
+| `--access <public\|restricted>` | Yes             | Yes                               | Yes             | Yes            | Yes |       |
+| `--otp <otp>`                   | Yes             | Yes                               | 1.12.1 or later | 3.2.0 or later | Yes |       |
+| `--no-git-checks`               | No              | Yes                               | No              | No             | No  |       |
+| `--publish-branch <branch>`     | No              | Yes                               | No              | No             | No  |       |
+| `--report-summary`              | No              | Yes                               | No              | No             | No  |       |
+| `--provenance`                  | 9.5.0 or later  | Yes                               | No              | 4.9.0 or later | No  |       |
+| `--force`                       | Yes             | Yes                               | No              | No             | No  |       |
+| `--json`                        | Yes             | Before 11.0.0 or 11.0.7 and later | Yes             | 4.9.3 or later | No  |       |
+| `-r, --recursive`               | 7.13.0 or later | Yes                               | No              | No             | No  |       |
+| `--filter <pattern>`            | 7.13.0 or later | Yes                               | No              | No             | No  |       |
 
 Yarn publishing uses Yarn's registry configuration and credentials. Unsupported targets and workspace selection cause an error rather than falling back to npm. Native publish failures are not retried through npm.
 

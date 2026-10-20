@@ -37,21 +37,21 @@ The commands below describe project operations. Global mode is described under [
 - **Yarn Modern:** No command. Warns and exits successfully without performing the operation.
 - **Bun:** `bun pm ls`.
 
-| Option                    | npm | pnpm | Yarn Classic | Yarn Modern | Bun | Notes |
-| ------------------------- | --- | ---- | ------------ | ----------- | --- | ----- |
-| `--depth <depth>`         | Yes | Yes  | Yes          | No          | No  |       |
-| `--json`                  | Yes | Yes  | Yes          | No          | No  |       |
-| `--long`                  | Yes | Yes  | No           | No          | No  |       |
-| `--parseable`             | Yes | Yes  | No           | No          | No  |       |
-| `-P, --prod`              | Yes | Yes  | Yes          | No          | No  |       |
-| `-D, --dev`               | Yes | Yes  | Yes          | No          | No  |       |
-| `--no-optional`           | Yes | Yes  | No           | No          | No  |       |
-| `--exclude-peers`         | Yes | Yes  | No           | No          | No  |       |
-| `--only-projects`         | No  | Yes  | No           | No          | No  |       |
-| `--find-by <finder_name>` | No  | 10.16.0 or later | No           | No          | No  |       |
-| `-r, --recursive`         | 7.14.0 or later | Yes  | No           | No          | No  |       |
-| `--filter <pattern>`      | 7.14.0 or later | Yes  | No           | No          | No  |       |
-| `-g, --global`            | Yes | Yes  | Yes          | Yes         | Yes |       |
+| Option                    | npm             | pnpm             | Yarn Classic | Yarn Modern | Bun | Notes |
+| ------------------------- | --------------- | ---------------- | ------------ | ----------- | --- | ----- |
+| `--depth <depth>`         | Yes             | Yes              | Yes          | No          | No  |       |
+| `--json`                  | Yes             | Yes              | Yes          | No          | No  |       |
+| `--long`                  | Yes             | Yes              | No           | No          | No  |       |
+| `--parseable`             | Yes             | Yes              | No           | No          | No  |       |
+| `-P, --prod`              | Yes             | Yes              | Yes          | No          | No  |       |
+| `-D, --dev`               | Yes             | Yes              | Yes          | No          | No  |       |
+| `--no-optional`           | Yes             | Yes              | No           | No          | No  |       |
+| `--exclude-peers`         | Yes             | Yes              | No           | No          | No  |       |
+| `--only-projects`         | No              | Yes              | No           | No          | No  |       |
+| `--find-by <finder_name>` | No              | 10.16.0 or later | No           | No          | No  |       |
+| `-r, --recursive`         | 7.14.0 or later | Yes              | No           | No          | No  |       |
+| `--filter <pattern>`      | 7.14.0 or later | Yes              | No           | No          | No  |       |
+| `-g, --global`            | Yes             | Yes              | Yes          | Yes         | Yes |       |
 
 These results describe installed packages, not Vite+'s bundled tools. Use `vp toolchain [tool]` to inspect bundled Vite, Rolldown, Oxc, and other tool versions.
 
