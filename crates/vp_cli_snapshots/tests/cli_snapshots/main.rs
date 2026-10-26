@@ -17,6 +17,7 @@
 #[path = "../../src/bin/vpt/exit_code.rs"]
 mod exit_code;
 mod flavor;
+mod prewarm;
 mod redact;
 mod registry_pack;
 mod report;
@@ -389,6 +390,9 @@ struct Case {
     /// Keep registry request counters private for tests of metadata caching.
     #[serde(default, rename = "isolated-registry")]
     isolated_registry: bool,
+    /// Disable archive preparation for fake installations and configuration-only cases.
+    #[serde(default = "default_true", rename = "prewarm-bun")]
+    prewarm_bun: bool,
     /// Seed the case's `VP_HOME` with an already-provisioned managed JS
     /// runtime (see `flavor::js_runtime_seed_dir`). Default true; runtime
     /// provisioning tests set false to start from a genuinely empty home.
@@ -692,8 +696,15 @@ impl CaseHome {
         let bin_dir = package_dir.join("bin");
         std::fs::create_dir_all(shim_dir)
             .map_err(|e| format!("failed to create local package shim dir: {e}"))?;
-        for name in ["vp", "vpr", "oxfmt", "oxlint"] {
-            let script = bin_dir.join(name);
+        // One shim per file in `bin/`, as Unix flavors put the whole directory on PATH.
+        let entries = std::fs::read_dir(&bin_dir)
+            .map_err(|e| format!("failed to read local package bin dir: {e}"))?;
+        for entry in entries {
+            let script =
+                entry.map_err(|e| format!("failed to read local package bin dir: {e}"))?.path();
+            let Some(name) = script.file_name().and_then(|name| name.to_str()) else {
+                continue;
+            };
             if !script.is_file() {
                 continue;
             }
@@ -739,6 +750,12 @@ impl CaseHome {
             // to the real user's persistent PATH. Case commands do not
             // inherit this override, so self-setup fixtures retain coverage.
             .env("VP_SELF_SETUP_NO_MODIFY_PATH", "1")
+            // The checkout package is already installed in this home. Without
+            // this, a build with no `vp-install-lock.yaml` beside it looks up
+            // its own version's platform package on npm, which does not exist
+            // on a release branch before publishing. Case commands do not
+            // inherit this override either.
+            .env("VP_SKIP_DEPS_INSTALL", "1")
             .output()
             .map_err(|e| format!("failed to run first-start setup: {e}"))?;
         if output.status.success() {
@@ -1959,6 +1976,9 @@ fn main() {
 
     let mut tests: Vec<libtest_mimic::Trial> = Vec::new();
     let mut isolated_trials = BTreeSet::new();
+    let prewarm_manifest =
+        args.list.then(|| std::env::var_os("VP_SNAP_PREWARM_MANIFEST")).flatten();
+    let mut bun_prewarm = prewarm::BunPrewarm::default();
     for fixture_path in fixture_paths {
         let fixture_path: Arc<Path> = Arc::from(fixture_path.as_path());
         let fixture_name: Arc<str> = Arc::from(fixture_path.file_name().unwrap().to_str().unwrap());
@@ -1994,6 +2014,24 @@ fn main() {
                 let ignored = case.ignore
                     || required_tool_missing
                     || (case.local_registry && !local_build_present);
+                if prewarm_manifest.is_some() && !ignored && case.prewarm_bun {
+                    bun_prewarm
+                        .env(case.env.iter().map(|(key, value)| (key.as_str(), value.as_str())));
+                    bun_prewarm.workspace(&fixture_path, &case.cwd).unwrap_or_else(|error| {
+                        panic!("failed to read prewarm inputs for {trial_name}: {error}")
+                    });
+                    for step in case.steps.iter().chain(&case.after) {
+                        bun_prewarm
+                            .workspace(&fixture_path, step.cwd.as_deref().unwrap_or(&case.cwd))
+                            .unwrap_or_else(|error| {
+                                panic!("failed to read prewarm inputs for {trial_name}: {error}")
+                            });
+                        bun_prewarm.env(
+                            step.envs.iter().map(|(key, value)| (key.as_str(), value.as_str())),
+                        );
+                        bun_prewarm.step(&step.argv);
+                    }
+                }
                 let isolated = case_needs_isolation(&case);
                 if isolated {
                     isolated_trials.insert(trial_name.clone());
@@ -2071,6 +2109,13 @@ fn main() {
                 );
             }
         }
+    }
+
+    if let Some(path) = prewarm_manifest {
+        let urls = bun_prewarm.urls(&prewarm::platform_package());
+        std::fs::write(&path, serde_json::to_vec_pretty(&urls).unwrap()).unwrap_or_else(|error| {
+            panic!("failed to write prewarm manifest {}: {error}", Path::new(&path).display())
+        });
     }
 
     if args.list
