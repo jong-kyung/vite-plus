@@ -686,6 +686,13 @@ mod tests {
 
         for (versions, command, option, expected_option, message) in [
             (
+                ["7.20.0", "7.21.0-beta.1", "7.21.0"],
+                vec!["dlx", "create-vue"],
+                vec!["--shell-mode"],
+                "-c",
+                "pnpm < 7.21.0 does not support --shell-mode.",
+            ),
+            (
                 ["9.15.9", "10.0.0-beta.1", "10.0.0"],
                 vec!["pm", "pack"],
                 vec!["--out", "package.tgz"],
@@ -708,7 +715,8 @@ mod tests {
             ),
         ] {
             let mut argv = command.clone();
-            argv.splice(2..2, option);
+            let option_index = if command[0] == "pm" { 2 } else { 1 };
+            argv.splice(option_index..option_index, option);
             for version in &versions[..2] {
                 let manager = package_manager(PackageManagerType::Pnpm, version);
                 let base = parse(&command).unwrap().resolve_for_manager(&manager).unwrap();
