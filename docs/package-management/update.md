@@ -49,7 +49,7 @@ The commands below describe project operations. Global mode is described under [
 | `--filter <pattern>`        | 7.14.0 or later  | Yes  | One filter   | No                           | 1.4 or later |       |
 | `-w, --workspace-root`      | 8.1.0 or later   | Yes  | No           | No                           | No           |       |
 | `-D, --dev`                 | Yes              | Yes  | No           | No                           | 1.4 or later |       |
-| `-P, --prod`                | Yes              | Yes  | Yes          | No                           | 1.4 or later |       |
+| `-P, --prod`                | 7 or later       | Yes  | Yes          | No                           | 1.4 or later |       |
 | `-i, --interactive`         | No               | Yes  | Yes          | Yes                          | Yes          |       |
 | `--no-optional`             | Yes              | Yes  | Yes          | No                           | 1.4 or later |       |
 | `--no-save`                 | Yes              | Yes  | No           | --recursive without --latest | Yes          |       |

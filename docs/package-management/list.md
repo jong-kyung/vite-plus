@@ -43,10 +43,10 @@ The commands below describe project operations. Global mode is described under [
 | `--json`                  | Yes             | Yes              | Yes          | No          | No  |       |
 | `--long`                  | Yes             | Yes              | No           | No          | No  |       |
 | `--parseable`             | Yes             | Yes              | No           | No          | No  |       |
-| `-P, --prod`              | Yes             | Yes              | Yes          | No          | No  |       |
+| `-P, --prod`              | Yes             | Yes              | Yes          | No          | No  | npm 6 uses `--production`, which also excludes peer dependencies. |
 | `-D, --dev`               | Yes             | Yes              | Yes          | No          | No  |       |
-| `--no-optional`           | Yes             | Yes              | No           | No          | No  |       |
-| `--exclude-peers`         | Yes             | Yes              | No           | No          | No  |       |
+| `--no-optional`           | 7 or later      | Yes              | No           | No          | No  |       |
+| `--exclude-peers`         | 7 or later      | Yes              | No           | No          | No  |       |
 | `--only-projects`         | No              | Yes              | No           | No          | No  |       |
 | `--find-by <finder_name>` | No              | 10.16.0 or later | No           | No          | No  |       |
 | `-r, --recursive`         | 7.14.0 or later | Yes              | No           | No          | No  |       |

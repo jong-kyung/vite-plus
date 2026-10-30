@@ -40,12 +40,12 @@ The commands below describe project operations. Global mode is described under [
 | ------------------------------ | ----------------- | ----------------- | ------------ | ----------- | --- | ----- |
 | `--long`                       | Yes               | Yes               | No           | No          | No  |       |
 | `--format <table\|list\|json>` | table, list, json | table, list, json | table, json  | No          | No  |       |
-| `-r, --recursive`              | Yes               | Yes               | No           | No          | Yes |       |
+| `-r, --recursive`              | 7.14.0 or later   | Yes               | No           | No          | Yes | npm uses `--workspaces` to check workspaces, not transitive dependencies. |
 | `--filter <pattern>`           | 7.14.0 or later   | Yes               | No           | No          | Yes |       |
 | `-w, --workspace-root`         | 8.1.0 or later    | Yes               | No           | No          | No  |       |
-| `-P, --prod`                   | Yes               | Yes               | No           | No          | Yes |       |
+| `-P, --prod`                   | 7 or later        | Yes               | No           | No          | Yes |       |
 | `-D, --dev`                    | Yes               | Yes               | No           | No          | No  |       |
-| `--no-optional`                | Yes               | Yes               | No           | No          | Yes |       |
+| `--no-optional`                | 7 or later        | Yes               | No           | No          | Yes |       |
 | `--compatible`                 | No                | Yes               | No           | No          | No  |       |
 | `--sort-by <field>`            | No                | Yes               | No           | No          | No  |       |
 | `-g, --global`                 | Yes               | Yes               | Yes          | Yes         | Yes |       |

@@ -22,12 +22,12 @@ vp pm prune --prod
 - **Yarn Modern:** No command. Warns and exits successfully without performing the operation.
 - **Bun:** 1.4 or later: `bun prune`. Earlier versions warn and skip.
 
-| Option          | npm | pnpm | Yarn Classic | Yarn Modern | Bun          | Notes |
-| --------------- | --- | ---- | ------------ | ----------- | ------------ | ----- |
-| `--prod`        | Yes | Yes  | No           | No          | 1.4 or later |       |
-| `--no-optional` | Yes | Yes  | No           | No          | 1.4 or later |       |
+| Option          | npm        | pnpm | Yarn Classic | Yarn Modern | Bun          | Notes |
+| --------------- | ---------- | ---- | ------------ | ----------- | ------------ | ----- |
+| `--prod`        | Yes        | Yes  | No           | No          | 1.4 or later |       |
+| `--no-optional` | 7 or later | Yes  | No           | No          | 1.4 or later |       |
 
-npm translates selection flags to `--omit=dev` and `--omit=optional`. Bun translates `--prod` to `--production`. Yarn and older Bun remove extraneous packages during installation instead of providing a native prune command.
+npm 7 and later translate selection flags to `--omit=dev` and `--omit=optional`. npm 6 translates `--prod` to `--production` and does not support `--no-optional`. Bun translates `--prod` to `--production`. Yarn and older Bun remove extraneous packages during installation instead of providing a native prune command.
 
 ## Native Options
 
