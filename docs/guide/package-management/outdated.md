@@ -36,20 +36,20 @@ The commands below describe project operations. Global mode is described under [
 - **Yarn Modern:** Alternative: `yarn upgrade-interactive`.
 - **Bun:** `bun outdated`.
 
-| Option                         | npm               | pnpm              | Yarn Classic | Yarn Modern | Bun | Notes |
-| ------------------------------ | ----------------- | ----------------- | ------------ | ----------- | --- | ----- |
-| `--long`                       | Yes               | Yes               | No           | No          | No  |       |
-| `--format <table\|list\|json>` | table, list, json | table, list, json | table, json  | No          | No  |       |
+| Option                         | npm               | pnpm              | Yarn Classic | Yarn Modern | Bun | Notes                                                                     |
+| ------------------------------ | ----------------- | ----------------- | ------------ | ----------- | --- | ------------------------------------------------------------------------- |
+| `--long`                       | Yes               | Yes               | No           | No          | No  |                                                                           |
+| `--format <table\|list\|json>` | table, list, json | table, list, json | table, json  | No          | No  |                                                                           |
 | `-r, --recursive`              | 7.14.0 or later   | Yes               | No           | No          | Yes | npm uses `--workspaces` to check workspaces, not transitive dependencies. |
-| `--filter <pattern>`           | 7.14.0 or later   | Yes               | No           | No          | Yes |       |
-| `-w, --workspace-root`         | 8.1.0 or later    | Yes               | No           | No          | No  |       |
-| `-P, --prod`                   | 7 or later        | Yes               | No           | No          | Yes |       |
-| `-D, --dev`                    | Yes               | Yes               | No           | No          | No  |       |
-| `--no-optional`                | 7 or later        | Yes               | No           | No          | Yes |       |
-| `--compatible`                 | No                | Yes               | No           | No          | No  |       |
-| `--sort-by <field>`            | No                | Yes               | No           | No          | No  |       |
-| `-g, --global`                 | Yes               | Yes               | Yes          | Yes         | Yes |       |
-| `--concurrency <number>`       | Yes               | Yes               | Yes          | Yes         | Yes |       |
+| `--filter <pattern>`           | 7.14.0 or later   | Yes               | No           | No          | Yes |                                                                           |
+| `-w, --workspace-root`         | 8.1.0 or later    | Yes               | No           | No          | No  |                                                                           |
+| `-P, --prod`                   | 7 or later        | Yes               | No           | No          | Yes |                                                                           |
+| `-D, --dev`                    | Yes               | Yes               | No           | No          | No  |                                                                           |
+| `--no-optional`                | 7 or later        | Yes               | No           | No          | Yes |                                                                           |
+| `--compatible`                 | No                | Yes               | No           | No          | No  |                                                                           |
+| `--sort-by <field>`            | No                | Yes               | No           | No          | No  |                                                                           |
+| `-g, --global`                 | Yes               | Yes               | Yes          | Yes         | Yes |                                                                           |
+| `--concurrency <number>`       | Yes               | Yes               | Yes          | Yes         | Yes |                                                                           |
 
 Yarn Modern does not forward positional package names. Its interactive updater can change dependencies, unlike a read-only outdated query.
 
