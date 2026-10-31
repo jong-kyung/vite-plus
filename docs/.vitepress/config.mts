@@ -99,7 +99,7 @@ const guideSidebar = [
       },
       { text: 'Global Packages', link: '/guide/package-management/global-packages' },
       {
-        text: 'SubCommands',
+        text: 'Commands',
         collapsed: true,
         items: [
           { text: 'install', link: '/guide/package-management/install' },
